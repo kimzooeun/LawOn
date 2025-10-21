@@ -10,4 +10,10 @@ export function renderHome(root, navigate) {
   document.querySelector('#startChat').addEventListener('click', () => {
     navigate('/chat');
   });
+
+  // const backendUrl = import.meta.env.VITE_API_BASE_URL;
+  // const fastapiUrl = import.meta.env.VITE_FASTAPI_URL;
+
+  // console.log("Backend:", backendUrl);
+  // console.log("FastAPI:", fastapiUrl);
 }

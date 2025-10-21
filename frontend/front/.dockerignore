@@ -1,0 +1,15 @@
+# Node build files
+node_modules/
+dist/
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
