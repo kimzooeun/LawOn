@@ -1,0 +1,16 @@
+# Gradle build cache
+.gradle/
+build/
+out/
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# OS temp files
+Thumbs.db

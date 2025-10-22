@@ -1,0 +1,78 @@
+services:
+  frontend:
+    build: ./frontend/front
+    image: finalproject-frontend
+    ports:
+      - "3000:80"
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy   # 도커가 backend의 /actuator/health (Spring Boot 기본 헬스 체크) 에서
+                                     # “OK” 응답을 받을 때까지 기다렸다가 frontend를 시작
+
+
+  backend:
+    build: ./backend
+    image: finalproject-backend
+    ports:
+      - "${BACKEND_PORT}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - fastapi
+      - mysql
+      - redis
+
+
+  fastapi:
+    build: ./fastapi
+    image: finalproject-fastapi
+    ports:
+      - "${FASTAPI_PORT}:8000"
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
+
+    
