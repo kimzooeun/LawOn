@@ -3,7 +3,6 @@ import { renderFooter } from './components/footer.js';
 import { renderHome } from './pages/home.js';
 import { renderChat } from './pages/chat.js';
 import { renderMyPage } from './pages/mypage.js';
-import { renderCommunity } from './pages/community.js';
 import { renderInformation } from './pages/information.js';
 import { renderExpert } from './pages/expert.js';
 
@@ -22,7 +21,6 @@ function route() {
   else if (path === '/chat') renderChat(app, navigate);
   else if (path === '/mypage') renderMyPage(app, navigate);
   else if (path === '/information') renderInformation(app, navigate);
-  else if (path === '/community')  renderCommunity(app, navigate);
   else if (path === '/expert')  renderExpert(app, navigate);
 }
 
