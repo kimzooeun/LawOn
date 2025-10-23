@@ -67,8 +67,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+      TZ: Asia/Seoul
     ports:
-      - "3306:3306"
+      - "3307:3306"  # 로컬 3306 ↔ 컨테이너 3306
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql

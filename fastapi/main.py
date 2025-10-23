@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from dotenv import load_dotenv
-import os, uuid, whisper, uvicorn
+import os, uuid, whisper, uvicorn,sys
+import redis.asyncio as redis
 from fastapi.responses import JSONResponse, FileResponse
 from openai import OpenAI
 from gtts import gTTS
@@ -26,9 +27,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
+@app.on_event("startup")
+async def startaup_event():
+        # Redis 연결 객체를 앱 상태에 저장 (F) 
+        try:
+            app.state.redis = redis.from_url("redis://finalproject-redis:6379",decode_responses=True)
+            pong = await app.state.redis.ping()
+            if pong:
+                print("Redis 연결 성공 (pong = ", pong, ")")
+            else:
+                print("Redis 응답 오류. ")
+        except Exception as e:
+            print("error : " , e)
+            sys.exit(1)  # 연결 안 되면 FastAPI 실행 중단
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # 종료 시 연결 닫기
+    await app.state.redis.close()
+
+@app.get("/redis-test")
+async def redis_test():
+    await app.state.redis.set("test_key", "이혼상담심리 챗봇 Redis 테스트 해보는 중 ")
+    value = await app.state.redis.get("test_key")
+    return {"redis_value": value}
+
+
 @app.get("/health")
 def check_key():
     return {"message": "stt서버 돌아가는 중 "}  # 키 일부만 표시
+
+
 
 # 후에 whisper api를 끌고오게되면 아래와 같이 사용하면 됨 
 # @app.post("/stt")

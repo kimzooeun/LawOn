@@ -4,7 +4,8 @@ CREATE DATABASE IF NOT EXISTS lawcounsel_db
 
 USE lawcounsel_db;
 
-ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'princpleC';
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'principalC';
 FLUSH PRIVILEGES;
 
 -- 사용자 정보 테이블
