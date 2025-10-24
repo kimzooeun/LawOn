@@ -8,6 +8,14 @@ USE lawcounsel_db;
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'principalC';
 FLUSH PRIVILEGES;
 
+CREATE TABLE DivorceStageType (
+    stage_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    stage_code VARCHAR(50) NOT NULL UNIQUE,
+    stage_name VARCHAR(100) NOT NULL,
+    stage_description TEXT DEFAULT NULL,
+    order_index INT DEFAULT NULL
+);
+
 -- 사용자 정보 테이블
 CREATE TABLE Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -19,7 +27,7 @@ CREATE TABLE Users (
     emergency_contact VARCHAR(11) DEFAULT NULL,
     role ENUM('USER', 'ADMIN') DEFAULT 'USER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (divorce_stage_type_id) REFERENCES DivorceStageType(stage_type_id)
 );
 
@@ -100,13 +108,7 @@ CREATE TABLE CounsellingContent (
     FOREIGN KEY (related_stage_divorce_id) REFERENCES DivorceStage(stage_id)
 );
 
-CREATE TABLE DivorceStageType (
-    stage_type_id INT AUTO_INCREMENT PRIMARY KEY,
-    stage_code VARCHAR(50) NOT NULL UNIQUE,
-    stage_name VARCHAR(100) NOT NULL,
-    stage_description TEXT DEFAULT NULL,
-    order_index INT DEFAULT NULL
-);
+
 
 CREATE TABLE DivorceStage (
     stage_id INT AUTO_INCREMENT PRIMARY KEY,
