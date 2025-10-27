@@ -52,7 +52,6 @@ CREATE TABLE VoiceInteraction (
     voice_file_path VARCHAR(255),
     transcript_text TEXT,
     response_text TEXT,
-    intent VARCHAR(100),
     start_time DATETIME NOT NULL,
     end_time DATETIME,
     duration_ms INT GENERATED ALWAYS AS (TIMESTAMPDIFF(MICROSECOND, start_time, end_time) / 1000) STORED,  
