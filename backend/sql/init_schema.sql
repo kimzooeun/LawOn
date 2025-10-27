@@ -9,40 +9,15 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'principa
 FLUSH PRIVILEGES;
 SET FOREIGN_KEY_CHECKS=0;
 
-CREATE TABLE DivorceStageType (
-    stage_type_id INT AUTO_INCREMENT PRIMARY KEY,
-    stage_code VARCHAR(50) NOT NULL UNIQUE,
-    stage_name VARCHAR(100) NOT NULL,
-    stage_description TEXT DEFAULT NULL,
-    order_index INT DEFAULT NULL
-);
-
-CREATE TABLE DivorceStage (
-    stage_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT DEFAULT NULL,
-    stage_type_id INT NOT NULL COMMENT '현재 이혼 단계 (FK → DivorceStageType)',
-    stage_note TEXT DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL,
-    FOREIGN KEY (stage_type_id) REFERENCES DivorceStageType(stage_type_id) ON DELETE CASCADE
-);
-
-
 
 -- 사용자 정보 테이블
 CREATE TABLE Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     nickname VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    preferred_color ENUM('BLACK','PURPLE','WHITE','GREEN','ORANGE') DEFAULT 'PURPLE',
-    divorce_stage_type_id INT DEFAULT NULL,
-    personality_type VARCHAR(20) DEFAULT NULL,
-    emergency_contact VARCHAR(11) DEFAULT NULL,
     user_role ENUM('USER', 'ADMIN') DEFAULT 'USER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (divorce_stage_type_id) REFERENCES DivorceStageType(stage_type_id) ON DELETE SET NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 상담 세션 테이블
@@ -52,7 +27,6 @@ CREATE TABLE CounsellingSession (
     start_time  DATETIME NOT NULL,
     end_time DATETIME DEFAULT NULL,
     duration_sec INT GENERATED ALWAYS AS (TIMESTAMPDIFF(SECOND, start_time, end_time)) STORED, 
-    current_divorce_stage_id INT DEFAULT NULL,
     completion_status ENUM('ONGOING', 'PAUSED', 'COMPLETED', 'TIMEOUT', 'CANCELLED') DEFAULT 'ONGOING' NOT NULL, 
     last_message_time DATETIME DEFAULT NULL,           
     -- 마지막 사용자 or 챗봇 메시지 시각 → 타임아웃 판단 가능
@@ -66,8 +40,7 @@ CREATE TABLE CounsellingSession (
     -- LLM의 기억, 대화 요약, 감정 상태 같은 정보 JSON으로 저장 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL,
-    FOREIGN KEY (current_divorce_stage_id) REFERENCES DivorceStage(stage_id) ON DELETE SET NULL                                  
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL                           
 );
 
 
@@ -95,15 +68,13 @@ CREATE TABLE CounsellingContent (
     session_id INT DEFAULT NULL,
     sender ENUM('USER', 'BOT') NOT NULL,
     content TEXT NOT NULL,
-    related_stage_divorce_id INT DEFAULT NULL,
     is_divorce BOOLEAN DEFAULT NULL,
     divorce_category VARCHAR(100) DEFAULT NULL,
     emotion_label VARCHAR(50) DEFAULT NULL,
     alert_triggered BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (related_stage_divorce_id) REFERENCES DivorceStage(stage_id) ON DELETE SET NULL
+    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE
 );
 
 
