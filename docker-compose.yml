@@ -2,6 +2,7 @@ services:
   frontend:
     build: ./frontend/front
     image: finalproject-frontend
+    container_name: finalproject-front
     ports:
       - "3000:80"
     env_file:
@@ -16,35 +17,45 @@ services:
   backend:
     build: ./backend
     image: finalproject-backend
+    container_name: finalproject-backend
     ports:
       - "${BACKEND_PORT}:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 20s
       timeout: 10s
       retries: 10
       start_period: 60s
-
     env_file:
       - .env
     restart: always
     depends_on:
-      - fastapi
-      - mysql
-      - redis
+      fastapi:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 
   fastapi:
     build: ./fastapi
     image: finalproject-fastapi
+    container_name: finalproject-fastapi
     ports:
       - "${FASTAPI_PORT}:8000"
     env_file:
       - .env
     restart: always
     depends_on:
-      - mysql
-      - redis
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -53,26 +64,44 @@ services:
 
   mysql:
     image: mysql:8.0
+    container_name: finalproject-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+      TZ: Asia/Seoul
     ports:
-      - "3306:3306"
+      - "3307:3306"  # 로컬 3306 ↔ 컨테이너 3306
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7
+    command: redis-server --appendonly yes
+    container_name: finalproject-redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
   redis_data:
 
+networks: 
+  default: 
+    name: 
+      finalproject-network
     
