@@ -70,9 +70,7 @@ public class CounsellingSession {
 	 @UpdateTimestamp
 	 private LocalDateTime updatedAt;
 	 
-	 @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
-	 private List<VoiceInteraction> voiceInteractions = new ArrayList<>();
-	 
+	
 	 @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
 	 private List<CounsellingContent> contents = new ArrayList<>();
 	 

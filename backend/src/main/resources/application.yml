@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: backend
+
+  server:
+    port: ${BACKEND_PORT}
+
+  servlet:
+    multipart:
+      max-file-size: 250MB
+      max-request-size: 250MB
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none         # (update → none 으로 고정, MySQL일 때만 적용)
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        naming:
+          physical-strategy: com.prinCipal.chatbot.config.SnakeCaseNamingStrategy
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      client-type: lettuce
+      timeout: 3000ms
+      connect-timeout: 5000ms
+
+  cache:
+    type: redis
+
+  h2:
+    console:
+      enabled: false     # 실제 MySQL 사용 시 비활성화 
+      path: /h2-console
+
+
+# JWT 및 Security 관련 설정
+security:
+  jwt:
+    secret-key: ${JWT_SECRET}
+    access-token-validity: 3600000     # 1시간 (ms 단위)
+
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${GOOGLE_CLIENT_ID}
+          client-secret: ${GOOGLE_CLIENT_SECRET}
+          redirect-uri: http://localhost:8080/login/oauth2/code/google
+          scope: profile, email
+        kakao:
+          client-id: ${KAKAO_CLIENT_ID}
+          client-secret: ${KAKAO_CLIENT_SECRET}
+          redirect-uri: http://localhost:8080/auth/kakao/callback
+          authorization-grant-type: authorization_code
+          client-authentication-method: POST
+          scope: profile_nickname, account_email
+      provider: # OAuth2 제공자 정보(카카오 서버 URL 등)
+        kakao:
+          authorization-uri: https://kauth.kakao.com/oauth/authorize
+          token-uri: https://kauth.kakao.com/oauth/token
+          user-info-uri: https://kapi.kakao.com/v2/user/me
+          user-name-attribute: id
+
+# Redis queue key (fastapi ↔ spring 연결용)
+app:
+  redis:
+    queue-key: ${REDIS_QUEUE_KEY:chatlog_queue}
+
+# Health check, actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 8080
+  health:
+    redis:
+      enabled: false
