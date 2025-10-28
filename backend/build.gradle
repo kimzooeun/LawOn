@@ -24,6 +24,8 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// JUnit 테스트 프레임워크 관련 라이브러리
+	testImplementation 'org.junit.jupiter:junit-jupiter' 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   	compileOnly 'org.projectlombok:lombok' 
@@ -33,6 +35,26 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	
+	// 웹 서비스를 구축하는 데 필요한 핵심 라이브러리
+	implementation 'org.springframework.boot:spring-boot-starter-web-services'
+
+	// 개발 시 코드 변경을 감지하고 애플리케이션을 자동으로 다시 시작
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+		
+	// 사용자 입력 데이터의 유효성을 검사하는 데 필요한 라이브러리
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// 시큐리티
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	
+	// oauth2
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
 tasks.named('test') {

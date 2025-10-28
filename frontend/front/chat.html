@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>토닥토닥이 UI</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/black.png?v=2">
+  <link rel="stylesheet" href="/src/css/chat.css" />
+</head>
+<body>
+
+  <!-- 메인 컨테이너 -->
+  <div class="container" id="chat-container">
+    <!-- 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="collapse-btn" id="collapse-btn" aria-label="사이드바 접기">☰</button>
+        <div class="version-selector nav-text">토닥토닥이 2.0</div>
+      </div>
+
+      <button class="new-chat-btn" id="newChatBtn" title="새 채팅 시작">
+        <span>💗</span><span class="nav-text">새 채팅</span>
+      </button>
+
+      <button class="explore-btn" id="exploreBtn">
+        <span>✧</span><span class="nav-text">무슨 기능 필요할까?</span>
+      </button>
+
+      <nav class="recent-chats">
+        <div class="recent-header">
+          <h3 class="nav-text">최근</h3>
+        </div>
+        <ul id="recentList"></ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="footer-link" id="themeBtn" type="button">
+          <span>↻</span><span class="nav-text">테마 변경</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 채팅 영역(사이드바 옆에 평행 배치) -->
+    <section class="chat-area" id="chatArea" aria-live="polite">
+      <!-- 상단 헤더 -->
+      <header class="main-header">
+        <div class="user-controls">
+          <span class="nickname-chip" id="nicknameDisplay" title="마이페이지에서 변경">게스트</span>
+
+          <div class="menu" id="Menu" role="menu" aria-label="프로필 메뉴">
+            <div class="menu-group">
+              <a class="menu-item" role="menuitem" href="mypage.html">마이페이지</a>
+              <a class="menu-item" role="menuitem" href="#" id="btnSettings">설정</a>
+            </div>
+            <div class="menu-sep" aria-hidden="true"></div>
+            <div class="menu-group">
+              <a class="menu-item" role="menuitem" href="#" id="btnLogout">로그아웃</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 메시지 영역 -->
+      <div class="messages" id="messages"></div>
+
+      <!-- 입력창 -->
+      <div class="input-section">
+        <form class="input-wrapper" id="chatForm" autocomplete="off">
+          <input id="chatInput" type="text" placeholder="토닥토닥이에게 물어보기(음성, 텍스트 모두 가능해요!)" aria-label="메시지 입력" />
+          <button type="submit" class="send-btn" id="sendBtn" title="보내기">보내기</button>
+          <button type="button" class="mic-btn" title="마이크" id="micBtn">🎙</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <!-- 토스트 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- 확인 모달 -->
+  <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDesc">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card" role="document">
+      <h3 id="confirmTitle">확인이 필요해요</h3>
+      <p id="confirmDesc" class="modal-message">⚠ 경고! 삭제 시 대화 내용을 되돌릴 수 없습니다</p>
+      <div class="modal-actions">
+        <button id="confirmCancel" type="button" class="btn btn-ghost">취소</button>
+        <button id="confirmOk" type="button" class="btn btn-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/js/chat.js"></script>
+</body>
+</html>

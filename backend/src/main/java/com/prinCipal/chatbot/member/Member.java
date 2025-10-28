@@ -56,9 +56,7 @@ public class Member {
 	
 	@OneToMany(mappedBy = "member",cascade=CascadeType.ALL, orphanRemoval=false)
 	private List<CounsellingSession> sessions = new ArrayList<>();
-	
-	@OneToMany(mappedBy = "member",cascade=CascadeType.ALL, orphanRemoval=false)
-	private List<VoiceInteraction> voiceInteractions = new ArrayList<>();
+
 	
 	@OneToMany(mappedBy = "member",cascade=CascadeType.ALL, orphanRemoval=false)
 	private List<CrisisAlert> crisisAlerts = new ArrayList<>();

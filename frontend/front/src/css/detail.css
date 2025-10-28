@@ -1,0 +1,84 @@
+:root{
+  --bg:#fff6fb; --ink:#221a2e; --muted:#6d5f86; --line:#eee7ff;
+  --primary-400:#c5acff; --primary-600:#a27ff7; --primary-700:#ff9ad0; --primary-900:#6545bd;
+  --card:##ffe9f6; --accent:#ff9ad0; --accent-ink:#5b1140;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,"Noto Sans KR",sans-serif}
+
+/* Header */
+.header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.85);
+  backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line)}
+.header__inner{max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.brand__logo{width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--primary-600),var(--primary-900));
+  display:grid;place-items:center;color:#fff;box-shadow:0 6px 18px rgba(101,69,189,.25)}
+.brand__text{letter-spacing:.2px}
+
+/* Controls */
+.controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.input,.select{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;outline:none}
+.input{min-width:240px}
+.btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--primary-700);color:#fff;box-shadow:0 8px 24px rgba(101,69,189,.25)}
+.btn.ghost{background:#ff9ad0;border:1px solid var(--line);color:#fff}
+.btn.small{padding:8px 10px;border-radius:10px}
+.btn.line{background:#fff;border:1px solid var(--line);color:#5b4b77}
+
+/* Layout */
+.page{max-width:1100px;margin:22px auto;padding:0 16px}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#5b4b77;cursor:pointer;font-weight:700}
+.tab.active{background:var(--primary-600);border-color:transparent;color:#fff}
+
+/* Pills */
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#6d5f86;cursor:pointer}
+.pill.active{background:#ffe9f6;color:var(--accent-ink);border-color:#ffd0ee}
+
+/* Cards */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+@media (max-width: 980px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width: 620px){
+  .header__inner{flex-direction:column;align-items:stretch}
+  .controls{margin-left:0}
+  .input{min-width:unset;width:100%}
+  .grid{grid-template-columns:1fr}
+}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 8px 28px rgba(143,106,232,.08);padding:14px;display:flex;gap:12px}
+.card__icon{flex:0 0 46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800}
+.card__icon.law{background:linear-gradient(135deg,#8f6ae8,#6545bd)}
+.card__icon.mind{background:linear-gradient(135deg,#ff9ad0,#f062a6)}
+.card__body{min-width:0}
+.card__title{font-weight:800;margin:2px 0 6px;font-size:16px}
+.card__meta{font-size:12px;color:#6d5f86;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:11px;background:#f5efff;color:#6545bd;border:1px solid #eadfff;border-radius:999px;padding:3px 8px}
+.desc{margin:10px 0 12px;color:#584b6e}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px}
+.section-title h2{margin:0;font-size:20px}
+.count{color:var(--muted);font-size:13px}
+
+.empty{padding:26px;border:1px dashed var(--line);border-radius:16px;text-align:center;color:#6d5f86}
+
+/* 로고 스타일 */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-icon {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
