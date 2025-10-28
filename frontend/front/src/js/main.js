@@ -6,7 +6,7 @@
   const quickClose   = qs('#quickClose');
   const quickForm    = qs('#quickForm');
   const quickText    = qs('#quickText');
-  const quickMessages= qs('#quickMessages');
+  const quickMessages= qs('#quickMessages');   
 
   function openQuick(){
     quickModal?.classList.add('show');
@@ -16,7 +16,6 @@
     quickModal?.classList.remove('show');
   }
 
-  // 간편 상담 열기 
   document.addEventListener('click', (e)=>{
     const a = e.target.closest('[data-role="quick"]');
     if(!a) return;
@@ -34,15 +33,15 @@
 
   // 메시지 렌더 + 스크롤
   function appendMsg(role, text){
-      if(!quickMessages) return;
-      const div=document.createElement('div');
-      div.className=`msg ${role}`;
-      div.textContent=text;
-      quickMessages.append(div);
-      
-      setTimeout(()=>{ // 부드러운 자동 스크롤
-        quickMessages.scrollTo({ top: quickMessages.scrollHeight, behavior:'smooth' });
-      }, 80);
+    if(!quickMessages) return;
+    const div=document.createElement('div');
+    div.className=`msg ${role}`;
+    div.textContent=text;
+    quickMessages.append(div);
+    // 부드러운 자동 스크롤
+    setTimeout(()=>{
+      quickMessages.scrollTo({ top: quickMessages.scrollHeight, behavior:'smooth' });
+    }, 80);
   }
 
   quickForm?.addEventListener('submit', (e)=>{
@@ -55,21 +54,14 @@
   });
 
 
-
-  // ======================== 맞춤형 상담 ===========================
+  // ===== 맞춤형 상담 모달 관련 =====
   document.addEventListener('click', (e)=>{
     const a = e.target.closest('[data-role="custom"]');
     if(!a) return;
     e.preventDefault();
-    // 페이지 페이드 아웃 효과(선택)
-    document.body.style.transition='opacity .25s ease';
-    document.body.style.opacity='0';
-
-     // 로그인/회원가입 모달 열기
-    const event = new CustomEvent('open-auth-modal', { detail: { tab: 'login' } });
-    document.dispatchEvent(event);
-    
+    openAuthModal();
   });
+
 
 })();
 
@@ -78,7 +70,7 @@
 (function(){
   const qs=(s,r=document)=>r.querySelector(s);
   const overlayEl = ()=>qs('#overlay');
-  const modalEl   = ()=>qs('#authModal');
+  const modalEl = ()=>qs('#authModal');
   const tabLogin  = ()=>qs('#tab-login');
   const tabSignup = ()=>qs('#tab-signup');
   const panelLogin= ()=>qs('#panel-login');
@@ -86,18 +78,33 @@
   const loginError= ()=>qs('#loginError');
   const signupError=()=>qs('#signupError');
 
+  
   // 탭 스위치
   function switchTab(which){
-    const tl=tabLogin(), ts=tabSignup(), pl=panelLogin(), ps=panelSignup();
-    const loginOn = which==='login';
+    const tl=tabLogin(), ts=tabSignup();
+    const loginTab = qs('#loginTab');
+    const signupTab = qs('#signupTab');
+    const loginOn = which === 'login';
+
     tl?.classList.toggle('active', loginOn);
     ts?.classList.toggle('active', !loginOn);
     tl?.setAttribute('aria-selected', String(loginOn));
     ts?.setAttribute('aria-selected', String(!loginOn));
-    if(pl&&ps){ pl.style.display = loginOn ? 'block' : 'none'; ps.style.display = loginOn ? 'none' : 'block'; }
+
+  
+    // 탭 전환 시, 로그인/회원가입 부모 영역 자체를 토글
+    if (loginTab && signupTab) {
+      loginTab.style.display = loginOn ? 'block' : 'none';
+      signupTab.style.display = loginOn ? 'none' : 'block';
+    }
+
   }
 
-  // 로그인 모달 열기/닫기
+  // 탭 클릭 시 로그인 / 회원가입 전환
+  tabLogin()?.addEventListener('click', ()=> switchTab('login'));
+  tabSignup()?.addEventListener('click', ()=> switchTab('signup'));
+
+  // 모달 열기/닫기
   function openAuthModal(defaultTab='login'){
     const ov=overlayEl(), mdl=modalEl(); if(!ov||!mdl) return;
     switchTab(defaultTab);
@@ -111,13 +118,16 @@
     signupError()?.classList.remove('show');
   }
 
-  // "open-auth-modal" 이벤트 받으면 로그인 모달 열기 
-  document.addEventListener('open-auth-modal', (e)=>{
-    openAuthModal(e.detail.tab || 'login');
+
+  // ===== 맞춤형 상담 모달 관련 =====
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest('[data-role="custom"]');
+    if(!a) return;
+    e.preventDefault();
+    openAuthModal();
   });
 
-
-  //  로그인 모달 닫기
+  // 전역 클릭: 맞춤형 상담 → 모달
   document.addEventListener('click', (e)=>{
     const a = e.target.closest('a,button');
     if(!a) return;
@@ -127,7 +137,10 @@
 
 
 
-  // --------------회원가입 → 저장 후 로그인 탭으로-------------------
+
+
+
+  // 회원가입
   panelSignup()?.addEventListener('submit', (e)=>{
     e.preventDefault();
     signupError()?.classList.remove('show');
@@ -138,17 +151,9 @@
       const se=signupError(); if(se){ se.textContent='입력값을 확인하세요. (비밀번호 8자 이상)'; se.classList.add('show'); }
       return;
     }
+  });
 
-
-  //   localStorage.setItem('auth.user', JSON.stringify({ name, email }));
-  //   switchTab('login');
-  //   const loginEmail=qs('#loginEmail'); if(loginEmail){ loginEmail.value=email; loginEmail.focus(); }
-  //   const toast = qs('#toast'); if(toast){ toast.textContent='회원가입 완료! 로그인해 주세요.'; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 1800); }
-
-  
- });
-
-  // 로그인 → Spring Security 엔드포인트로 전송
+   // 로그인 → Spring Security 엔드포인트로 전송 예정
   panelLogin()?.addEventListener('submit', async (e)=>{
     e.preventDefault();
     loginError()?.classList.remove('show');
@@ -179,11 +184,29 @@
     }
   });
 
+// 회원가입 → Spring Security 엔드포인트로 전송 예정
+panelSignup()?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = qs('#signName').value.trim();
+  const email = qs('#signEmail').value.trim();
+  const pw = qs('#signPassword').value;
 
+  const res = await fetch('http://localhost:8080/api/auth/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password: pw })
+  });
 
-
-
-
+  if (res.ok) {
+    const toast = qs('#toast');
+    toast.textContent = '회원가입 완료! 로그인해 주세요.';
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1800);
+    switchTab('login');
+  } else {
+    signupError()?.classList.add('show');
+  }
+});
 
   // 비번 찾기(데모)
   qs('#forgotBtn')?.addEventListener('click', ()=>{
@@ -205,7 +228,7 @@
     {role:'user', text:'양육비 조정 가능한가요?'},
     {role:'bot',  text:'사정변경이 있으면 법원에서 조정 가능성이 있어요.\n간단히 상황을 알려주시면 가이드 드릴게요.'},
     {role:'user', text:'최근 실직했고 소득이 절반 이하로 줄었어요.'},
-    {role:'bot',  text:'최근 소득 변동 자료와 기존 합의 내역이 있으면 좋아요.\n“맞춤형 상담”으로 이어가 보실래요?'}
+    {role:'bot',  text:'최근 소득 변동 자료와 기존 합의 내역이 있으면 좋아요.\n“간편 상담”으로 이어가 보실래요?'}
   ];
 
   let idx = 0;
@@ -240,3 +263,4 @@
   }, {threshold: 0.2});
   if(target) io.observe(target);
 })();
+
