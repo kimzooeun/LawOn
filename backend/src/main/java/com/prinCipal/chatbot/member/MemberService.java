@@ -1,0 +1,136 @@
+package com.prinCipal.chatbot.member;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.prinCipal.chatbot.exception.LoginFailedException;
+import com.prinCipal.chatbot.exception.SignupValidationException;
+import com.prinCipal.chatbot.exception.TokenValidationException;
+import com.prinCipal.chatbot.security.CookieHeader;
+import com.prinCipal.chatbot.security.JwtTokenProvider;
+
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Service
+public class MemberService{
+	private final MemberRepository memberRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final JwtTokenProvider jwtTokenProvider;
+	private final AuthenticationManager authenticationManager;
+	private final CookieHeader cookieHeader;
+	
+	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
+	    Map<String, String> errors = new HashMap<>();
+	    if(this.memberRepository.existsByNickname(signUpRequest.getNickname())) {
+	        errors.put("nickname", "이미 사용 중인 닉네임입니다.");
+	    }
+	    if(!signUpRequest.isPasswordMatching()) {
+	        errors.put("password", "입력된 두 비밀번호가 다릅니다.");
+	    }
+	
+	    return errors;
+	}
+
+	
+	public void registerUser(SignupRequest signUpRequest) {
+		Map<String, String> errors = validateSignup(signUpRequest);
+		 if (!errors.isEmpty()) {
+		        throw new SignupValidationException(errors);
+		    }
+		 
+		if(signUpRequest.getNickname().equals("admin")) {
+			Member member = Member.builder()
+			            .nickname(signUpRequest.getNickname())
+			            .password(passwordEncoder.encode(signUpRequest.getPassword()))
+			            .role(UserRole.ADMIN)
+			            .build();
+			this.memberRepository.save(member);
+		}
+		else {
+			Member member = Member.builder()
+		            .nickname(signUpRequest.getNickname())
+		            .password(passwordEncoder.encode(signUpRequest.getPassword()))
+		            .role(UserRole.USER)
+		            .build();
+
+			this.memberRepository.save(member);
+		}
+		 
+	}
+
+
+	public String loginUser(LoginRequest loginRequest, HttpServletResponse response) {
+		Member member = this.memberRepository.findByNickname(loginRequest.getNickname())
+						.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
+		if(!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+			throw new LoginFailedException("비밀번호가 일치하지 않습니다.");
+		}
+		
+		Authentication authentication  = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(
+						loginRequest.getNickname(), loginRequest.getPassword()
+				)
+			);
+		
+		int refreshDays = loginRequest.isRemeberMe() ? 30 : 7;
+		String accessToken = this.jwtTokenProvider.generateAccessToken(authentication);
+		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication, refreshDays);
+		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken, refreshDays);
+	
+		return accessToken;
+		
+	}
+	
+	
+	public String newAccessToken(String refreshToken, HttpServletResponse response) {
+		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
+			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
+		}
+		
+		String socialId = this.jwtTokenProvider.getUsernameFromToken(refreshToken);
+
+		Member member = this.memberRepository.findBySocialId(socialId)
+					.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
+		 
+		
+		// DB에서 가져온 최신 정보로 새로운 Authentication 객체를 생성
+	    Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
+	        member, // 또는 user 객체 자체를 principal로 사용
+	        null,
+	        Collections.singletonList(new SimpleGrantedAuthority(member.getRole().name()))
+	    );
+
+		// 만약, refreshToken의 만료가 가까워졌다면 새 refreshToken 생성 
+		if(this.jwtTokenProvider.isRefreshTokenExpiringSoon(refreshToken)) {
+			int remainingDays = this.jwtTokenProvider.getRememberMeDays(refreshToken);
+			String newRefreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication,remainingDays);
+			this.cookieHeader.SendCookieWithRefreshToken(response,newRefreshToken,remainingDays);
+		}
+		
+		// 새로운 Access 토큰 생성 
+		return this.jwtTokenProvider.generateAccessToken(newAuthentication);
+	}
+
+
+	
+	public Member getUserProfile(String nickname) {
+		return this.memberRepository.findByNickname(nickname).get();
+
+	}
+
+
+
+
+}
+
+	

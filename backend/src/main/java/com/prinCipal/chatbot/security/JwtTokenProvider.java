@@ -1,0 +1,170 @@
+package com.prinCipal.chatbot.security;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+
+//JWT 토큰 생성, 검증 , 파싱 등 JWT 관련 모든 작업 처리 
+@Component
+@RequiredArgsConstructor
+public class JwtTokenProvider {
+	 private static final String SECRET_KEY = "thisIsAVeryLongSecretKeyForJwtToken123456";
+
+	
+	private final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L; // 1시간
+    
+    private SecretKey getSigningKey() {
+    	return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    }
+    
+   // SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
+
+	// Access Token 생성
+    public String generateAccessToken(Authentication authentication) {
+    	String authorities = authentication.getAuthorities().
+    						stream().map(GrantedAuthority::getAuthority)
+    						.collect(Collectors.joining(","));
+   
+    	long now = (new Date()).getTime();
+    	Date validity = new Date(now + ACCESS_TOKEN_VALIDITY);
+    	return Jwts.builder()
+    			.subject(authentication.getName())
+    			.claim("auth", authorities)
+    			.issuedAt(new Date())
+    			.expiration(validity)
+    			.signWith(this.getSigningKey())
+    			.compact();
+    }
+	
+    // Refresh Token 생성 (별도 정보 없이 만료 시간만 길게)
+    public String generateRefreshToken(Authentication authentication , int days) {
+    	long now = (new Date()).getTime();
+    	Date validity = new Date(now + days * 24L * 60 * 60 * 1000);
+    	
+    	return Jwts.builder()
+    			.subject(authentication.getName())
+    			.issuedAt(new Date())
+    			.expiration(validity)
+    			.signWith(this.getSigningKey())
+    			.compact();
+    }
+    
+    
+    // Jwt 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
+    public Authentication getAuthentication(String token) {
+    	// Claims는 토큰에 포함된 사용자 정보와 메타 데이터를 포함 
+    	Claims claims = Jwts.parser()
+    						.verifyWith(this.getSigningKey())
+    						.build()
+    						.parseSignedClaims(token)
+    						.getPayload();
+    	
+    	if(claims.getSubject() == null) {
+    		throw new AuthenticationCredentialsNotFoundException("JWT Claims 비어있음");
+    	}
+    	
+    	Collection<? extends GrantedAuthority> authorities = 
+    			Arrays.stream(claims.get("auth").toString().split(","))
+    					.map(SimpleGrantedAuthority::new)
+    					.collect(Collectors.toList());
+    	
+    	UserDetails principal = new User(claims.getSubject(),"", authorities);
+    	return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+    
+    // 토큰 정보를 검증하는 메서드 
+    public boolean validateToken(String token) {
+    	try {
+    		Jwts.parser()
+    			.verifyWith(this.getSigningKey()).build().parseSignedClaims(token);
+    		return true;
+    	} catch(io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+    		System.out.println("잘못된 JWT 시그니처에요");
+    	}catch(ExpiredJwtException e) {
+			System.out.println("만료된 토큰이니 재발급이 필요해요");
+		} catch(UnsupportedJwtException e) {
+			System.out.println("지원하지 않는 JWT 토큰입니다.");
+		} catch (IllegalArgumentException e) {
+			System.out.println("토큰 형식 틀렸어요");
+		} catch(Exception e) {
+			System.out.println("의문의 에러");
+		}
+    	return false;
+    }
+
+    // Refresh Token이 곧 만료될지 체크해서, 필요하면 새 토큰을 발급할지 결정
+	public boolean isRefreshTokenExpiringSoon(String refreshToken) {
+		// JWT 토큰은 Payload에 exp 클레임이 있어서 만료 시간을 알 수있음
+		try {
+			Claims claims = Jwts.parser()
+					.verifyWith(this.getSigningKey())
+					.build()
+					.parseSignedClaims(refreshToken)
+					.getPayload();	  // Payload에 실제 Claims 객체 포함	
+		
+			Date expiration = claims.getExpiration();
+			Date now = new Date();
+			
+			// 만료 1일 이내면 "곧 만료"로 판단
+			long expired = 24 *60 * 60 * 1000L;
+			// true => 남은시간이 expired보다 작다  (곧 만료된다)
+			// false => 남은시간이 expired보다 크다  (만료될려면 아직 멀었다)
+			return expiration.getTime() - now.getTime() < expired;
+			
+		} catch(JwtException e) {
+			// 토큰 파싱 실패시, 안전하게 true로 처리해 새로운 토큰 발급
+			return true;
+		}
+	}
+	
+	// 로그인시 입력받았던 rememberMe 유효기간 체크 
+	public int getRememberMeDays(String refreshToken) {
+		Claims claims = Jwts.parser()
+							.verifyWith(this.getSigningKey())
+							.build()
+							.parseSignedClaims(refreshToken)
+							.getPayload();
+		
+		long now = System.currentTimeMillis();
+		long exp = claims.getExpiration().getTime();
+		
+		long diff = exp - now;
+		if (diff <= 0) {
+		    return 0; // 이미 만료됨
+		}
+		return (int)(diff / (1000L * 60 * 60 * 24));  // 만료시간이 일(day) 단위로 반환
+		
+	}
+
+	public String getUsernameFromToken(String refreshToken) {
+		return Jwts.parser()
+				.verifyWith(this.getSigningKey())
+				.build()
+				.parseSignedClaims(refreshToken)
+				.getPayload()
+				.getSubject();  // getSubject로 토큰 생성시 넣었던 사용자이름을 반환
+	}
+
+}
