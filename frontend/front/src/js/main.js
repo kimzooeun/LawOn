@@ -140,19 +140,6 @@
 
 
 
-  // 회원가입
-  panelSignup()?.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    signupError()?.classList.remove('show');
-    const name = qs('#signName')?.value.trim() || '';
-    const email= qs('#signEmail')?.value.trim() || '';
-    const pw   = qs('#signPassword')?.value || '';
-    if(!name || !/\S+@\S+\.\S+/.test(email) || pw.length<8){
-      const se=signupError(); if(se){ se.textContent='입력값을 확인하세요. (비밀번호 8자 이상)'; se.classList.add('show'); }
-      return;
-    }
-  });
-
    // 로그인 → Spring Security 엔드포인트로 전송 예정
   panelLogin()?.addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -184,12 +171,18 @@
     }
   });
 
+
+
+
 // 회원가입 → Spring Security 엔드포인트로 전송 예정
 panelSignup()?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = qs('#signName').value.trim();
-  const email = qs('#signEmail').value.trim();
   const pw = qs('#signPassword').value;
+  if(!name || !/\S+@\S+\.\S+/.test(email) || pw.length<8){
+      const se=signupError(); if(se){ se.textContent='입력값을 확인하세요. (비밀번호 8자 이상)'; se.classList.add('show'); }
+      return;
+    }
 
   const res = await fetch('http://localhost:8080/api/auth/signup', {
     method: 'POST',
