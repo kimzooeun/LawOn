@@ -82,3 +82,28 @@ body{margin:0;background:var(--bg);color:var(--ink);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
+/* === [ADD] Theme Alias Bridge ===
+   메인 4변수로 전체를 구동하고, 기존 변수명들은 alias로 따라오게 함 */
+:root{
+  /* 새 테마 4대 변수 */
+  --bg: #fff6fb;
+  --ink: #221a2e;
+  --card: #fff6fb;
+  --accent: #fff;
+
+  /* 기존 스타일과의 호환 alias */
+  --light-blue-bg: var(--bg);
+  --light-blue-card: var(--card);
+  --primary-600: var(--accent);
+  --primary-700: var(--accent);
+  --primary-900: var(--ink);
+  --ink-muted: color-mix(in oklab, var(--ink) 60%, #888 40%);
+  --line: color-mix(in oklab, var(--ink) 12%, var(--bg));
+  --panel-2: color-mix(in oklab, var(--card) 85%, #fff);
+}
+
+/* (선택) 자주 쓰는 요소에 바로 연결 */
+body{ background: var(--bg); color: var(--ink); }
+.card-like{ background: var(--card); border:1px solid var(--line); }
+.btn-accent{ color:#fff; background: var(--accent); border:1px solid transparent; }

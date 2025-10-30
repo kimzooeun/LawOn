@@ -42,9 +42,9 @@ public class Member {
 	private String password;
 	
 	
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private UserRole role;
+	//@Enumerated(EnumType.STRING)
+//	@Column(nullable = false)
+//	private UserRole role;
 
 
 	@CreationTimestamp
@@ -62,9 +62,9 @@ public class Member {
 	private List<CrisisAlert> crisisAlerts = new ArrayList<>();
 	
 	@Builder
-	public Member(String nickname, String password, UserRole role) {
+	public Member(String nickname, String password) {
 		this.nickname = nickname;
 		this.password = password;
-		this.role = role;
+		/* this.role = role; */
 	}
 }

@@ -95,7 +95,6 @@ body, html {
 /* === 접힘 상태에서 오직 '새 채팅'만 보이게 === */
 
 /* 탐색 버튼/푸터 링크는 감춤 */
-.sidebar.collapsed .explore-btn,
 .sidebar.collapsed .footer-link {
   display: none !important;
 }
@@ -224,13 +223,6 @@ body, html {
 .recent-delete:hover {
   color: #c0392b;
   transform: scale(1.15);
-}
-
-
-.sidebar-footer {
-  font-size: 13px;
-  color: var(--ink-muted);
-  min-width: 228px;
 }
 
 .footer-link {
@@ -578,7 +570,10 @@ a:focus-visible, button:focus-visible {
   position: relative;
   padding: 10px;
   text-align: center;
-  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-muted);
+  min-width: 228px;
+
 }
 
 .theme-buttons {
@@ -651,4 +646,132 @@ a:focus-visible, button:focus-visible {
 /* 토스트 간단 리셋 (필요 시 삭제 가능) */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#221a2e;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s ease}
 .toast.show{opacity:1}
+
+/* === [ADD] 탐색형 마이페이지 레이아웃 === */
+.hidden{ display:none !important; }
+
+.mypage-explore{
+  --radius:16px;
+  --line: var(--line, #e9e0ff);
+  --ink: var(--ink, #221a2e);
+  --muted: var(--ink-muted, #6d5f86);
+}
+
+/* Hero */
+.mpx-hero{
+  position:sticky; top:0; z-index:1;
+  border-bottom:1px solid var(--line);
+}
+.mpx-hero-inner{
+  max-width: 1120px; margin: 0 auto; padding: 16px;
+}
+.mpx-back{
+  background:transparent; border:none; color:#5a3bb6; font-weight:700; cursor:pointer; margin-bottom:8px;
+}
+.mpx-hero h2{ margin:0 0 6px; font-size:24px; }
+.mpx-sub{ margin:0 0 12px; color:var(--muted) }
+
+.mpx-search{
+  position:relative; margin: 8px 0 12px;
+}
+.mpx-search-ico{ position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.7 }
+.mpx-search input{
+  width:100%; padding:12px 14px 12px 36px; border:1px solid var(--line); border-radius:999px; background:#fff;
+  outline: none;
+}
+.mpx-search input:focus{ box-shadow:0 0 0 3px rgba(162,127,247,.18) }
+
+/* Chips */
+.mpx-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  border:1px solid var(--line); background:#fff; color:var(--ink);
+  padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:700;
+}
+.chip.is-active{ background:#efe8ff; border-color:#e6dbff; color:#5a3bb6 }
+
+/* Grid */
+.mpx-grid{
+  max-width: 1120px; 
+  margin: 12px auto; 
+  padding: 0 16px 24px;
+  display:grid; gap:12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+.mpx-card{
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;             /* ← 핵심: 내부 flex shrink 활성화 */
+  word-break: keep-all;     /* 긴 단어 줄바꿈 */
+  overflow-wrap: break-word;/* 영어/링크 자동 줄바꿈 */
+  box-sizing: border-box;
+  padding: 10px;
+}
+.mpx-card:hover{ transform:translateY(-2px); box-shadow:0 10px 22px rgba(0,0,0,.08) }
+.mpx-card-ico{ font-size:22px }
+.mpx-card-title{ 
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden; 
+}
+.mpx-card-desc{ margin:0; color:var(--muted); font-size:14px }
+.mpx-card-cta{
+  justify-self:start; margin-top:4px;
+  border:1px solid var(--line); background:#efe8ff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700;
+}
+.mpx-card-cta:hover{ background:#f7f2ff }
+
+/* Detail panel (slide-up) */
+.mpx-detail{
+  max-width: 1120px; margin: 0 auto 16px; padding:0 16px;
+}
+.mpx-detail-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; border:1px solid var(--line); border-bottom:none; border-radius:16px 16px 0 0; background:#fff6fb;
+}
+.mpx-detail-body{
+  border:1px solid var(--line); border-top:none; border-radius:0 0 16px 16px; background:#fff6fb;
+  padding:0px;
+}
+.mpx-detail-close{
+  border:none; background:transparent; font-size:18px; cursor:pointer; color:var(--muted);
+}
+
+/* 채팅 ↔ 탐색 전환 시 주변 여백 조정 (선택사항) */
+.mypage-explore + .chat-area{ margin-top:8px; }
+
+/* ===== 문서 보기 모달 확장 ===== */
+.modal-card--lg{
+  width: min(96vw, 820px);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* 헤더/바디로 분리했으니 패딩 제거 */
+}
+
+.modal-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+  border-radius:14px 14px 0 0;
+}
+
+.modal-title{ margin:0; font-size:18px; font-weight:800; color:var(--primary-900); }
+
+.modal-scroll{
+  padding:16px;
+  overflow:auto;
+  background:#fff;
+  border-radius:0 0 14px 14px;
+  line-height:1.65;
+  max-height: calc(86vh - 56px); /* 헤더 높이 제외 */
+}
+
+/* 문서 본문에 들어가는 제목/문단 기본 스타일 */
+.modal-scroll h4{ margin: 14px 0 6px; font-size:16px; }
+.modal-scroll p, .modal-scroll li{ color:var(--ink); }
+.modal-scroll ul{ padding-left: 20px; }
 

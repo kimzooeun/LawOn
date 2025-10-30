@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>이혼 감정 심리 상담 챗봇</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/black.png?v=2">
+  <title>이혼 관련 감정 공감, 법률 상담 테스트</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="images/black.png?v=2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- 분리된 CSS -->
-  <link rel="stylesheet" href="/src/css/main.css" />
+
+  <link rel="stylesheet" href="src/css/main.css">
+  <link rel="stylesheet" href="src/css/auth.css">
 </head>
 <body>
 
@@ -15,7 +16,7 @@
     <header>
       <nav class="container">
         <div class="logo">
-          <img src="/images/black.png" alt="로고" class="logo-icon" />
+          <img src="images/black.png" alt="로고" class="logo-icon" />
         </div>
         <ul class="nav-links">
           <li><a href="#">Home</a></li>
@@ -34,13 +35,13 @@
           <p>Connect instantly with a 24x7 specialist or choose to video visit a particular doctor.</p>
 
           <div class="hero-buttons">
-            <a href="#" class="btn btn-secondary" data-role="quick" data-anim="pop">간편 상담</a>
-            <a href="#" class="customer-review" data-role="custom" id="btnCustom">맞춤형 상담</a>
+            <a href="javascript:void(0)" class="btn btn-secondary" data-role="quick" data-anim="pop">간편 상담</a>
+            <a href="javascript:void(0)" class="customer-review" data-role="custom" id="btnCustom">맞춤형 상담</a>
           </div>
         </div>
         
         
-        
+        <!-- 챗 미리보기 -->
         <div class="hero-image">
         <div class="cp-chat-preview" aria-hidden="true">
         <div class="cp-phone">
@@ -54,7 +55,7 @@
         </div>
         </div>
             
-          <!-- ✅ 간편 상담 모달 (hero-image 위) -->
+          <!-- 간편 상담 모달 (hero-image 위) -->
           <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
             <div class="quick-content">
               <header class="quick-head">
@@ -70,6 +71,86 @@
               </form>
             </div>
           </div>
+
+
+        <!-- 로그인/회원가입 모달 -->
+        <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+          <div class="tabs" role="tablist">
+              <button id="tab-login" class="tab active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
+              <button id="tab-signup" class="tab" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
+          </div>
+
+          <!-- 로그인 -->
+
+            <div class="tab-content active" id="loginTab">
+              <div class="social-login-row">
+                <div class="section-title">간편로그인</div>
+                <div class="social-buttons">
+                  <button class="social-btn kakao"><div class="kakao-symbol"></div></button>
+                  <button class="social-btn google">G+</button>
+                </div>
+              </div>
+              <!-- <button class="social-btn naver">N</button> -->
+              <div class="section-title">로그인</div>
+
+              <form id="panel-login" class="auth-panel" autocomplete="on">
+                <div class="input-group">
+                  <input type="text" id="loginNickname" name="nickname" class="input-field" placeholder="아이디" required>
+                </div>
+
+                <div class="input-group">
+                  <input type="password" id="loginPassword" name="password" class="input-field" placeholder="비밀번호" required>
+                </div>
+                <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
+
+                <label class="save-id">
+                  <input type="checkbox">
+                  <span>아이디 저장</span>
+                </label>
+
+                <button type="submit" class="submit-btn">로그인</button>
+              </form>
+
+              <div class="link-group">
+                <button type="button" class="btn" id="forgotIdBtn">아이디 찾기</button>
+                <span class="separator">|</span>
+                <button type="button" class="btn" id="forgotBtn">비밀번호 찾기</button>
+              </div>
+            </div>
+
+            <!-- 회원가입 탭 -->
+            <div class="tab-content" id="signupTab">
+              <div class="social-login-row">
+                <div class="section-title">간편가입</div>
+                <div class="social-buttons">
+                  <button class="social-btn kakao"><div class="kakao-symbol"></div></button>
+                  <button class="social-btn google">G+</button>
+                </div>
+              </div>
+
+              <div class="section-title">회원가입</div>
+
+              <form id="panel-signup" class="auth-panel" autocomplete="on">
+                <div class="input-group">
+                  <input type="text" class="input-field" id="signName" name="nickname" placeholder="닉네임" required>
+                </div>
+              <div class="input-group">
+                <input type="password" id="signPassword" name="password" class="input-field" placeholder="비밀번호" required>
+              </div>
+
+              <div class="input-group">
+                <input type="password" id="signPassword2" name="password2" class="input-field" placeholder="비밀번호확인" required>
+              </div>
+
+              <div class="c-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
+              <!-- <div class="verification-buttons">
+                <button class="verify-btn">휴대폰 인증</button>
+              </div> -->
+
+              <button type="submit" class="submit-btn">회원가입</button>
+              </form>
+            </div>
+        </div>
         </div>
         <!-- /hero-image -->
       </div>
@@ -77,11 +158,11 @@
 
     <section class="partners">
       <div class="container partner-logos">
-        <img src="/images/counseling2.jpg" alt="김주은" width="100" height="100">
-        <img src="/images/counseling3.png" alt="최지현" width="100" height="100">
-        <img src="/images/Lawyer1.png" alt="지정민" width="100" height="100">
-        <img src="/images/Lawyer2.png" alt="아카자" width="100" height="100">
-        <img src="/images/Lawyer3.png" alt="박지유" width="100" height="100">
+        <img src="images/counseling2.jpg" alt="김주은" width="100" height="100">
+        <img src="images/counseling3.png" alt="최지현" width="100" height="100">
+        <img src="images/Lawyer1.png" alt="지정민" width="100" height="100">
+        <img src="images/Lawyer2.png" alt="아카자" width="100" height="100">
+        <img src="images/Lawyer3.png" alt="박지유" width="100" height="100">
       </div>
     </section>
   </div>
@@ -116,63 +197,9 @@
     </div>
   </section>
 
-  
-  <!-- 오버레이 -->
-<div class="c-overlay" id="overlay"></div>
-
-<!-- 로그인/회원가입 모달 -->
-<div class="c-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-  <header>
-    <h3 id="authTitle">맞춤형 상담 접근</h3>
-    <button class="close" id="authClose" aria-label="닫기"><i class="fas fa-times"></i></button>
-  </header>
-
-  <div class="c-tabs" role="tablist">
-    <button id="tab-login" class="active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
-    <button id="tab-signup" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
-  </div>
-
-  <!-- 로그인 -->
-  <form id="panel-login" class="auth-panel" autocomplete="on">
-    <div class="c-field">
-      <label for="loginEmail">이메일</label>
-      <input id="loginEmail" name="email" type="email" placeholder="you@example.com" required />
-    </div>
-    <div class="c-field">
-      <label for="loginPassword">비밀번호</label>
-      <input id="loginPassword" name="password" type="password" placeholder="8자 이상" minlength="8" required />
-    </div>
-    <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
-    <div class="c-actions">
-      <button type="submit" class="btn btn-secondary">로그인</button>
-      <button type="button" class="btn" id="forgotBtn" style="border:1px solid #ffe1f1;">비밀번호 찾기</button>
-    </div>
-  </form>
-  <!-- 회원가입 -->
-  <form id="panel-signup" class="auth-panel" style="display:none" autocomplete="on">
-    <div class="c-field">
-      <label for="signName">이름</label>
-      <input id="signName" name="name" type="text" placeholder="홍길동" required/>
-    </div>
-    <div class="c-field">
-      <label for="signEmail">이메일</label>
-      <input id="signEmail" name="email" type="email" placeholder="you@example.com" required/>
-    </div>
-    <div class="c-field">
-      <label for="signPassword">비밀번호</label>
-      <input id="signPassword" name="password" type="password" placeholder="8자 이상" minlength="8" required/>
-    </div>
-    <div class="c-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
-    <div class="c-actions">
-      <button type="submit" class="btn btn-secondary">회원가입</button>
-    </div>
-  </form>
-
-  <div class="toast" id="toast">완료</div>
-</div>
+  <div class="c-overlay" id="overlay"></div>
 
 
-  <!-- ✅ JS -->
-  <script type="module" src="/src/js/main.js"></script>
+<script type="module" src="/src/js/main.js"></script>
 </body>
 </html>
