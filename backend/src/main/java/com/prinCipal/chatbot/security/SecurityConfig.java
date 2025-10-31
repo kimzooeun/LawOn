@@ -12,11 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
-import com.example.demo.oauth2.CutomOAuth2UserService;
-import com.example.demo.oauth2.Oauth2AuthenticationFailureHandler;
-import com.example.demo.oauth2.Oauth2AuthenticationSuccessHandler;
-import com.example.demo.user.AppUserService;
+import com.prinCipal.chatbot.member.MemberService;
+import com.prinCipal.chatbot.oauth2.CutomOAuth2UserService;
+import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationFailureHandler;
+import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,12 +26,18 @@ public class SecurityConfig {
 
 	private final Oauth2AuthenticationSuccessHandler oauth2SuccessHandler;
 	private final Oauth2AuthenticationFailureHandler oauth2FailureHandler;
-	private final MemberDetailService appUserdetailService;
+	private final MemberDetailService memberdetailService;
 	
 	private final CutomOAuth2UserService customOAuth2UserService;
     private final PasswordEncoder passwordEncoder;
 
-	
+    private static final String[] PERMIT_URL = {
+    		"/auth/login", "/auth/signup", "/auth/refresh",  "/auth/logout",
+		    "/oauth2/**",     // 소셜 로그인
+		    "/css/**", "/js/**", "/images/**", "/favicon.ico" // 정적 파일
+		};
+    
+ 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception{
 		String[] cookiesToClear = {"JSESSIONID", "refreshToken"};
@@ -45,20 +50,13 @@ public class SecurityConfig {
 	                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 👈 필요할 때 세션을 사용
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
-						.requestMatchers("/", "/main", "/login", "/signup", "/kakao_login_test",
-                        "/css/**", "/js/**", "/images/**", "/favicon.ico",
-                        "/h2-console/**", "/api/auth/login", "/api/auth/signup", "/api/auth/refresh","/api/auth/logout",
-                        "/user-profile" , "/oauth2-success","/oauth2/**").permitAll()
-				.requestMatchers("/api/auth/**", "/home").authenticated() //인증 필요
+						.requestMatchers(PERMIT_URL).permitAll()
+						.requestMatchers("/auth/**").authenticated() //인증 필요
+						.anyRequest().authenticated()
 				)
-						
-				.headers(headers -> headers
-				        .frameOptions(frame -> frame.sameOrigin())      // H2 콘솔 iframe 허용
-				)
+				
 				.oauth2Login(oauth2 -> oauth2
-						.loginPage("/kakao_login_test")
-						.userInfoEndpoint(userInfo -> userInfo
-								.userService(customOAuth2UserService))
+						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler)
 						.failureHandler(oauth2FailureHandler)
 				)
@@ -74,7 +72,7 @@ public class SecurityConfig {
 	// 입력된 비밀번호와 데이터베이스에 저장된 비밀번호를 비교
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(appUserdetailService);
+		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(memberdetailService);
 		authProvider.setPasswordEncoder(passwordEncoder);
 		return authProvider;
 	}
@@ -88,8 +86,8 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, AppUserService appUserService) {
-	    return new JwtAuthenticationFilter(jwtTokenProvider, appUserService);
+	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, MemberService memberService) {
+	    return new JwtAuthenticationFilter(jwtTokenProvider, memberService);
 	}
 
 	

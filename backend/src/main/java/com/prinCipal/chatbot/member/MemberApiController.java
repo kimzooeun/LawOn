@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @RestController
 public class MemberApiController {
@@ -30,6 +30,17 @@ public class MemberApiController {
 	private final JwtTokenProvider jwtTokenProvider;
 	private static final Logger logger = LoggerFactory.getLogger(MemberApiController.class);
 	 
+	
+	@PostMapping("/login")
+	public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,HttpServletResponse response){
+		String accessToken = this.memberService.loginUser(loginRequest, response);
+		return ResponseEntity.ok(new TokenResponse("success", "로그인 성공", accessToken));
+
+	}
+	
+	
+
+	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
 		    
@@ -38,43 +49,25 @@ public class MemberApiController {
 			return ResponseEntity.ok(Map.of("status", "success", "message", "회원가입 성공"));
 	}
 	
-	@PostMapping("/login")
-	public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest,  HttpServletResponse response){
-		String accessToken = this.memberService.loginUser(loginRequest, response);
 	
-		return ResponseEntity.ok(Map.of("status", "success", "message", "로그인 성공", "token" , accessToken));
-	}
 	
-
-
+	
 	// 새로운 AccessToken 발급하기 위함 
 	@PostMapping("/refresh")
-	public ResponseEntity<Map<String, String>> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken, 
+	public ResponseEntity<TokenResponse> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken, 
 												HttpServletResponse response){
 		if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		
-		return ResponseEntity.ok(Map.of("accessToken",this.memberService.newAccessToken(refreshToken, response)));
+		String newAccessToken = this.memberService.newAccessToken(refreshToken, response);
+		return ResponseEntity.ok(new TokenResponse("success", "토큰 재발급 완료", newAccessToken));
 	}
 	
 	
-	@GetMapping("/profile")
-	public ResponseEntity<Member> getUserProfile(Authentication authentication){
-		String nickname = authentication.getName();
-		Member memberProfile = this.memberService.getUserProfile(nickname);
-        return ResponseEntity.ok(memberProfile);
-	}
 	
-	 
-//	@GetMapping("/profile")
-//    public AppUser profile(Authentication authentication) {
-//        String username = authentication.getName();
-//        AppUser userProfile = appUserService.getUserProfile(username);
-//        return userProfile;
-//    }
 
-
+	// Refresh Token을 서버 쿠키에서 삭제하는 방식
 	@PostMapping("/logout")
 	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
@@ -87,6 +80,16 @@ public class MemberApiController {
         response.addHeader("Set-Cookie", cookie.toString());
         return response;
     }
+	
+	
+	
+	@GetMapping("/profile")
+	public ResponseEntity<MemberProfileDto> getUserProfile(Authentication authentication){
+		String nickname = authentication.getName();
+		MemberProfileDto memberProfile = this.memberService.getUserProfile(nickname);
+        return ResponseEntity.ok(memberProfile);
+	}
+	
 	
 	
 }

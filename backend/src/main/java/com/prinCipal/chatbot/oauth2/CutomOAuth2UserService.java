@@ -42,6 +42,7 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 		
 		String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
 											.getUserInfoEndpoint().getUserNameAttributeName();
+		// OAuth2 공급자(Kakao, Google 등)가 제공하는 고유 사용자 ID”를 반환
 		// getUserNameAttributeName() : OAuth2 공급자가 사용자를 식별하는 키값. 
 		// Google : "sub"
 		// KaKao  : "id"

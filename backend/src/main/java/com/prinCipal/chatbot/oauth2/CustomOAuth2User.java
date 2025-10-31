@@ -28,6 +28,7 @@ public class CustomOAuth2User implements OAuth2User {
 		return authorities;
 	}
 
+	// OAuth2 공급자(Kakao, Google 등)가 제공하는 고유 사용자 ID”를 반환
 	@Override
 	public String getName() {
 		 return String.valueOf(attributes.get(nameAttributeKey));

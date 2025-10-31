@@ -72,6 +72,7 @@ public class MemberService{
 	public String loginUser(LoginRequest loginRequest, HttpServletResponse response) {
 		Member member = this.memberRepository.findByNickname(loginRequest.getNickname())
 						.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
+		
 		if(!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
 			throw new LoginFailedException("비밀번호가 일치하지 않습니다.");
 		}
@@ -82,10 +83,9 @@ public class MemberService{
 				)
 			);
 		
-		int refreshDays = loginRequest.isRemeberMe() ? 30 : 7;
 		String accessToken = this.jwtTokenProvider.generateAccessToken(authentication);
-		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication, refreshDays);
-		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken, refreshDays);
+		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication);
+		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
 	
 		return accessToken;
 		
@@ -110,11 +110,10 @@ public class MemberService{
 	        Collections.singletonList(new SimpleGrantedAuthority(member.getRole().name()))
 	    );
 
-		// 만약, refreshToken의 만료가 가까워졌다면 새 refreshToken 생성 
+		// 만약, refreshToken의 만료가 가까워졌다면 새 refreshToken 생성 (새로 갱신) 
 		if(this.jwtTokenProvider.isRefreshTokenExpiringSoon(refreshToken)) {
-			int remainingDays = this.jwtTokenProvider.getRememberMeDays(refreshToken);
-			String newRefreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication,remainingDays);
-			this.cookieHeader.SendCookieWithRefreshToken(response,newRefreshToken,remainingDays);
+			String newRefreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication);
+			this.cookieHeader.SendCookieWithRefreshToken(response,newRefreshToken);
 		}
 		
 		// 새로운 Access 토큰 생성 
@@ -123,13 +122,11 @@ public class MemberService{
 
 
 	
-	public Member getUserProfile(String nickname) {
-		return this.memberRepository.findByNickname(nickname).get();
-
+	public MemberProfileDto getUserProfile(String nickname) {
+	    Member member = memberRepository.findByNickname(nickname)
+	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+	    return new MemberProfileDto(member);
 	}
-
-
-
 
 }
 

@@ -87,11 +87,15 @@ public class Member {
 	
     // 소셜 로그인 시 기존 회원 정보 업데이트
     // 구글쪽 이미지랑 연관시키고 싶으면 필요한 업데이트 메소드 
-    public void updateSocialInfo(String nickname, String profileImageUrl) {
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+    public void updateSocialInfo(String newNickname, String newProfileImageUrl) {
+    	if (newNickname != null && !newNickname.isBlank()) {
+            this.nickname = newNickname; // optional (닉네임 동기화 원하면)
+        }
+    	if (newProfileImageUrl != null && !newProfileImageUrl.isBlank()) {
+            this.profileImageUrl = newProfileImageUrl;
+        }
+    	this.updatedAt = LocalDateTime.now();
     }
 	
 	
-
 }

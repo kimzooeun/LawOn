@@ -35,14 +35,20 @@ public class SocialUserService {
 		Optional<Member> existingUserOpt = this.memberRepository.findBySocialId(socialId);
 		
 		if(existingUserOpt.isPresent()) {
+			// 기존 회원 정보 업데이트 (닉네임은 유지)
 			Member existingUser = existingUserOpt.get();
-			return this.memberRepository.save(existingUser);
+			existingUser.updateSocialInfo(
+	            socialUserInfo.getName(),             // 새 닉네임 (optional)
+	            socialUserInfo.getProfileImageUrl()   // 새 프로필 이미지
+	        );
+	        return this.memberRepository.save(existingUser);
 		} else {
 			Member newMember = Member.builder()
+				// 카카오 닉네임이 중복될 수 있기 때문에, 이메일 기반으로 유니크한 닉네임을 자동 생성하기 위한 설계
                 .nickname(generateUniqueNickname(socialUserInfo.getEmail()))
                 // 실제로 후에 , 이메일을 받게된다면 
                 // email(socialUserInfo.getEmail() != null ? socialUserInfo.getEmail() : generateTempEmail(socialUserInfo.getName()));
-//                .nickname(socialUserInfo.getName())
+                // .nickname(socialUserInfo.getName())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .role(UserRole.USER)
                 .socialProvider(provider)
@@ -75,6 +81,7 @@ public class SocialUserService {
 		}
 		
 		int cnt  = 1;
+
 		while(this.memberRepository.existsByNickname(nickname) || !isValidUsername(nickname)) {
 			nickname = baseUsername + "_" + cnt++;
 			if(!isValidUsername(nickname)) {
@@ -85,13 +92,13 @@ public class SocialUserService {
 	}
 	
 	
-	public boolean isValidUsername(String username) {
+	public boolean isValidUsername(String nickname) {
 		// 허용 문자 (영문, 숫자, _)
-		if(!username.matches("^[a-zA-Z0-9_]+$")) {
+		if(!nickname.matches("^[a-zA-Z0-9_]+$")) {
 			return false;
 		}
 		// 길이 제한
-		if(username.length()< 3 || username.length() >15) {
+		if(nickname.length()< 3 || nickname.length() >15) {
 			return false;
 		}
 		return true;

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,24 +31,27 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-	 private static final String SECRET_KEY = "thisIsAVeryLongSecretKeyForJwtToken123456";
 
+	@Value("${jwt.secret-key}")
+	private String SECRET_KEY;
+
+	@Value("${jwt.access-token-validity:3600000}")
+	private long ACCESS_TOKEN_VALIDITY;
+
+	@Value("${jwt.refresh-token-days:2}")
+	private int refreshDays;
 	
-	private final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L; // 1시간
-    
     private SecretKey getSigningKey() {
     	return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
     
-   // SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
-
 	// Access Token 생성
     public String generateAccessToken(Authentication authentication) {
     	String authorities = authentication.getAuthorities().
     						stream().map(GrantedAuthority::getAuthority)
     						.collect(Collectors.joining(","));
-   
-    	long now = (new Date()).getTime();
+
+    	long now = System.currentTimeMillis();
     	Date validity = new Date(now + ACCESS_TOKEN_VALIDITY);
     	return Jwts.builder()
     			.subject(authentication.getName())
@@ -58,10 +62,12 @@ public class JwtTokenProvider {
     			.compact();
     }
 	
+    
+    
     // Refresh Token 생성 (별도 정보 없이 만료 시간만 길게)
-    public String generateRefreshToken(Authentication authentication , int days) {
-    	long now = (new Date()).getTime();
-    	Date validity = new Date(now + days * 24L * 60 * 60 * 1000);
+    public String generateRefreshToken(Authentication authentication) {
+    	long now = System.currentTimeMillis();
+    	Date validity = new Date(now + refreshDays * 24L * 60 * 60 * 1000);
     	
     	return Jwts.builder()
     			.subject(authentication.getName())
@@ -94,6 +100,8 @@ public class JwtTokenProvider {
     	return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
     
+    
+    
     // 토큰 정보를 검증하는 메서드 
     public boolean validateToken(String token) {
     	try {
@@ -114,6 +122,7 @@ public class JwtTokenProvider {
     	return false;
     }
 
+    
     // Refresh Token이 곧 만료될지 체크해서, 필요하면 새 토큰을 발급할지 결정
 	public boolean isRefreshTokenExpiringSoon(String refreshToken) {
 		// JWT 토큰은 Payload에 exp 클레임이 있어서 만료 시간을 알 수있음
@@ -139,24 +148,6 @@ public class JwtTokenProvider {
 		}
 	}
 	
-	// 로그인시 입력받았던 rememberMe 유효기간 체크 
-	public int getRememberMeDays(String refreshToken) {
-		Claims claims = Jwts.parser()
-							.verifyWith(this.getSigningKey())
-							.build()
-							.parseSignedClaims(refreshToken)
-							.getPayload();
-		
-		long now = System.currentTimeMillis();
-		long exp = claims.getExpiration().getTime();
-		
-		long diff = exp - now;
-		if (diff <= 0) {
-		    return 0; // 이미 만료됨
-		}
-		return (int)(diff / (1000L * 60 * 60 * 24));  // 만료시간이 일(day) 단위로 반환
-		
-	}
 
 	public String getUsernameFromToken(String refreshToken) {
 		return Jwts.parser()

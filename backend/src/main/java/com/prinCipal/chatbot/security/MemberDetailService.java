@@ -32,7 +32,7 @@ public class MemberDetailService implements UserDetailsService{
 		
 		Collection<GrantedAuthority> authorities = getAuthorities(member);
 		return User.builder()
-				.nickname(member.getNickname())
+				.username(member.getNickname())
 				.password(member.getPassword())
 				.authorities(authorities)
 				.build();		

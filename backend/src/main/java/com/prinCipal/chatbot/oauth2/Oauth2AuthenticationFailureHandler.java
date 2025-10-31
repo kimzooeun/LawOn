@@ -26,10 +26,21 @@ public class Oauth2AuthenticationFailureHandler implements AuthenticationFailure
 		if(exception.getCause() != null) {
 			errorMessage += "원인 : " + exception.getCause().getMessage();
 		}
-		request.getSession().setAttribute("socialErrorMessage", errorMessage);
 		
-		// 로그인 페이지로 리다이렉트 
-		response.sendRedirect("/login?social_error=true");
+		//JSON 응답 (MSA API 서버용)
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        
+        String jsonResponse = String.format(
+                "{" +
+                  "\"status\": \"fail\"," +
+                  "\"message\": \"%s\"" +
+                "}", errorMessage
+            );
+        
+		response.getWriter().write(jsonResponse);
+
 	}
 
 }
+
