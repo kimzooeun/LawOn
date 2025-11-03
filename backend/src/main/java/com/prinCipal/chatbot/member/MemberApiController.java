@@ -5,13 +5,15 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-@RequestMapping("/auth")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @RestController
 public class MemberApiController {
@@ -39,8 +41,6 @@ public class MemberApiController {
 	}
 	
 	
-
-	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
 		    
@@ -48,6 +48,19 @@ public class MemberApiController {
 			this.memberService.registerUser(signUpRequest);
 			return ResponseEntity.ok(Map.of("status", "success", "message", "회원가입 성공"));
 	}
+	
+	
+	@GetMapping("/profile/me")
+	public ResponseEntity<MemberProfileDto> getUserProfile(@AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+		if (customOAuth2User != null) {
+			Member member = customOAuth2User.getMember();
+			return ResponseEntity.ok(new MemberProfileDto(member));
+		} else {
+			// 인증되지 않은 경우 401 Unathorized 응답
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+	}
+	
 	
 	
 	
@@ -65,8 +78,6 @@ public class MemberApiController {
 	}
 	
 	
-	
-
 	// Refresh Token을 서버 쿠키에서 삭제하는 방식
 	@PostMapping("/logout")
 	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
@@ -83,12 +94,7 @@ public class MemberApiController {
 	
 	
 	
-	@GetMapping("/profile")
-	public ResponseEntity<MemberProfileDto> getUserProfile(Authentication authentication){
-		String nickname = authentication.getName();
-		MemberProfileDto memberProfile = this.memberService.getUserProfile(nickname);
-        return ResponseEntity.ok(memberProfile);
-	}
+
 	
 	
 	

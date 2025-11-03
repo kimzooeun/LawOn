@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.prinCipal.chatbot.member.Member;
@@ -11,8 +12,8 @@ import com.prinCipal.chatbot.member.Member;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class CustomOAuth2User implements OAuth2User {
-
+public class CustomOAuth2User implements OAuth2User, UserDetails{
+	// 모든 로그인 방식을 통합하기 위해, CustomUser 내부에서 어떤 방식으로 로그인했든 Member를 품고 있도록 설계
 	private final Member member;
 	private final Map<String, Object> attributes;
 	private final String nameAttributeKey;
@@ -45,5 +46,16 @@ public class CustomOAuth2User implements OAuth2User {
 	public String getProfileImageUrl() {
 		return member.getProfileImageUrl();
 	}
+
+	@Override
+	public String getPassword() {
+		return member.getPassword();
+	}
+
+	@Override
+	public String getUsername() {
+		return member.getNickname();
+	}
+
 
 }

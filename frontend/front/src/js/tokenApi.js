@@ -11,7 +11,7 @@ export async function tokenApi(url, options = {}){
 	
 	// AccessToken 만료시 refresh 시도
 	 if((res.status === 401 || res.status === 403)) {
-		const refreshRes = await fetch("/api/auth/refresh", {
+		const refreshRes = await fetch("/api/refresh", {
 			method : "POST", 
 			credentials:"include"
 		});

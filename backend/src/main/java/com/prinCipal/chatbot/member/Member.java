@@ -95,6 +95,10 @@ public class Member {
         }
     	this.updatedAt = LocalDateTime.now();
     }
+
+
+
+
 	
 	
 }

@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 
 export default defineConfig({
   root: '.', // 프로젝트 루트
@@ -7,10 +6,10 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'main.html'),
-        chat: resolve(__dirname, 'chat.html'),
-        mypage: resolve(__dirname, 'mypage.html'),
-        oauth2_success: resolve(__dirname, 'oauth2_success.html'),
+        index: 'index.html', 
+        chat: 'chat.html',
+        mypage: 'mypage.html',
+        oauth2_success: 'oauth2_success.html',
       },
     },
   },
@@ -20,11 +19,11 @@ export default defineConfig({
     allowedHosts: ["host.docker.internal", "localhost"],
     proxy: {
       '/oauth2/authorization': {
-        target: 'http://backend:8080',
+        target: 'http://backend:8080',    // 같은 네트워크에 있는 다른 컨테이너로 요청이라서 서비스 이름으로 해도 통하는 거임 
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://backend:8080',
+        target: 'http://finalproject-backend:8080',   //  브라우저에서 프론트엔드 컨테이너에서, 백엔드 컨테이너로 쏘는 거임 (도커 네트워크 기중)
         changeOrigin: true,
       },
     },
