@@ -34,6 +34,7 @@ public class SecurityConfig {
     private static final String[] PERMIT_URL = {
     		"/auth/login", "/auth/signup", "/auth/refresh",  "/auth/logout",
 		    "/oauth2/**",     // 소셜 로그인
+		    "/login/oauth2/code/**",  
 		    "/css/**", "/js/**", "/images/**", "/favicon.ico" // 정적 파일
 		};
     
@@ -48,19 +49,17 @@ public class SecurityConfig {
 			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
 	            .sessionManagement(session -> session
 	                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 👈 필요할 때 세션을 사용
+	            .oauth2Login(oauth2 -> oauth2
+						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+						.successHandler(oauth2SuccessHandler)
+						.failureHandler(oauth2FailureHandler)
+				)
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
 						.requestMatchers(PERMIT_URL).permitAll()
 						.requestMatchers("/auth/**").authenticated() //인증 필요
 						.anyRequest().authenticated()
 				)
-				
-				.oauth2Login(oauth2 -> oauth2
-						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-						.successHandler(oauth2SuccessHandler)
-						.failureHandler(oauth2FailureHandler)
-				)
-				
 				.authenticationProvider(authenticationProvider())
 				// API 요청이 들어올 때마다 JWT 토큰을 검증할 커스텀 필터 => JwtAuthenticationFilter
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

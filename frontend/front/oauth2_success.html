@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인 처리 중...</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(180deg, #fafafa, #f0f0f0);
+      font-family: 'Pretendard', sans-serif;
+      color: #333;
+      margin: 0;
+    }
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #ffd600; /* 카카오 컬러 느낌 */
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 24px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 0.95rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="loader"></div>
+  <h2>카카오 로그인 처리 중...</h2>
+  <p>잠시만 기다려주세요 😊</p>
+
+  <script type="module">
+	import { TokenManager } from '/src/js/token.js';
+  
+  async function handleOAuth2Login() {
+  try {
+    // URL 파라미터에서 accessToken 직접 가져오기
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get("token");
+    const nickname = params.get("nickname");
+    const provider = params.get("provider");
+
+    if (!accessToken) {
+      console.error("토큰이 전달되지 않았습니다.");
+      window.location.replace('/main'); // 로그인 페이지로 복귀
+      return;
+    }
+
+    
+    TokenManager.setTokens(accessToken, false);
+    console.log("OAuth2 로그인 성공, 토큰 저장 완료!");
+
+    const homeUrl = `/home.html?nickname=${encodeURIComponent(nickname)}`;
+    window.location.replace(homeUrl);
+
+  } catch (err) {
+    console.error('OAuth2 처리 중 오류 발생:', err);
+    window.location.replace('/main');
+  }
+}
+
+// 실행
+handleOAuth2Login();
+</script>
+
+
+</body>
+</html>

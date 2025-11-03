@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>홈</title>
+  <style>
+    body { font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .profile { text-align:center; }
+    .logout-btn { margin-top:20px; background:#fee500; border:none; padding:10px 20px; cursor:pointer; border-radius:5px; }
+  </style>
+</head>
+<body>
+  <div class="profile">
+    <h2 id="welcome"></h2>
+    <button id="logoutBtn" class="logout-btn">로그아웃</button>
+  </div>
+
+  <script type="module">
+    import { TokenManager } from '/src/js/token.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const nickname = params.get("nickname") || "사용자";
+    document.getElementById("welcome").textContent = `안녕하세요, ${nickname}님 🌸`;
+
+    // ✅ 로그아웃 처리
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        TokenManager.clearTokens();
+        alert("로그아웃 완료!");
+        window.location.href = "main.html";
+      } catch (err) {
+        console.error("로그아웃 실패:", err);
+      }
+    });
+  </script>
+</body>
+</html>

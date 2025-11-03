@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	// 인증이 필요없는 경로들
 	private static final String[] PERMIT_URL = {
 		    "/auth/signup", "/auth/login", "/auth/refresh", 
+		    "/oauth2/","login/oauth2/",
 		    "/css/**", "/js/**", "/images/**", "/favicon.ico" // 정적 파일
 		};
 
@@ -57,7 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	    }
 	    
 
-	    
 	    //  토큰 추출 및 검증
 		String jwt = resolveToken(request);
 	

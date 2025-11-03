@@ -79,19 +79,23 @@
               <button id="tab-login" class="tab active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
               <button id="tab-signup" class="tab" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
           </div>
-
-          <!-- 로그인 -->
-
+          <button class="close-btn" id="authClose" aria-label="닫기"><i class="fas fa-times"></i></button>
+              <!-- 로그인 -->
             <div class="tab-content active" id="loginTab">
               <div class="social-login-row">
                 <div class="section-title">간편로그인</div>
+
                 <div class="social-buttons">
-                  <button class="social-btn kakao"><div class="kakao-symbol"></div></button>
-                  <button class="social-btn google">G+</button>
+                  <!-- <a href="/oauth2/authorization/kakao" class="social-btn kakao"><img src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg" width="222" alt="카카오 로그인 버튼" /></a> -->
+                  <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+                      <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+                  </a>
+                  <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+                  <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
                 </div>
               </div>
-              <!-- <button class="social-btn naver">N</button> -->
-              <div class="section-title">로그인</div>
+              
+              <div class="section-title1">로그인</div>
 
               <form id="panel-login" class="auth-panel" autocomplete="on">
                 <div class="input-group">
@@ -103,11 +107,6 @@
                 </div>
                 <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
 
-                <label class="save-id">
-                  <input type="checkbox">
-                  <span>아이디 저장</span>
-                </label>
-
                 <button type="submit" class="submit-btn">로그인</button>
               </form>
 
@@ -118,17 +117,21 @@
               </div>
             </div>
 
-            <!-- 회원가입 탭 -->
+            <!-------------------------------- 회원가입 탭 ----------------------------------------------------------------->
             <div class="tab-content" id="signupTab">
               <div class="social-login-row">
                 <div class="section-title">간편가입</div>
                 <div class="social-buttons">
-                  <button class="social-btn kakao"><div class="kakao-symbol"></div></button>
-                  <button class="social-btn google">G+</button>
+                  <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+                      <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+                  </a>
+
+                  <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+                  <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
                 </div>
               </div>
 
-              <div class="section-title">회원가입</div>
+              <div class="section-title1">회원가입</div>
 
               <form id="panel-signup" class="auth-panel" autocomplete="on">
                 <div class="input-group">

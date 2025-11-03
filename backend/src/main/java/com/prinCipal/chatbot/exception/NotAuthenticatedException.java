@@ -2,10 +2,12 @@ package com.prinCipal.chatbot.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class NotAuthenticatedException extends RuntimeException {
 

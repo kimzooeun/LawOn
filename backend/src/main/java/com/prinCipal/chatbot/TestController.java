@@ -44,4 +44,9 @@ public class TestController {
            "received_data", requestBody // 받은 데이터를 그대로 다시 보내줍니다.
        );
    }
+   
+   @GetMapping("/test2")
+   public String test() {
+       return "변경 테스트 1hhgggg";  // 👈 이 숫자를 2, 3, 4로 계속 바꿔보세요
+   }
 }

@@ -66,7 +66,7 @@ body {
 .close-btn {
   position: absolute;
   right: 20px;
-  top: 20px;
+  top: 10px;
   background: none;
   border: none;
   font-size: 24px;
@@ -119,6 +119,16 @@ body {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 12px;
+  margin-top: 10px;
+  padding-left: 30px;
+}
+
+.section-title1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  margin-top: 10px;
+  padding-left: 30px;
 }
 
 /* ===== 소셜 로그인 버튼 ===== */
@@ -131,19 +141,19 @@ body {
 }
 
 /* 간편로그인 라벨과 버튼을 한 줄에 */
-
 .social-login-row {
   display: flex;
   align-items: center;    /* 세로 중앙 정렬 */
   justify-content: space-between;/* ✅ 왼쪽: 텍스트 / 오른쪽: 버튼 */
   width: 100%;                   /* 부모 영역 전체 차지 */
-  padding: 0 30px; 
+  padding: 10 50px; 
   margin-bottom: 20px;
 }
 
 .social-btn {
   width: 48px;
   height: 48px;
+  margin-top: 10px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -174,13 +184,6 @@ body {
   color: white;
 }
 
-
-.kakao-symbol {
-  width: 24px;
-  height: 24px;
-  background-color: #000;
-  border-radius: 50%;
-}
 
 
 
