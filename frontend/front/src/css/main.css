@@ -846,7 +846,13 @@ body.page-fading {
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-/* 1. 뒷배경 오버레이 */
+
+
+/* =========================================
+간편 상담 채팅 위젯 (사이드 슬라이드)
+========================================= */
+
+/* 배경 오버레이 */
 .chat-overlay {
   position: fixed;
   top: 0;
@@ -857,14 +863,14 @@ body.page-fading {
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s var(--smooth-ease), visibility 0.3s;
+  transition: opacity 0.3s ease, visibility 0.3s;
 }
 .chat-overlay.is-open {
   opacity: 1;
   visibility: visible;
 }
 
-/* 2. 채팅 위젯 컨테이너 (오른쪽에서 나옴) */
+/* 채팅 위젯 컨테이너 */
 .chat-widget {
   position: fixed;
   top: 0;
@@ -876,25 +882,26 @@ body.page-fading {
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+  box-shadow: -5px 0 30px rgba(0, 0, 0, 0.15);
   transform: translateX(100%);
-  transition: transform 0.4s var(--smooth-ease);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .chat-widget.is-open {
   transform: translateX(0);
 }
 
-/* 3. 채팅 헤더 */
+/* 채팅 헤더 */
 .chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: var(--bg-light); /* ★ 수정: 아이보리 배경 */
-  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 .chat-header h3 {
-  color: var(--primary); /* 자동 적용 (블랙) */
+  color: #1c1c1c;
   font-size: 18px;
   font-weight: 700;
   margin: 0;
@@ -903,42 +910,133 @@ body.page-fading {
   gap: 8px;
 }
 .chat-header h3 i {
-  color: var(--accent); /* ★ 수정: 챗봇 아이콘만 골드 */
+  color: #d4af37; /* 골드 */
+  font-size: 20px;
 }
 .chat-close-btn {
   background: none;
   border: none;
   font-size: 20px;
-  color: var(--text-gray);
+  color: #888;
   cursor: pointer;
   padding: 5px;
   transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .chat-close-btn:hover {
-  color: var(--primary); /* 자동 적용 (블랙) */
+  color: #1c1c1c;
 }
 
-/* 4. 채팅 본문 (스크롤 영역) */
+/* 채팅 본문 */
 .chat-body {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--bg-light); /* ★ 수정: 아이보리 배경 */
+  background: #fafafa;
 }
 
+/* 스크롤바 스타일 */
+.chat-body::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-body::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+.chat-body::-webkit-scrollbar-thumb {
+  background: #d4af37;
+  border-radius: 10px;
+}
+.chat-body::-webkit-scrollbar-thumb:hover {
+  background: #c19b2e;
+}
 
-/* 7. 채팅 입력창 */
+/* 메시지 버블 */
+.chat-message {
+  padding: 12px 16px;
+  border-radius: 18px;
+  max-width: 80%;
+  font-size: 15px;
+  line-height: 1.5;
+  animation: messageSlideIn 0.3s ease;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 봇 메시지 */
+.chat-message.bot {
+  background: #fff;
+  color: #333;
+  border: 1px solid #e8e8e8;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+}
+
+/* 유저 메시지 */
+.chat-message.user {
+  background: #1c1c1c;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  align-self: flex-end;
+}
+
+/* 로딩 인디케이터 */
+.chat-message.loading {
+  background: none;
+  border: none;
+  align-self: flex-start;
+  padding: 8px 16px;
+}
+.chat-message.loading span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d4af37;
+  margin: 0 2px;
+  animation: loading-bounce 1s infinite ease-in-out;
+}
+.chat-message.loading span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.chat-message.loading span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes loading-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* 채팅 입력창 */
 .chat-footer {
   display: flex;
   padding: 16px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #e0e0e0;
   background: #fff;
+  flex-shrink: 0;
 }
 .chat-footer input {
-  flex-grow: 1;
+  flex: 1;
   border: 1px solid #ddd;
   border-radius: 20px;
   padding: 10px 16px;
@@ -948,10 +1046,10 @@ body.page-fading {
   transition: border-color 0.3s;
 }
 .chat-footer input:focus {
-  border-color: var(--accent); /* ★ 수정: 골드 액센트 */
+  border-color: #d4af37;
 }
 .chat-footer button {
-  background: var(--primary); /* 자동 적용 (블랙) */
+  background: #1c1c1c;
   color: white;
   border: none;
   border-radius: 50%;
@@ -960,11 +1058,27 @@ body.page-fading {
   font-size: 16px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .chat-footer button:hover {
-  background: var(--primary-light); /* 자동 적용 (다크그레이) */
+  background: #2d2d2d;
+  transform: scale(1.05);
 }
+.chat-footer button:active {
+  transform: scale(0.95);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .chat-widget {
+    max-width: 100%;
+  }
+}
+
+
 /*-------------------------=== 특징 섹션 --------------------------------=== */
 .features {
   max-width: 1200px;

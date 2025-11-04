@@ -32,38 +32,6 @@
     </div>
   </header>
 
-  <aside class="chat-widget" id="chat-widget">
-    <header class="chat-header">
-      <h3><i class="fas fa-robot"></i> 간편 법률 상담</h3>
-      <button class="chat-close-btn" id="close-chat-btn">
-        <i class="fas fa-times"></i>
-      </button>
-    </header>
-
-    <main class="chat-body">
-      <div class="chat-message loading">
-        <span></span><span></span><span></span>
-      </div>
-      <div class="chat-message bot">
-        안녕하세요! 무엇을 도와드릴까요? 😊
-      </div>
-      <div class="chat-message user">
-        양육비 조정 가능한가요?
-      </div>
-      <div class="chat-message bot">
-        사정변경이 있으면 법원에서 조정 가능성이 있어요. 간단히 상황을 알려주시면 가이드 드릴게요.
-      </div>
-      <div class="chat-message user">
-        최근 실직했고 소득이 절반 이하로 줄었어요.
-      </div>
-    </main>
-
-    <footer class="chat-footer">
-      <input type="text" placeholder="메시지를 입력하세요...">
-      <button><i class="fas fa-paper-plane"></i></button>
-    </footer>
-  </aside>
-  
   <main class="hero">
     <div class="container hero-content">
       <div class="hero-text">
@@ -89,7 +57,7 @@
         </div>
       </div>
       
-      
+
       <!-- 챗 미리보기 -->
       <div class="hero-image">
           <div class="cp-chat-preview" aria-hidden="true">
@@ -106,7 +74,7 @@
           
 
         <!-- 간편 상담 모달 (hero-image 위) -->
-        <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
+        <!-- <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
           <div class="quick-content">
             <header class="quick-head">
               <h3 id="quickTitle">간편 상담</h3>
@@ -120,7 +88,7 @@
               <button type="submit" class="btn btn-secondary">보내기</button>
             </form>
           </div>
-          </div>
+        </div> -->
 
 
       <!-- 로그인/회원가입 모달 -->
@@ -382,6 +350,32 @@
 
 
 <div class="c-overlay" id="overlay"></div>
+
+<div class="chat-overlay" id="chat-overlay"></div>
+
+<aside class="chat-widget" id="chat-widget">
+  <header class="chat-header">
+    <h3><i class="fas fa-robot"></i> 간편 법률 상담</h3>
+    <button class="chat-close-btn" id="close-chat-btn">
+      <i class="fas fa-times"></i>
+    </button>
+  </header>
+
+  <main class="chat-body" id="chat-body">
+    <div class="chat-message loading" id="chat-loading">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="chat-message bot">
+      안녕하세요! 무엇을 도와드릴까요? 😊
+    </div>
+  </main>
+
+  <footer class="chat-footer">
+    <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." />
+    <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+  </footer>
+</aside>
+
 
 <footer class="site-footer">
     <div class="container">
