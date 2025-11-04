@@ -1,397 +1,129 @@
-/* ================================
-   9. 마이페이지 (Mypage)
-   ================================ */
+:root{--line:#ece8f9;--ink:#221a2e;--muted:#6d5f86;--bg:#faf7ff;--card:#ffffff;--primary:#8f6ae8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,pretendard,'Noto Sans KR',sans-serif}
+a{text-decoration:none;color:inherit}
 
-/* --- 9-1. 마이페이지 헤더 (Hero) --- */
-.mpx-hero {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
-}
-.mpx-hero-inner {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px;
-}
-.mpx-back {
-  background: transparent;
+/* 헤더 */
+.mp-header{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line);z-index:10}
+.mp-header .inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:14px 16px}
+.mp-header .logo{display:flex;align-items:center;gap:8px}
+.mp-header .logo img{width:32px;height:32px;border-radius:8px}
+.mp-header .spacer{flex:1}
+.mp-header .back{padding:8px 12px;border-radius:10px;border:1px solid var(--line)}
+
+/* 레이아웃 */
+.mp-wrap{max-width:1100px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:260px 1fr;gap:16px}
+@media (max-width:900px){.mp-wrap{grid-template-columns:1fr}}
+
+/* 좌측 탭 */
+.mp-nav{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}
+.mp-nav h3{margin:6px 10px 10px;font-size:14px;color:var(--muted)}
+.mp-nav .tab{display:block;padding:12px;border-radius:10px;color:#333}
+.mp-nav .tab:hover{background:#f5efff}
+.mp-nav .tab.active{background:#ede7ff;color:#5d46c0}
+
+/* 카드/그리드 */
+.mp-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.04)}
+.mp-card h2{margin:0 0 12px}
+.mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mp-grid.one-col{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+.btn.primary{background:#8f6ae8;color:#fff;border-color:#7d5de1}
+.btn.ghost{background:transparent}
+.hint{font-size:12px;color:var(--muted)}
+
+/* 닉네임 프리뷰 */
+.nick-preview{display:inline-flex;align-items:center;gap:8px;margin:6px 0 12px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;background:#fff}
+.nick-preview strong{font-size:16px}
+
+/* 하단 고정 */
+.mp-footer{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(6px);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.mp-footer .footer-left{display:flex;align-items:center;gap:12px}
+.mp-footer .footer-right{display:flex;align-items:center;gap:8px}
+.link-inline{color:#5d46c0}
+.link-inline:hover{opacity:.85;text-decoration:underline}
+.sep{color:#c0b7de}
+
+/* 모달 */
+.modal{position:fixed;inset:0;display:none}
+.modal.open{display:block}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.modal-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(840px,92vw);max-height:80vh;background:#fff;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.modal-body{padding:16px;overflow:auto}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+.modal-close{appearance:none;border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer}
+.modal-body h4{margin:10px 0 6px}
+.modal-body p, .modal-body ul{margin:0 0 10px}
+.modal-body ul{padding-left:18px}
+
+/* ===== 긴급 알람 버튼 ===== */
+.emergency-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  background: #e84343;
+  color: #fff;
+  font-weight: bold;
+  font-size: 15px;
   border: none;
-  color: var(--lavender-600);
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 8px;
-  padding: 4px;
+  border-radius: 50px;
+  padding: 14px 22px;
+  box-shadow: 0 6px 18px rgba(232, 67, 67, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.mpx-hero h2 {
-  margin: 0 0 6px;
-  font-size: 24px;
-}
-.mpx-sub {
-  margin: 0 0 12px;
-  color: var(--muted);
+.emergency-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(232, 67, 67, 0.6);
 }
 
-/* (검색/필터 칩 스타일은 원본 유지) */
-.mpx-search {
-  position: relative;
-  margin: 8px 0 12px;
-}
-.mpx-search-ico {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.7;
-}
-.mpx-search input {
-  width: 100%;
-  padding: 12px 14px 12px 36px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-full);
-  background: #fff;
-  outline: none;
-  box-sizing: border-box;
-}
-.mpx-search input:focus {
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
-.mpx-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.chip {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  padding: 8px 12px;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-weight: 700;
-}
-.chip.is-active {
-  background: #efe8ff;
-  border-color: #e6dbff;
-  color: #5a3bb6;
-}
-
-/* --- 9-2. 마이페이지 리스트 레이아웃 --- */
-.mpx-list-layout {
-  max-width: 800px;
-  margin: 12px auto;
-  padding: 0 16px 24px;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.mpx-section {
-  width: 100%;
-}
-
-.mpx-section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--primary);
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--primary);
-  margin: 0 0 12px 0;
-}
-
-.mpx-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 10px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: var(--radius-lg); /* [수정] 변수 사용 */
-  margin-bottom: 10px;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.15s ease, transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.mpx-list-item:hover {
-  background: var(--bg);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm); /* [수정] 변수 사용 */
-}
-
-.mpx-item-icon {
-  font-size: 22px;
-  margin-right: 12px;
-  width: 24px;
-  text-align: center;
-}
-
-.mpx-item-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.mpx-item-text strong {
-  font-size: 16px;
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.mpx-item-text p {
-  font-size: 14px;
-  color: var(--ink-muted);
-  margin: 4px 0 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mpx-item-arrow {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ink-muted);
-  margin-left: 16px;
-}
-
-/* --- 9-3. 마이페이지 디테일 패널 --- */
-/* (원본 스타일 유지) */
-.mpx-detail {
-  max-width: 1120px;
-  margin: 0 auto 16px;
-  padding: 0 16px;
-  box-sizing: border-box;
-}
-.mpx-detail-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-bottom: none;
-  border-radius: 16px 16px 0 0;
-  background: var(--panel);
-}
-.mpx-detail-body {
-  border: 1px solid var(--line);
-  border-top: none;
-  border-radius: 0 0 16px 16px;
-  background: var(--panel);
-  padding: 16px;
-}
-.mpx-detail-body .field {
-  margin-bottom: 12px;
-}
-.mpx-detail-body .field label {
-  display: block;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-.mpx-detail-body .field input[type="text"],
-.mpx-detail-body .field input[type="password"] {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: #fff;
-  box-sizing: border-box;
-}
-.mpx-detail-body .field .hint {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-.mpx-detail-close {
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  cursor: pointer;
-  color: var(--muted);
-}
-
-/* ================================
-   12. [수정] 변호사 페이지 컨트롤 통일
-   ================================ */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.controls .input,
-.controls .select {
-  flex: 1 1 180px;
-  padding: 10px 12px;
-  border: 1px solid var(--input-line);
-  border-radius: var(--radius-md); /* [수정] 8px로 변경 */
-  background: var(--input-bg);
-  color: var(--ink);
-  font-size: 14px;
-  outline: none;
-}
-
-.controls .input:focus,
-.controls .select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
-
-/* ================================
-   13. 변호사 페이지 리스트 (신규)
-   ================================ */
-
-/* '변호사페이지'의 <main> 영역을 감싸는 레이아웃 */
-.mpx-grid {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
-/* 템플릿(#section-tpl) - "서울·수도권" 등 권역 타이틀 */
-.section {
-  margin-bottom: 24px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 20px 0 12px;
-  border-bottom: 2px solid var(--line);
-  padding-bottom: 8px;
-}
-
-.section-title h2 {
-  font-size: 20px;
-  color: var(--ink);
+/* ===== 긴급 연락망 모달 ===== */
+.emergency-list {
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
-
-.section-title .count {
-  font-size: 14px;
-  color: var(--ink-muted);
-  background: var(--panel);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+.emergency-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
 }
-
-/* 템플릿(#section-tpl) - "전체 | 변호사 | 심리" 칩 컨테이너 */
-.pills {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-/* .pills 내부에 .chip 클래스가 사용될 것을 가정 (기존 .chip 스타일 재활용) */
-
-/* 템플릿(#section-tpl) - 카드 그리드 */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr; /* 모바일 기본 1열 */
-  gap: 12px;
-}
-
-/* 데스크탑 2열 */
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-/* 템플릿(#card-tpl) - 개별 카드 */
-.card {
-  display: flex;
-  gap: 16px;
-  background: var(--btn-bg); /* #fff 대신 변수 사용 */
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  text-align: left;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
-}
-
-.card__icon {
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  background: var(--panel);
-  border-radius: var(--radius-md);
-}
-
-.card__body {
-  flex: 1;
-  min-width: 0;
-}
-
-.card__title {
-  font-size: 17px;
+.emergency-list li strong {
+  color: #e84343;
   font-weight: 700;
-  color: var(--ink);
-  margin: 0 0 4px;
+  margin-right: 6px;
 }
 
-.card__meta {
-  font-size: 13px;
-  color: var(--ink-muted);
-  margin-bottom: 8px;
-  line-height: 1.4;
-  /* 주소 등이 잘릴 수 있도록 */
-  white-space: pre-wrap;
-  word-break: break-word;
+/* 위험 버튼 스타일 */
+.btn.danger{background:#e84343;color:#fff;border-color:#dc3a3a}
+.btn.danger:hover{filter:brightness(0.95)}
+
+/* 경고 박스 */
+.warning-box{
+  background:#fff4f4;
+  border:1px solid #ffd8d8;
+  color:#7a2e2e;
+  border-radius:12px;
+  padding:12px 14px;
+  margin:8px 0 12px;
 }
 
-.desc {
-  font-size: 13px;
-  color: var(--primary-700);
-  font-weight: 600;
-  margin-bottom: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* 확인 입력/체크박스 행 */
+.confirm-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:10px 0;
 }
-
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: auto;
+.confirm-row input[type="text"]{
+  flex:1;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:14px;
 }
-
-/* ================================
-   14. (신규) 마이페이지 탈퇴 버튼
-   ================================ */
-
-/* 기본 .mpx-list-item 스타일을 기반으로 색상만 덮어쓰기 */
-/* .mpx-list-item.danger {
-  background: var(--bg); 
-  border-color: #f7d9d5; 
-}
-
-.mpx-list-item.danger .mpx-item-text strong {
-  color: var(--danger); 
-}
-
-.mpx-list-item.danger .mpx-item-text p {
-  color: #c0392b; 
-}
-
-.mpx-list-item.danger:hover {
-  background: #fff8f7;
-  border-color: var(--danger);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.1);
-} */
