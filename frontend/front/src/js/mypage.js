@@ -1,186 +1,184 @@
-// 탭 활성화 동기화 + 닉네임 로컬 저장 + 약관/개인정보 모달
-(function(){
-  // 탭
-  const tabs = Array.from(document.querySelectorAll('.mp-nav .tab'));
-  function syncActive(){
-    const hash = location.hash || '#profile';
-    tabs.forEach(t=>t.classList.toggle('active', t.getAttribute('href')===hash));
-  }
-  window.addEventListener('hashchange', syncActive);
-  syncActive();
+// ===================================
+// 5. 토닥토닥 [마이페이지]
+// (탐색형 마이페이지 전환, 검색/필터, 액션)
+// ===================================
 
-  // 닉네임 저장/로드/초기화
-  const nicknameEl = document.getElementById('nickname');
-  const nickPreview = document.getElementById('nickPreview');
-  const KEY = 'todak_nickname';
-
-  function renderPreview(){
-    nickPreview.textContent = (nicknameEl.value || '게스트').trim();
-  }
-  function saveNickname(){
-    localStorage.setItem(KEY, (nicknameEl.value || '').trim());
-    alert('✅ 닉네임이 로컬에 저장되었습니다.');
-    renderPreview();
-  }
-  function loadNickname(){
-    const saved = localStorage.getItem(KEY) || '';
-    nicknameEl.value = saved;
-    renderPreview();
-  }
-  function resetNickname(){
-    if(confirm('저장된 닉네임을 초기화할까요?')){
-      localStorage.removeItem(KEY);
-      nicknameEl.value = '';
-      renderPreview();
-      alert('🗑 닉네임이 초기화되었습니다.');
+// === [ADD] 탐색형 마이페이지 전환 & 검색/필터 ===
+// [수정] IIFE (즉시실행함수) 대신, aaa8.js에서 호출할 수 있도록 함수로 변경
+function initMypageListeners() {
+  // 안전 토스트
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    if (!el) {
+      alert(msg);
+      return;
     }
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 1600);
   }
 
-  // 이벤트 바인딩
-  nicknameEl?.addEventListener('input', renderPreview);
-  document.getElementById('btnSaveTop')?.addEventListener('click', (e)=>{ e.preventDefault(); saveNickname(); });
-  document.getElementById('saveAllBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); saveNickname(); });
-  document.getElementById('btnCancelTop')?.addEventListener('click', (e)=>{ e.preventDefault(); resetNickname(); });
+  const exploreBtn = document.getElementById("exploreBtn");
+  const explore = document.getElementById("mypageExplore");
+  // [수정] 페이지 이동 로직은 aaa8.js가 담당하므로 관련 변수 및 리스너 제거
+  // const chatArea = document.getElementById("chatArea");
+  // const inputSec = document.querySelector(".input-section");
 
-  // 초기 로드
-  window.addEventListener('DOMContentLoaded', loadNickname);
+  if (!exploreBtn || !explore) return;
 
-  // 모달 열고닫기
-  const openModal  = (id)=> document.getElementById(id)?.classList.add('open');
-  const closeModal = (id)=> document.getElementById(id)?.classList.remove('open');
+  // 버튼 라벨을 '마이페이지'로
+  const txt = exploreBtn.querySelector(".nav-text");
+  if (txt) txt.textContent = "마이페이지";
 
-  document.getElementById('viewTerms')?.addEventListener('click', (e)=>{ e.preventDefault(); openModal('termsModal'); });
-  document.getElementById('viewPrivacy')?.addEventListener('click', (e)=>{ e.preventDefault(); openModal('privacyModal'); });
+  // [수정] 치명적 오류를 일으키는 페이지 이동 리스너 (open/close) 제거
+  // exploreBtn.addEventListener("click", open);
+  // document.getElementById("mpxBackBtn")?.addEventListener("click", close);
 
-  document.querySelectorAll('[data-close]')?.forEach(btn=>{
-    btn.addEventListener('click', ()=> closeModal(btn.getAttribute('data-close')) );
-  });
-  document.addEventListener('keydown', (e)=>{
-    if(e.key==='Escape'){ closeModal('termsModal'); closeModal('privacyModal'); }
-  });
+  // 검색/필터
+  const searchInput = document.getElementById("mpxSearch");
+  const chips = explore.querySelectorAll(".chip");
+  // [수정] mpx-card는 존재하지 않으므로, 이 로직은 현재 HTML(aaa.html)과 불일치.
+  // 이 기능이 필요하다면 HTML 구조 변경이 필요함. (일단 코드는 유지)
+  const cards = Array.from(explore.querySelectorAll(".mpx-card"));
+  let currentFilter = "all";
 
-    // =========================
-  // 대화내용 전체 삭제 (로컬 + 선택적 서버)
-  // =========================
-
-  // 필요 시 환경에서 오버라이드 가능
-  const CHAT_PURGE_API = window.TODAK_CHAT_PURGE_API || '/api/chats/purge';
-
-  const openPurgeModalBtn = document.getElementById('openPurgeModal');
-  const purgeModal = document.getElementById('purgeChatModal');
-  const purgeConfirmInput = document.getElementById('purgeConfirmInput');
-  const preserveSettingsEl = document.getElementById('preserveSettings');
-  const alsoServerEl = document.getElementById('alsoServer');
-  const purgeNowBtn = document.getElementById('purgeNowBtn');
-
-  // 모달 열기
-  openPurgeModalBtn?.addEventListener('click', () => {
-    purgeConfirmInput.value = '';
-    preserveSettingsEl.checked = true;
-    alsoServerEl.checked = false;
-    purgeNowBtn.disabled = true;
-    purgeModal.classList.add('open');
-    purgeConfirmInput.focus();
-  });
-
-  // 입력 확인(삭제 라고 써야 버튼 활성화)
-  purgeConfirmInput?.addEventListener('input', () => {
-    purgeNowBtn.disabled = (purgeConfirmInput.value.trim() !== '삭제');
-  });
-
-  // 모달 닫기(기존 모달 로직 재사용)
-  document.querySelectorAll('[data-close="purgeChatModal"]').forEach(btn=>{
-    btn.addEventListener('click', ()=> purgeModal.classList.remove('open'));
-  });
-
-  // 로컬 스토리지에서 채팅 관련 키만 삭제
-  function purgeLocalChats(preserveSettings = true){
-    let removed = 0;
-
-    const PRESERVE_KEYS = preserveSettings ? ['todak_nickname'] : [];
-    const maybeChatKey = (k) => {
-      // 채팅/메시지/대화/기록/스레드/룸 등 흔한 키워드 포함 시 제거
-      const s = k.toLowerCase();
-      return /(chat|message|messages|msg|conversation|history|thread|room|dialog|talk)/.test(s);
-    };
-
-    // localStorage
-    for(let i = localStorage.length - 1; i >= 0; i--){
-      const key = localStorage.key(i);
-      if (!key) continue;
-      if (PRESERVE_KEYS.includes(key)) continue;
-      if (maybeChatKey(key)){
-        localStorage.removeItem(key);
-        removed++;
-      }
-    }
-
-    // sessionStorage (있을 경우)
-    for(let i = sessionStorage.length - 1; i >= 0; i--){
-      const key = sessionStorage.key(i);
-      if (!key) continue;
-      if (maybeChatKey(key)){
-        sessionStorage.removeItem(key);
-        removed++;
-      }
-    }
-
-    return removed;
+  function applyFilter() {
+    const q = (searchInput?.value || "").trim().toLowerCase();
+    cards.forEach((card) => {
+      const tags = (card.getAttribute("data-tags") || "").toLowerCase();
+      const inFilter = currentFilter === "all" || tags.includes(currentFilter);
+      const inSearch =
+        !q || tags.includes(q) || card.textContent.toLowerCase().includes(q);
+      card.style.display = inFilter && inSearch ? "" : "none";
+    });
   }
 
-  // 서버 API 호출 (선택)
-  async function purgeServerChats(){
-    try{
-      const res = await fetch(CHAT_PURGE_API, { method: 'DELETE' });
-      // 2xx면 성공으로 간주
-      return res.ok;
-    }catch(err){
-      console.warn('Server purge request failed:', err);
-      return false;
-    }
-  }
-
-  // 실행 버튼
-  purgeNowBtn?.addEventListener('click', async ()=>{
-    if(purgeConfirmInput.value.trim() !== '삭제') return;
-
-    const preserve = !!preserveSettingsEl?.checked;
-    const doServer = !!alsoServerEl?.checked;
-
-    // 1) 로컬 삭제
-    const removedCount = purgeLocalChats(preserve);
-
-    // 2) 서버 삭제(선택)
-    let serverOk = null;
-    if(doServer){
-      serverOk = await purgeServerChats();
-    }
-
-    // 알림
-    let msg = `🧹 로컬 대화 ${removedCount}개 항목 삭제 완료.`;
-    if(serverOk === true) msg += '\n🌐 서버 대화 삭제 요청 성공.';
-    if(serverOk === false) msg += '\n🌐 서버 대화 삭제 요청 실패(나중에 다시 시도하세요).';
-
-    alert(msg);
-
-    // 모달 닫고, 필요 시 페이지 새로고침
-    purgeModal.classList.remove('open');
-    // location.reload(); // 필요하면 주석 해제
-  });
-
-})();
-
-
-// 🔔 긴급 알람 버튼
-  const emergencyBtn = document.getElementById('emergencyBtn');
-  const emergencyModal = document.getElementById('emergencyModal');
-
-  emergencyBtn?.addEventListener('click', () => {
-    emergencyModal.classList.add('open');
-  });
-
-  document.querySelectorAll('[data-close="emergencyModal"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      emergencyModal.classList.remove('open');
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chips.forEach((c) => c.classList.remove("is-active"));
+      chip.classList.add("is-active");
+      currentFilter = chip.dataset.filter || "all";
+      applyFilter();
     });
   });
+  searchInput?.addEventListener("input", applyFilter);
+
+  // 액션: 프로젝트 로컬 키
+  const NICK_KEY = "todak_nickname";
+  const PUSH_KEY = "todak_push_enabled";
+  const RECENTS_KEY = "todak_recents";
+  const CHATS_KEY = "todak_chats_v1"; // [수정] aaa1.js와 키 통일
+
+  // [수정] 존재하지 않는 디테일 패널 로직 제거
+  // const detail = document.getElementById("mpxDetail");
+  // ...
+  // function openDetail(title, innerHTML) { ... }
+  // function closeDetail() { ... }
+  // detailClose?.addEventListener("click", closeDetail);
+
+  // 카드 액션 핸들러
+  explore.addEventListener("click", async (e) => {
+    // [수정] HTML 구조에 맞게 셀렉터 변경
+    const btn = e.target.closest(".mpx-list-item");
+    if (!btn) return;
+    const action = btn.dataset.action;
+
+    // 공통 확인창
+    // [수정] Modal.open이 aaa1.js에 정의되어 있으므로 사용
+    const ask = (msg) => {
+      return new Promise((resolve) => {
+        Modal.open({
+          message: msg,
+          okText: "확인",
+          cancelText: "취소",
+          onConfirm: () => resolve(true),
+        });
+        // 참고: Modal.js는 '취소'시 false 반환을 지원하지 않음.
+      });
+    };
+
+    if (action === "open-profile") {
+      const current = localStorage.getItem(NICK_KEY) || "";
+      // [수정] openDetail 대신 prompt 사용
+      const v = prompt("채팅 상단에 표시될 닉네임을 입력하세요.", current);
+      if (v !== null) {
+        // '취소'가 아닐 때
+        localStorage.setItem(NICK_KEY, v.trim());
+        // [수정] aaa1.js의 전역 닉네임 업데이트 함수 호출
+        if (typeof updateNicknameDisplay === "function") {
+          updateNicknameDisplay();
+        }
+        toast("닉네임 저장 완료");
+      }
+    } else if (action === "open-security") {
+      // [수정] openDetail 대신 Modal.open 사용
+      Modal.open({
+        message: "이 기능은 데모용입니다.",
+        okText: "확인",
+        cancelText: "닫기",
+      });
+    } else if (action === "toggle-push") {
+      const on = localStorage.getItem(PUSH_KEY) === "1";
+      localStorage.setItem(PUSH_KEY, on ? "0" : "1");
+      toast(on ? "알림 OFF" : "알림 ON");
+    } else if (action === "clear-chats") {
+      // [수정] Modal.open의 콜백 사용
+      Modal.open({
+        message: "⚠ 삭제 시 되돌릴 수 없습니다. 전체 삭제할까요?",
+        okText: "삭제",
+        onConfirm: () => {
+          localStorage.removeItem(RECENTS_KEY);
+          localStorage.removeItem(CHATS_KEY);
+          toast("대화 전체 비우기 완료");
+          setTimeout(() => location.reload(), 1000); // 새로고침
+        },
+      });
+    } else if (action === "wipe-local") {
+      // [수정] Modal.open의 콜백 사용
+      Modal.open({
+        message: "로컬 저장소 사용자 데이터를 초기화할까요?",
+        okText: "초기화",
+        onConfirm: () => {
+          localStorage.removeItem(NICK_KEY);
+          localStorage.removeItem(PUSH_KEY);
+          localStorage.removeItem(RECENTS_KEY);
+          localStorage.removeItem(CHATS_KEY);
+          if (typeof updateNicknameDisplay === "function") {
+            updateNicknameDisplay();
+          }
+          toast("로컬 데이터 초기화 완료");
+          setTimeout(() => location.reload(), 1000); // 새로고침
+        },
+      });
+    } else if (action === "open-withdrawal") {
+      // (Modal.open 함수는 aaa1.js에 정의되어 있습니다)
+      Modal.open({
+        title: "회원 탈퇴",
+        message:
+          "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없으며 모든 데이터가 영구적으로 삭제됩니다.",
+        okText: "탈퇴", // 버튼 텍스트
+        onConfirm: () => {
+          // --- (실제 탈퇴 로직이 여기 들어갑니다) ---
+          // (데모) 토스트 메시지만 표시
+          toast("회원 탈퇴가 처리되었습니다.");
+
+          // (예시) 1초 후 페이지 새로고침 (로그아웃 효과)
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        },
+      });
+    } else if (action === "open-emergency") {
+      // [수정] openDetail 대신 Modal.open 사용
+      Modal.open({
+        title: "긴급 연락",
+        message: `112 (경찰/여성폭력)\n119 (화재/구급)\n1393 (자살예방상담)\n1577-0199 (여성긴급전화)`,
+        okText: "확인",
+        cancelText: "닫기",
+      });
+    } else if (action === "open-privacy" || action === "open-terms") {
+      // [추가] aaa6.js가 처리하도록 이벤트를 전파
+      return true;
+    }
+  });
+}

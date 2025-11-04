@@ -13,173 +13,165 @@
 </head>
 <body>
 
-
-
-
-<div class="hero-container">
-  <header>
-    <div class="container">
-      <div class="logo">
-        <img src="images/black.png" alt="로고" class="logo-icon" />
-        <span class="logo-text">LawOn</span>
-      </div>
-      <ul class="nav-links">
-        <li><a href="#features">서비스 소개</a></li>
-        <li><a href="#features">이용 방법</a></li>
-        <li><a href="#layerimg">변호사 소개</a></li>
-      </ul>
-      <a href="#" class="btn btn-primary">도입 문의</a>
-    </div>
-  </header>
-
-  <main class="hero">
-    <div class="container hero-content">
-      <div class="hero-text">
-        <h1>
-        이혼 고민,<br>
-        <span>AI가 먼저 들어드립니다</span>
-        </h1>
-        <p>
-        복잡한 법률 용어가 어렵고, 변호사 비용이 부담되시나요?<br>
-        AI 챗봇이 24시간 무료로 상담하고, 맞춤 변호사까지 연결해드립니다.
-        </p>
-
-      
-        <div class="hero-buttons">
-          <a href="javascript:void(0)" class="btn btn-primary" data-role="quick" data-anim="pop">
-            <i class="fas fa-comments"></i>
-            간편 상담
-          </a>
-          <a href="javascript:void(0)" class="btn btn-secondary customer-review" data-role="custom" id="btnCustom">
-            <i class="fas fa-user-check"></i>
-            맞춤형 상담
-          </a>
+  <div class="hero-container">
+    <header>
+      <nav class="container">
+        <div class="logo">
+          <img src="images/cream.png" alt="로고" class="logo-icon" />
         </div>
-      </div>
-      
-      
-      <!-- 챗 미리보기 -->
-      <div class="hero-image">
-          <div class="cp-chat-preview" aria-hidden="true">
-            <div class="cp-phone">
-              <div class="cp-statusbar">
-                  <span class="cp-dot"></span><span class="cp-dot"></span><span class="cp-dot"></span>
-              </div>
-            <div class="cp-messages" id="cpMessages"></div>
-            <div class="cp-typing" id="cpTyping" aria-hidden="true">
-                <span class="cp-bounce"></span><span class="cp-bounce"></span><span class="cp-bounce"></span>
-            </div>
-            </div>
-          </div>
-          
+        <ul class="nav-links">
+          <li><a href="#">Home</a></li>
+          <li><a href="#">버튼따위</a></li>
+          <li><a href="#">간소화</a></li>
+          <li><a href="#">예정중이다</a></li>
+        </ul>
+        <a href="#" class="btn btn-primary">도입 문의</a>
+      </nav>
+    </header>
 
-        <!-- 간편 상담 모달 (hero-image 위) -->
-        <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
-          <div class="quick-content">
-            <header class="quick-head">
-              <h3 id="quickTitle">간편 상담</h3>
-              <button class="close" id="quickClose" aria-label="닫기"><i class="fas fa-times"></i></button>
-            </header>
-            <div class="messages" id="quickMessages" aria-live="polite">
-              <div class="msg bot">안녕하세요! 무엇을 도와드릴까요? 😊</div>
-            </div>
-            <form id="quickForm" class="input-area" autocomplete="on">
-              <input type="text" id="quickText" placeholder="예) 이혼 관련 상담" required />
-              <button type="submit" class="btn btn-secondary">보내기</button>
-            </form>
-          </div>
-          </div>
+    <main class="hero">
+      <div class="container hero-content">
+        <div class="hero-text">
+          <h1>이혼 전문 챗봇<br><span>아카자 포에버</span></h1>
+          <p>Connect instantly with a 24x7 specialist or choose to video visit a particular doctor.</p>
 
-
-      <!-- 로그인/회원가입 모달 -->
-      <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-        <div class="tabs" role="tablist">
-            <button id="tab-login" class="tab active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
-            <button id="tab-signup" class="tab" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
+          <div class="hero-buttons">
+            <a href="javascript:void(0)" class="btn btn-secondary" data-role="quick" data-anim="pop">간편 상담</a>
+            <a href="javascript:void(0)" class="customer-review" data-role="custom" id="btnCustom">맞춤형 상담</a>
+          </div>
         </div>
-        <button class="close-btn" id="authClose" aria-label="닫기"><i class="fas fa-times"></i></button>
-            <!-- 로그인 -->
-          <div class="tab-content active" id="loginTab">
-            <div class="social-login-row">
-              <div class="section-title">간편로그인</div>
-
-              <div class="social-buttons">
-                <!-- <a href="/oauth2/authorization/kakao" class="social-btn kakao"><img src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg" width="222" alt="카카오 로그인 버튼" /></a> -->
-                <a href="/oauth2/authorization/kakao" class="social-btn kakao">
-                    <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
-                </a>
-                <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
-                <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
-              </div>
-            </div>
+        
+        
+        <!-- 챗 미리보기 -->
+        <div class="hero-image">
+        <div class="cp-chat-preview" aria-hidden="true">
+        <div class="cp-phone">
+        <div class="cp-statusbar">
+            <span class="cp-dot"></span><span class="cp-dot"></span><span class="cp-dot"></span>
+        </div>
+        <div class="cp-messages" id="cpMessages"></div>
+        <div class="cp-typing" id="cpTyping" aria-hidden="true">
+            <span class="cp-bounce"></span><span class="cp-bounce"></span><span class="cp-bounce"></span>
+        </div>
+        </div>
+        </div>
             
-            <div class="section-title1">로그인</div>
-
-            <form id="panel-login" class="auth-panel" autocomplete="on">
-              <div class="input-group">
-                <input type="text" id="loginNickname" name="nickname" class="input-field" placeholder="아이디" required>
+          <!-- 간편 상담 모달 (hero-image 위) -->
+          <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
+            <div class="quick-content">
+              <header class="quick-head">
+                <h3 id="quickTitle">간편 상담</h3>
+                <button class="close" id="quickClose" aria-label="닫기"><i class="fas fa-times"></i></button>
+              </header>
+              <div class="messages" id="quickMessages" aria-live="polite">
+                <div class="msg bot">안녕하세요! 무엇을 도와드릴까요? 😊</div>
               </div>
-
-              <div class="input-group">
-                <input type="password" id="loginPassword" name="password" class="input-field" placeholder="비밀번호" required>
-              </div>
-              <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
-
-              <button type="submit" class="submit-btn">로그인</button>
-            </form>
-
-            <div class="link-group">
-              <button type="button" class="btn" id="forgotIdBtn">아이디 찾기</button>
-              <span class="separator">|</span>
-              <button type="button" class="btn" id="forgotBtn">비밀번호 찾기</button>
+              <form id="quickForm" class="input-area" autocomplete="on">
+                <input type="text" id="quickText" placeholder="예) 이혼 관련 상담" required />
+                <button type="submit" class="btn btn-secondary">보내기</button>
+              </form>
             </div>
           </div>
 
-          <!-------------------------------- 회원가입 탭 ----------------------------------------------------------------->
-          <div class="tab-content" id="signupTab">
-            <div class="social-login-row">
-              <div class="section-title">간편가입</div>
-              <div class="social-buttons">
-                <a href="/oauth2/authorization/kakao" class="social-btn kakao">
-                    <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
-                </a>
 
-                <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
-                <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
-              </div>
-            </div>
-
-          <div class="section-title1">회원가입</div>
-
-            <form id="panel-signup" class="auth-panel" autocomplete="on">
-              <div class="input-group">
-                <input type="text" class="input-field" id="signName" name="nickname" placeholder="닉네임" required>
-              </div>
-            <div class="input-group">
-              <input type="password" id="signPassword" name="password" class="input-field" placeholder="비밀번호" required>
-            </div>
-
-            <div class="input-group">
-              <input type="password" id="signPassword2" name="password2" class="input-field" placeholder="비밀번호확인" required>
-            </div>
-
-            <div class="c-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
-            <!-- <div class="verification-buttons">
-              <button class="verify-btn">휴대폰 인증</button>
-            </div> -->
-
-            <button type="submit" class="submit-btn">회원가입</button>
-            </form>
+        <!-- 로그인/회원가입 모달 -->
+        <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+          <div class="tabs" role="tablist">
+              <button id="tab-login" class="tab active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
+              <button id="tab-signup" class="tab" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
           </div>
-      </div>
-      </div>
-      <!-- /hero-image -->
-    </div>
-  </main>
-</div>
+          <button class="close-btn" id="authClose" aria-label="닫기"><i class="fas fa-times"></i></button>
+              <!-- 로그인 -->
+            <div class="tab-content active" id="loginTab">
+              <div class="social-login-row">
+                <div class="section-title">간편로그인</div>
 
-<!-- 
-  <section class="text-content">
+                <div class="social-buttons">
+                  <!-- <a href="/oauth2/authorization/kakao" class="social-btn kakao"><img src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg" width="222" alt="카카오 로그인 버튼" /></a> -->
+                  <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+                      <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+                  </a>
+                  <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+                  <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
+                </div>
+              </div>
+              
+              <div class="section-title1">로그인</div>
+
+              <form id="panel-login" class="auth-panel" autocomplete="on">
+                <div class="input-group">
+                  <input type="text" id="loginNickname" name="nickname" class="input-field" placeholder="아이디" required>
+                </div>
+
+                <div class="input-group">
+                  <input type="password" id="loginPassword" name="password" class="input-field" placeholder="비밀번호" required>
+                </div>
+                <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
+
+                <button type="submit" class="submit-btn">로그인</button>
+              </form>
+
+              <div class="link-group">
+                <button type="button" class="btn" id="forgotIdBtn">아이디 찾기</button>
+                <span class="separator">|</span>
+                <button type="button" class="btn" id="forgotBtn">비밀번호 찾기</button>
+              </div>
+            </div>
+
+            <!-------------------------------- 회원가입 탭 ----------------------------------------------------------------->
+            <div class="tab-content" id="signupTab">
+              <div class="social-login-row">
+                <div class="section-title">간편가입</div>
+                <div class="social-buttons">
+                  <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+                      <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+                  </a>
+
+                  <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+                  <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
+                </div>
+              </div>
+
+            <div class="section-title1">회원가입</div>
+
+              <form id="panel-signup" class="auth-panel" autocomplete="on">
+                <div class="input-group">
+                  <input type="text" class="input-field" id="signName" name="nickname" placeholder="닉네임" required>
+                </div>
+              <div class="input-group">
+                <input type="password" id="signPassword" name="password" class="input-field" placeholder="비밀번호" required>
+              </div>
+
+              <div class="input-group">
+                <input type="password" id="signPassword2" name="password2" class="input-field" placeholder="비밀번호확인" required>
+              </div>
+
+              <div class="c-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
+              <!-- <div class="verification-buttons">
+                <button class="verify-btn">휴대폰 인증</button>
+              </div> -->
+
+              <button type="submit" class="submit-btn">회원가입</button>
+              </form>
+            </div>
+        </div>
+        </div>
+        <!-- /hero-image -->
+      </div>
+    </main>
+
+    <section class="partners">
+      <div class="container partner-logos">
+        <img src="images/counseling2.jpg" alt="김주은" width="100" height="100">
+        <img src="images/counseling3.png" alt="최지현" width="100" height="100">
+        <img src="images/Lawyer1.png" alt="지정민" width="100" height="100">
+        <img src="images/Lawyer2.png" alt="아카자" width="100" height="100">
+        <img src="images/Lawyer3.png" alt="박지유" width="100" height="100">
+      </div>
+    </section>
+  </div>
+
+  <!-- <section class="text-content">
     <div class="container">
       <div class="text-box">
         
@@ -230,9 +222,6 @@
       </div>
     </div>
   </section>
-  
-
-
 
   <section class ="layerimg">
       <div class="swiper mySwiper">
@@ -349,33 +338,24 @@
 </section>
 
 
-<div class="c-overlay" id="overlay"></div>
-
-<footer class="site-footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-logo">
-          <img src="images/black.png" alt="로고" class="logo-icon1" />
-          LawON
-        </div>
-        <ul class="footer-links">
-          <li><a href="#features">서비스 소개</a></li>
-          <li><a href="#">이용약관</a></li>
-          <li><a href="#">개인정보처리방침</a></li>
-        </ul>
-      </div>
-      <div class="footer-divider"></div>
-      <div class="footer-bottom">
-        <p class="disclaimer">
-          <strong>[법적 고지]</strong> 본 서비스에서 제공되는 정보는 일반적인 법률 정보이며, 법률 자문을 대체할 수 없습니다. 개별적인 사안에 대한 정확한 법률 진단과 상담은 반드시 자격을
-          갖춘 전문 변호사와 직접 상의하시기 바랍니다.
-        </p>
-        <p class="copyright">
-          © 2025 LawON. All rights reserved.
-        </p>
-      </div>
+<section class="specialisation-section">
+  <div class="container">
+    <h2>Find By Specialisation</h2>
+    <div class="spec-grid">
+      <div class="spec-card"><i class="fas fa-tooth"></i><span>Dentistry</span></div>
+      <div class="spec-card"><i class="fas fa-stethoscope"></i><span>Primary Care</span></div>
+      <div class="spec-card"><i class="fas fa-heart-pulse"></i><span>Cardiology</span></div>
+      <div class="spec-card"><i class="fas fa-brain"></i><span>MRI Resonance</span></div>
+      <div class="spec-card"><i class="fas fa-vial"></i><span>Blood Test</span></div>
+      <div class="spec-card"><i class="fas fa-shield-heart"></i><span>Piscologist</span></div>
+      <div class="spec-card"><i class="fas fa-house-medical"></i><span>Laboratory</span></div>
+      <div class="spec-card"><i class="fas fa-bone"></i><span>X-Ray</span></div>
     </div>
-</footer>
+  </div>
+</section>
+
+  <div class="c-overlay" id="overlay"></div>
+
 
 <script type="module" src="/src/js/main.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>

@@ -1,777 +1,257 @@
 /* ================================
-   🌸 Pink • White • Light Lavender Theme
-   (클래스/구조 동일, 색상만 교체)
+   5. 채팅 영역 (Chat Area)
    ================================ */
 
-/* 베이스 팔레트 */
-:root{
-  /* 배경/텍스트 */
-  --bg: #fff6fb;             /* 아주 연한 핑크 배경 */
-  --panel: #fff6fb;          /* 카드/사이드바 기본 화이트 */
-  --panel-2: #f6f0ff;        /* 연보라 보조 패널 */
-  --line: #e9e0ff;           /* 연보라 라인 */
-  --ink: #221a2e;            /* 기본 글자(짙은 보라계열 먹색) */
-  --ink-muted: #6d5f86;      /* 보조 텍스트 */
-  --ink-dim: #9b89a7;        /* 더 연한 텍스트 */
-
-  /* 포인트 색 */
-  --primary: #ff4da0;        /* 핑크 포인트 */
-  --primary-700: #e74393;
-  --lavender: #a27ff7;       /* 연보라 포인트 */
-  --lavender-600: #8f6ae8;
-
-  /* 버튼/입력 */
-  --btn-bg: #ffffff;
-  --btn-bg-hover: #fff5f9;   /* 아주 연한 핑크 호버 */
-  --btn-line: #f3d9e8;       /* 핑크 라인 */
-  --input-bg: #ffffff;
-  --input-line: #f1d5e6;     /* 핑크 테두리 */
-  --placeholder: #b989a0;    /* 핑크톤 그레이 */
-
-  /* 포커스 & 그림자 */
-  --focus-ring: rgba(255, 77, 160, .28);
-
-  /* 스크롤바 */
-  --scroll-track: #ffe9f4;   /* 연핑크 트랙 */
-  --scroll-thumb: #d8c7ff;   /* 라벤더 썸 */
-  --scroll-thumb-hover: #c4afff;
-
-  /* 보조 포인트 */
-  --blue: #5b8def;
-  --violet: #a27ff7;
-  --green: #22a06b;
+/* [수정] .chat-area는 .page-section을 상속받으므로 중복 속성 제거 */
+.chat-area {
+  overflow-y: hidden; /* chat-area 자체는 스크롤 대신 .messages가 스크롤 */
+  position: relative;
 }
 
-/* * 기본 & 라이트 모드 스타일 */
-body, html {
-  height: 100%;
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: var(--bg);
-  color: var(--ink);
-  overflow: hidden; /* 전체 페이지 스크롤 방지 */
-}
-
-/* * 전체 레이아웃 (사이드바 + 메인 콘텐츠) */
-.container {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* * 1. 왼쪽 사이드바 */
-.sidebar {
-  width: 260px;
-  background-color: var(--panel);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--line);
-  transition: width 0.3s ease;
-  flex-shrink: 0;
-  box-shadow: 0 0 0 1px rgba(162,127,247,0.04);
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  min-width: 228px;
-}
-
-.sidebar-header .menu-btn, .sidebar-header .collapse-btn {
-  background: none;
-  border: none;
-  color: var(--ink-muted);
-  font-size: 20px;
-  cursor: pointer;
-}
-.sidebar-header .menu-btn:hover, .sidebar-header .collapse-btn:hover {
-  color: var(--lavender-600);
-}
-
-/* === 접힘 상태에서 오직 '새 채팅'만 보이게 === */
-
-/* 탐색 버튼/푸터 링크는 감춤 */
-.sidebar.collapsed .footer-link {
-  display: none !important;
-}
-
-/* '최근' 섹션은 이미 숨기고 있으므로 유지 (필요 시 안전하게 한 번 더) */
-.sidebar.collapsed .recent-chats { display: none !important; }
-
-/* 새 채팅 버튼은 중앙에 아이콘(하트)만 */
-.sidebar.collapsed .new-chat-btn {
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  margin: 8px auto;
-  border-radius: 12px; /* 원형/라운드 원하는 모양으로 */
-}
-
-/* 텍스트 숨기고, 첫 번째 span(아이콘)만 노출 */
-.sidebar.collapsed .new-chat-btn .nav-text { display: none !important; }
-.sidebar.collapsed .new-chat-btn > span:first-child {
-  display: inline !important;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.version-selector {
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  color: var(--ink);
-}
-
-.new-chat-btn, .explore-btn, .footer-link {
-  width: 100%;
-  padding: 10px 15px;
-  margin-bottom: 10px;
-  border: 1px solid var(--btn-line);
-  border-radius: 8px;
-  background-color: var(--btn-bg);
-  color: var(--ink);
-  text-align: left;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  min-width: 228px;
-  box-sizing: border-box;
-  transition: background-color .15s ease, border-color .15s ease, transform .08s ease;
-  box-shadow: var(--soft-shadow);
-}
-.new-chat-btn:hover, .explore-btn:hover, .footer-link:hover {
-  background-color: var(--btn-bg-hover);
-  border-color: var(--primary-700);
-}
-.new-chat-btn:active, .explore-btn:active, .footer-link:active {
-  transform: translateY(1px);
-  border-color: var(--primary);
-}
-
-.new-chat-btn span:first-child,
-.explore-btn span:first-child,
-.footer-link span:first-child {
-  margin-right: 10px;
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
-  color: var(--primary);
-}
-
-/* 숨겨질 텍스트 */
-.nav-text {
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.recent-chats {
-  margin-top: 20px;
-  flex-grow: 1;
-  overflow-y: auto;
-  min-width: 228px;
-}
-.recent-chats::-webkit-scrollbar { width: 8px; }
-.recent-chats::-webkit-scrollbar-track { background: var(--scroll-track); }
-.recent-chats::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 8px; }
-.recent-chats::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
-
-.recent-chats h3 {
-  font-size: 13px;
-  color: var(--ink-muted);
-  margin-bottom: 10px;
-  white-space: nowrap;
-}
-
-.recent-chats ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.recent-chats li {
-  padding: 8px 10px;
-  font-size: 14px;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.recent-chats li:hover {
-  background-color: var(--panel-2);
-}
-
-.recent-delete {
-  border: none;
-  background: none;
-  color: #e74c3c;          /* 빨간색 */
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  transition: color 0.2s ease, transform 0.1s ease;
-}
-
-.recent-delete:hover {
-  color: #c0392b;
-  transform: scale(1.15);
-}
-
-.footer-link {
-  margin-bottom: 0;
-  background-color: transparent;
-  border: 1px solid transparent;
-}
-.footer-link:hover {
-  background-color: var(--panel-2);
-  border-color: var(--btn-line);
-}
-
-.location-info {
-  font-size: 11px;
-  color: var(--ink-dim);
-  padding: 10px;
-  border-top: 1px solid var(--line);
-  margin-top: 10px;
-  white-space: nowrap;
-}
-
-/* * 2. 사이드바가 접혔을 때 (collapsed) */
-.sidebar.collapsed {
-  width: 60px;
-  padding: 16px 8px;
-  align-items: center;
-}
-.sidebar.collapsed .sidebar-header { justify-content: center; min-width: 0; }
-
-/* 메뉴/버전 숨김 */
-.sidebar.collapsed .menu-btn { display: none; }
-.sidebar.collapsed .version-selector { display: none; }
-.sidebar.collapsed .collapse-btn { margin-left: 0; }
-
-/* 텍스트 숨김 */
-.sidebar.collapsed .nav-text,
-.sidebar.collapsed .recent-chats h3,
-.sidebar.collapsed .recent-chats ul,
-.sidebar.collapsed .location-info { display: none; }
-
-/* 버튼 아이콘만 원형 */
-.sidebar.collapsed .new-chat-btn,
-.sidebar.collapsed .explore-btn,
-.sidebar.collapsed .footer-link {
-  justify-content: center;
-  min-width: 0;
-  width: 48px;
-  height: 48px;
-  padding: 10px;
-  border-radius: 50%;
-}
-.sidebar.collapsed .new-chat-btn span:first-child,
-.sidebar.collapsed .explore-btn span:first-child,
-.sidebar.collapsed .footer-link span:first-child { margin-right: 0; }
-
-/* * 3. 메인 콘텐츠 영역 */
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  transition: width 0.3s ease;
-}
-
+/* --- 5-1. 채팅 헤더 --- */
 .main-header {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   padding: 16px 24px;
   height: 40px;
+  min-height: 40px;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
 }
 
-.invite-btn {
-  background: none;
-  border: 1px solid var(--btn-line);
-  color: var(--blue);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.invite-btn:hover {
-  border-color: var(--lavender);
-  box-shadow: 0 0 0 3px rgba(162,127,247,.22);
-}
-
-.pro-badge {
-  background-color: #f1eaff;
-  color: var(--lavender-600);
-  padding: 4px 8px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: bold;
-  border: 1px solid #e6dbff;
-}
-
-/* === 채팅 영역(chat-area) 레이아웃 === */
-.chat-area {
-  flex: 1;                     /* 남은 공간 전부 차지 */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
-  padding: 16px 20px;
-  overflow-y: auto;            /* 채팅 내용만 스크롤 */
-  background-color: var(--light-blue-bg, #fff6fb);
+.nickname-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full); /* [수정] 변수 사용 */
+  border: 1px dashed var(--btn-line);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 40px;
+  height: 40px;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.nickname-chip:hover {
+  background-color: var(--btn-bg-hover);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-/* 채팅 메시지 컨테이너 */
-.chat-area .messages {
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* --- 5-2. 메시지 영역 --- */
+.messages {
   flex: 1;
-  overflow-y: auto;
-  padding: 20px 24px;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  border-radius: var(--radius-xl); /* [수정] 변수 사용 */
+  padding: 16px;
+  overflow-y: auto;
   scroll-behavior: smooth;
 }
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
 
-/* === 입력창(input-section) 고정 === */
+.msg.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 10px 12px;
+  border-radius: var(--radius-xl); /* [수정] 변수 사용 */
+  border: 1px solid var(--line);
+  background: #fff;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg.user .bubble {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+.msg.bot .bubble {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+/* [수정] empty-hint 스타일을 CSS로 이동 */
+.empty-hint {
+  text-align: center;
+  margin: 40px 0;
+  color: var(--ink-muted);
+}
+.empty-hint-title {
+  font-size: 2.5em;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.empty-hint-subtitle {
+  font-size: 1.1em;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+/* --- 5-3. 입력창 --- */
 .input-section {
-  position: sticky;            /* 하단 고정 */
+  position: sticky;
   bottom: 0;
   left: 0;
   width: 100%;
-  background: var(--light-blue-card, #ffe9f4);
+  background: var(--bg);
   padding: 12px 20px;
-  border-top: 1px solid rgba(0,0,0,0.05);
   box-sizing: border-box;
-  z-index: 5;                  /* 위에 겹치지 않게 */
+  z-index: 10;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
-/* 입력창 안쪽 요소 */
 .input-wrapper {
   display: flex;
   align-items: center;
   gap: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-line);
+  border-radius: var(--radius-lg); /* [수정] 변수 사용 */
+  padding: 4px;
+  box-shadow: var(--shadow-sm); /* [수정] 변수 사용 */
+  transition: border-color 0.2s, box-shadow 0.2s; /* [신규] 포커스 효과 */
+}
+
+/* [신규] 입력창 활성화 시 포커스 링 */
+.input-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 #chatInput {
   flex: 1;
   padding: 12px 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-lg); /* [수정] 변수 사용 */
   font-size: 15px;
-  background: #fff;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.08);
-}
-
-.send-btn, .mic-btn {
-  border: none;
-  background: var(--primary-blue, #ff4da0);
-  color: white;
-  font-size: 18px;
-  border-radius: 12px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.send-btn:hover, .mic-btn:hover {
-  background: var(--primary-700, #e74393);
-}
-
-/* 접근성: 포커스 링 */
-a:focus-visible, button:focus-visible {
+  background: transparent;
   outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-  border-radius: 8px;
 }
-
-/* === 채팅 메시지 UI (추가) === */
-.messages{
-  flex:1; width:100%;
-  max-width:920px; margin:0 auto;
-  display:flex; flex-direction:column; gap:10px;
-  background:#fff6fb;
-  border-radius:16px; padding:16px;
-  box-shadow: var(--soft-shadow);
-}
-.msg{display:flex; gap:10px; align-items:flex-start}
-.msg.user{justify-content:flex-end}
-.bubble{
-  max-width:75%;
-  padding:10px 12px; border-radius:16px;
-  border:1px solid var(--line); background:#fff;
-  line-height:1.45;
-}
-.msg.user .bubble{
-  background:linear-gradient(180deg,#ffe6f3,#ffd1ea);
-  border-color:#ffd1ea;
-}
-.msg.bot .bubble{
-  background:linear-gradient(180deg,#f1ebff,#e6dbff);
-  border-color:#e6dbff;
-}
-.empty-hint{color:var(--ink-muted); text-align:center; margin:24px 0}
-
-/* 최근 목록 아이템 가독성 (보완) */
-#recentList{list-style:none; padding:0; margin:0}
-#recentList li{
-  padding:8px 10px; border-radius:6px; cursor:pointer;
-  display:flex; flex-direction:column;
-}
-#recentList li:hover{background:var(--panel-2)}
-#recentList .title{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-#recentList .meta{font-size:12px; color:var(--ink-dim); margin-top:2px}
-
-
-/* ===== 삭제 애니메이션 (추가) ===== */
-@keyframes itemFadeOut {
-  0%   { opacity:1; transform:translateX(0) scale(1); filter:blur(0) }
-  100% { opacity:0; transform:translateX(10px) scale(.98); filter:blur(1px) }
-}
-.recent-item.removing{ animation: itemFadeOut .28s ease forwards; }
-.recent-item.removing-all{ animation: itemFadeOut .32s ease forwards; }
-
-/* ===== 토스트 (팔레트 매칭) (추가) ===== */
-.toast{
-  position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px);
-  min-width:220px; max-width:80vw;
-  background: var(--violet, #a27ff7); /* 연보라 톤 (팔레트 맞춤) */
-  color:#fff; padding:12px 16px; border-radius:12px;
-  box-shadow: var(--soft-shadow, 0 8px 24px rgba(0,0,0,.08));
-  opacity:0; pointer-events:none; z-index:9999;
-  font-weight:600; text-align:center;
-  transition: opacity .18s ease, transform .18s ease;
-}
-.toast.show{ opacity:1; transform:translateX(-50%) translateY(0) }
-.toast.info{ background: var(--violet, #a27ff7) }   /* 라일락 */
-.toast.success{ background: var(--primary, #ff4da0) } /* 핑크 */
-
-
-/* ===== [ADD] Confirm Modal ===== */
-.modal.hidden{ display:none }
-.modal{
-  position:fixed; inset:0; z-index:9998;
-  display:grid; place-items:center;
-}
-.modal-backdrop{
-  position:absolute; inset:0;
-  background:rgba(0,0,0,.28);
-  backdrop-filter:saturate(140%) blur(2px);
-}
-.modal-card{
-  position:relative; z-index:1;
-  width:min(92vw, 420px);
-  background:#fff; border:1px solid var(--line);
-  border-radius:14px; box-shadow:var(--soft-shadow);
-  padding:18px 16px;
-  animation:modalIn .18s ease;
-}
-@keyframes modalIn{
-  from{ opacity:0; transform:translateY(6px) scale(.98) }
-  to  { opacity:1; transform:translateY(0) scale(1) }
-}
-.modal-card h3{
-  margin:0 0 6px; font-size:18px; color:var(--primary-900);
-}
-.modal-message{
-  margin:0 0 14px; color:var(--ink);
-}
-.modal-actions{
-  display:flex; justify-content:flex-end; gap:8px;
-}
-.btn{
-  border:1px solid var(--line); padding:8px 12px; border-radius:10px;
-  background:#fff; cursor:pointer;
-}
-.btn-ghost:hover{ background:var(--panel-2) }
-.btn-danger{
-  background:#e74c3c; color:#fff; border-color:transparent;
-}
-.btn-danger:hover{ background:#c0392b;filter:brightness(.95) }
-
-/* === STT 녹음 상태 스타일 (추가) === */
-/* === 🎙 마이크 버튼 전용 (폼 외부) === */
 
 .mic-btn {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: none;
-  background: var(--light-blue-card, #ffe9f4);
-  color: var(--primary-700, #e74393);
+  /* [수정] .btn 베이스 스타일 위에 덮어쓰기 */
+  width: 42px;
+  height: 42px;
+  background: var(--panel-2);
+  color: var(--primary);
   font-size: 22px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.25s ease;
-  position: relative;   /* 파동 의사요소 기준점 */
-  overflow: visible;    /* 파동이 바깥으로 보이도록 */
+  position: relative;
+  overflow: visible;
+  padding: 0; /* [수정] .btn 패딩 초기화 */
 }
 
-/* 바깥으로 퍼지는 링 */
+/* ================================
+   6. STT (마이크) 스타일
+   ================================ */
+
+/* (애니메이션 등 나머지 STT 스타일은 동일) */
 .mic-btn.recording::before,
 .mic-btn.recording::after {
   content: "";
   position: absolute;
-  inset: -6px;                 /* 버튼보다 살짝 크게 */
+  inset: -6px;
   border-radius: 50%;
-  background: radial-gradient(rgba(231, 76, 60, .18), transparent 70%);
+  background: radial-gradient(rgba(231, 76, 60, 0.18), transparent 70%);
   animation: micWave 1.8s ease-out infinite;
   pointer-events: none;
 }
-
-/* 두 번째 링은 약간 딜레이 */
 .mic-btn.recording::after {
-  animation-delay: .9s;
+  animation-delay: 0.9s;
 }
 
 .mic-btn:hover {
-  background: var(--primary-600, #ff4da0);
+  background: var(--primary);
   color: #fff;
   transform: scale(1.05);
+  border-color: transparent; /* [수정] 호버 시 테두리 제거 */
 }
 
-/* 🔴 녹음 중 상태 */
 .mic-btn.recording {
-  background: #e74c3c;
+  background: var(--danger); /* [수정] 변수 사용 */
   color: #fff;
   animation: sttPulse 1s ease-in-out infinite;
 }
 
 @keyframes sttPulse {
-  0%   { transform: scale(1);   filter: brightness(1); }
-  50%  { transform: scale(1.1); filter: brightness(1.1); }
-  100% { transform: scale(1);   filter: brightness(1); }
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
 }
-
 @keyframes micWave {
-  0%   { transform: scale(0.85); opacity: .9; }
-  70%  { transform: scale(1.25); opacity: .25; }
-  100% { transform: scale(1.35); opacity: 0; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
 }
 
-/* --- 사이드바 하단 테마 버튼 바로 노출형 --- */
-.theme-buttons.hidden { display: none; }
-
-.sidebar-footer {
-  position: relative;
-  padding: 10px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ink-muted);
-  min-width: 228px;
-
+/* ================================
+   11. 삭제 애니메이션
+   ================================ */
+@keyframes itemFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(10px) scale(0.98);
+    filter: blur(1px);
+  }
 }
-
-.theme-buttons {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px;
+.recent-item.removing {
+  animation: itemFadeOut 0.28s ease forwards;
 }
-
-.theme-chip {
-  border: 1px solid var(--chip-border, rgba(0,0,0,.08));
-  background: var(--chip-bg, #fff);
-  color: var(--ink);
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: transform .08s ease, box-shadow .08s ease;
+.recent-item.removing-all {
+  animation: itemFadeOut 0.32s ease forwards;
 }
-.theme-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
-}
-.theme-chip.reset {
-  border-style: dashed;
-  opacity: .9;
-}
-
-/* 우측 유저 컨트롤 */
-.user-controls { display: flex; align-items: center; gap: 15px; }
-
-.invite-btn {
-  background: none;
-  border: 1px solid var(--btn-line);
-  color: var(--blue);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.invite-btn:hover {
-  border-color: var(--lavender);
-  box-shadow: 0 0 0 3px rgba(162,127,247,.22);
-}
-
-.pro-badge {
-  background-color: #f1eaff;
-  color: var(--lavender-600);
-  padding: 4px 8px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: bold;
-  border: 1px solid #e6dbff;
-}
-
-/* ✅ 닉네임만 표시 */
-.nickname-chip{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:6px 10px; border-radius:999px;
-  border:1px dashed var(--btn-line);
-  background:#fff; color:var(--ink);
-  font-weight:700; font-size:14px;
-}
-
-/* 토스트 간단 리셋 (필요 시 삭제 가능) */
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#221a2e;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s ease}
-.toast.show{opacity:1}
-
-/* === [ADD] 탐색형 마이페이지 레이아웃 === */
-.hidden{ display:none !important; }
-
-.mypage-explore{
-  --radius:16px;
-  --line: var(--line, #e9e0ff);
-  --ink: var(--ink, #221a2e);
-  --muted: var(--ink-muted, #6d5f86);
-}
-
-/* Hero */
-.mpx-hero{
-  position:sticky; top:0; z-index:1;
-  border-bottom:1px solid var(--line);
-}
-.mpx-hero-inner{
-  max-width: 1120px; margin: 0 auto; padding: 16px;
-}
-.mpx-back{
-  background:transparent; border:none; color:#5a3bb6; font-weight:700; cursor:pointer; margin-bottom:8px;
-}
-.mpx-hero h2{ margin:0 0 6px; font-size:24px; }
-.mpx-sub{ margin:0 0 12px; color:var(--muted) }
-
-.mpx-search{
-  position:relative; margin: 8px 0 12px;
-}
-.mpx-search-ico{ position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.7 }
-.mpx-search input{
-  width:100%; padding:12px 14px 12px 36px; border:1px solid var(--line); border-radius:999px; background:#fff;
-  outline: none;
-}
-.mpx-search input:focus{ box-shadow:0 0 0 3px rgba(162,127,247,.18) }
-
-/* Chips */
-.mpx-chips{ display:flex; gap:8px; flex-wrap:wrap; }
-.chip{
-  border:1px solid var(--line); background:#fff; color:var(--ink);
-  padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:700;
-}
-.chip.is-active{ background:#efe8ff; border-color:#e6dbff; color:#5a3bb6 }
-
-/* Grid */
-.mpx-grid{
-  max-width: 1120px; 
-  margin: 12px auto; 
-  padding: 0 16px 24px;
-  display:grid; gap:12px;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  overflow-x: hidden;
-  padding-right: 8px;
-}
-.mpx-card{
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  min-width: 0;             /* ← 핵심: 내부 flex shrink 활성화 */
-  word-break: keep-all;     /* 긴 단어 줄바꿈 */
-  overflow-wrap: break-word;/* 영어/링크 자동 줄바꿈 */
-  box-sizing: border-box;
-  padding: 10px;
-}
-.mpx-card:hover{ transform:translateY(-2px); box-shadow:0 10px 22px rgba(0,0,0,.08) }
-.mpx-card-ico{ font-size:22px }
-.mpx-card-title{ 
-  max-width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden; 
-}
-.mpx-card-desc{ margin:0; color:var(--muted); font-size:14px }
-.mpx-card-cta{
-  justify-self:start; margin-top:4px;
-  border:1px solid var(--line); background:#efe8ff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700;
-}
-.mpx-card-cta:hover{ background:#f7f2ff }
-
-/* Detail panel (slide-up) */
-.mpx-detail{
-  max-width: 1120px; margin: 0 auto 16px; padding:0 16px;
-}
-.mpx-detail-bar{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 14px; border:1px solid var(--line); border-bottom:none; border-radius:16px 16px 0 0; background:#fff6fb;
-}
-.mpx-detail-body{
-  border:1px solid var(--line); border-top:none; border-radius:0 0 16px 16px; background:#fff6fb;
-  padding:0px;
-}
-.mpx-detail-close{
-  border:none; background:transparent; font-size:18px; cursor:pointer; color:var(--muted);
-}
-
-/* 채팅 ↔ 탐색 전환 시 주변 여백 조정 (선택사항) */
-.mypage-explore + .chat-area{ margin-top:8px; }
-
-/* ===== 문서 보기 모달 확장 ===== */
-.modal-card--lg{
-  width: min(96vw, 820px);
-  max-height: 86vh;
-  display: flex;
-  flex-direction: column;
-  padding: 0; /* 헤더/바디로 분리했으니 패딩 제거 */
-}
-
-.modal-header{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px;
-  border-bottom:1px solid var(--line);
-  background:#fff;
-  border-radius:14px 14px 0 0;
-}
-
-.modal-title{ margin:0; font-size:18px; font-weight:800; color:var(--primary-900); }
-
-.modal-scroll{
-  padding:16px;
-  overflow:auto;
-  background:#fff;
-  border-radius:0 0 14px 14px;
-  line-height:1.65;
-  max-height: calc(86vh - 56px); /* 헤더 높이 제외 */
-}
-
-/* 문서 본문에 들어가는 제목/문단 기본 스타일 */
-.modal-scroll h4{ margin: 14px 0 6px; font-size:16px; }
-.modal-scroll p, .modal-scroll li{ color:var(--ink); }
-.modal-scroll ul{ padding-left: 20px; }
-
