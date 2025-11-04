@@ -19,6 +19,10 @@ repositories {
 	maven { url "https://repo1.maven.org/maven2" }
 }
 
+bootRun {
+    sourceResources sourceSets.main
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -40,21 +44,23 @@ dependencies {
 
 	// 개발 시 코드 변경을 감지하고 애플리케이션을 자동으로 다시 시작
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
 		
 	// 사용자 입력 데이터의 유효성을 검사하는 데 필요한 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	
 	// 시큐리티
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
-//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-//	
-//	// oauth2
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	
-//	// jwt
-//	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-//	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-//	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	
+	// oauth2
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
 tasks.named('test') {

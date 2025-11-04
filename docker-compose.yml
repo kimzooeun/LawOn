@@ -25,24 +25,32 @@ services:
     container_name: finalproject-backend
     ports:
       - "${BACKEND_PORT}:8080"
+      - "35729:35729"  # LiveReload 포트 추가
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
+    command: ./gradlew bootRun --continuous --no-daemon  # 👈 수정
+
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 20s
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 30s
       timeout: 10s
       retries: 10
-      start_period: 60s
+      start_period: 90s
+
     env_file:
       - .env
     restart: always
     volumes:
       - ./backend:/app
+      - /app/build
+      - gradle_cache:/home/gradle/.gradle
     depends_on:
       fastapi:
         condition: service_started
@@ -50,6 +58,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
 
 
   fastapi:
@@ -84,7 +93,15 @@ services:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test:  [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-p${DB_PASSWORD}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -107,6 +124,7 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  gradle_cache:
 
 networks: 
   default: 
