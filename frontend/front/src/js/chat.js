@@ -1,5 +1,5 @@
 // ===================================
-// 2. 토닥토닥 [채팅 세션 & 렌더링]
+// 2. 채팅 세션 & 렌더링
 // (세션/메시지 관리, 최근 대화, 삭제, 렌더링)
 // ===================================
 
@@ -16,6 +16,7 @@ function createNewSession() {
   saveStore(state);
   renderChat();
 }
+
 function current() {
   return state.sessions[state.currentId] || null;
 }
@@ -45,19 +46,15 @@ function archiveCurrent() {
   renderRecents();
 }
 
-// =======================================================
-// ▼▼▼ [핵심 수정] 채팅 삭제 버그 수정 ▼▼▼
-// =======================================================
 // ---- 삭제 기능 ----
 function deleteRecent(id) {
   state.recents = state.recents.filter((r) => r.id !== id);
 
-  // [수정] currentId와 일치하는지 여부와 관계없이 세션에서 삭제
   if (state.sessions[id]) {
     delete state.sessions[id];
   }
 
-  // [수정] 만약 현재 열린 채팅을 삭제했다면, 다른 채팅으로 이동
+  // 만약 현재 열린 채팅을 삭제했다면, 다른 채팅으로 이동
   if (state.currentId === id) {
     state.currentId = null; // 현재 ID 비우기
 
@@ -68,7 +65,8 @@ function deleteRecent(id) {
       renderChat(); // 채팅창과 최근 목록 모두 새로고침
     } else {
       // 최근 채팅이 아예 없으면, 새 채팅 생성
-      createNewSession(); // 이 함수가 saveStore와 renderChat을 호출함
+      saveStore(state); // currentId가 null인 상태로 저장
+      location.reload(); // 페이지를 새로고침
     }
   } else {
     // 다른 채팅(활성 상태가 아닌)을 삭제한 경우
@@ -76,25 +74,9 @@ function deleteRecent(id) {
     renderRecents(); // 최근 목록만 새로고침
   }
 }
-// =======================================================
-// ▲▲▲ [핵심 수정] 채팅 삭제 버그 수정 ▲▲▲
-// =======================================================
-
-function clearAllRecents() {
-  if (!state.recents.length) return;
-  // [수정] confirm 대신 Modal.open 사용
-  Modal.open({
-    message: "최근 대화를 모두 삭제할까요?",
-    okText: "전체 삭제",
-    cancelText: "취소",
-    onConfirm: () => {
-      // [수정] animateAndClearAllRecents 사용 (기존: clearAllRecentsWithoutPrompt)
-      animateAndClearAllRecents();
-    },
-  });
-}
 
 // --- 삭제 애니메이션 ---
+// async await 추가, showToast 주석 처리
 function animateAndDeleteRecent(li, id) {
   const item = li.querySelector(".recent-item");
   if (!item) {
@@ -106,46 +88,11 @@ function animateAndDeleteRecent(li, id) {
   item.addEventListener(
     "animationend",
     () => {
-      deleteRecent(id); // [수정] 수정된 deleteRecent 함수가 호출됨
+      deleteRecent(id);
       showToast("대화 1개 삭제했어요", "success");
     },
     { once: true }
   );
-}
-function clearAllRecentsWithoutPrompt() {
-  const keep = state.currentId;
-  state.recents.forEach((r) => {
-    if (r.id !== keep) delete state.sessions[r.id];
-  });
-  state.recents = [];
-  saveStore(state);
-  renderRecents();
-}
-function animateAndClearAllRecents() {
-  const list = document.getElementById("recentList");
-  const lis = Array.from(list.children);
-  if (lis.length === 0) {
-    showToast("비울 최근 대화가 없어요", "info");
-    return;
-  }
-  lis.forEach((li, idx) => {
-    const item = li.querySelector(".recent-item");
-    if (item) setTimeout(() => item.classList.add("removing-all"), idx * 40);
-  });
-  const last = lis[lis.length - 1]?.querySelector(".recent-item");
-  if (last) {
-    last.addEventListener(
-      "animationend",
-      () => {
-        clearAllRecentsWithoutPrompt();
-        showToast("최근 목록을 모두 비웠어요", "success", 2000);
-      },
-      { once: true }
-    );
-  } else {
-    clearAllRecentsWithoutPrompt();
-    showToast("최근 목록을 모두 비웠어요", "success", 2000);
-  }
 }
 
 // ---- 렌더링 ----
@@ -173,7 +120,6 @@ function renderRecents() {
       saveStore(state);
       renderChat(); // 채팅 내용 다시 그리기
 
-      // [수정] 페이지 전환 로직을 aaa8.js의 전역 함수 showPage로 위임
       if (typeof showPage === "function") {
         showPage(document.getElementById("chatArea"));
       } else {
@@ -207,12 +153,9 @@ function renderChat() {
     return;
   }
 
-  // =======================================================
-  // ▼▼▼ [핵심 수정] 4. 빈 채팅방 환영 문구 (<template> 사용) ▼▼▼
-  // =======================================================
+  // 빈 채팅방 환영 문구
   if (!sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
-
     // 1. 템플릿 가져오기
     const template = document.getElementById("emptyChatTemplate");
     if (template) {
@@ -232,9 +175,6 @@ function renderChat() {
     renderRecents(); // 최근 목록은 갱신
     return;
   }
-  // =======================================================
-  // ▲▲▲ [핵심 수정] 4. 빈 채팅방 환영 문구 ▲▲▲
-  // =======================================================
 
   sess.messages.forEach((m) => {
     const div = document.createElement("div");
@@ -255,14 +195,28 @@ function handleSend(e) {
   const input = qs("#chatInput");
   const text = input.value.trim();
   if (!text) return;
+
+  // 1. 사용자 메시지를 먼저 추가하고 입력창 비우기
   addMessage("user", text);
   input.value = "";
 
-  // [수정] 봇 응답 시뮬레이션 및 응답 후 즉시 목록 갱신
+  // 2. 봇 응답 시뮬레이션 (LLM이 응답하는 데 300ms가 걸린다고 가정)
   setTimeout(() => {
-    addMessage("bot", "테스트 응답: " + text);
+    // (가정) LLM이 응답 본문과 요약 제목을 반환
+    const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
+    const newTitleFromLLM = "이혼 재산분할 상담"; // LLM이 생성한 요약 제목
 
-    // [핵심 추가] 봇 응답 후, 최근 대화 목록 갱신
+    // 3. 봇 메시지 추가
+    addMessage("bot", botResponseText);
+
+    // 4. 현재 세션의 title을 LLM이 준 제목으로 덮어쓰기
+    const sess = current(); // 현재 세션 가져오기
+    if (sess) {
+      sess.title = newTitleFromLLM; // <-- 핵심
+    }
+
+    // 5. 변경된 제목과 봇 메시지를 저장하고 사이드바 새로고침
+    //    (이 archiveCurrent() 호출이 모든 것을 최종 저장)
     archiveCurrent();
-  }, 300);
+  }, 300); // 300ms 후 실행
 }
