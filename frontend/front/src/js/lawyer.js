@@ -13,7 +13,7 @@ const DATA = [
         tags: ["가사", "이혼", "상속"],
         phone: "02-000-0001",
         address: "서울 서초구 서초대로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가사/이혼 전문 상담 운영",
       },
       {
@@ -22,7 +22,7 @@ const DATA = [
         tags: ["가사", "재산분할"],
         phone: "02-000-0002",
         address: "서울 강남구 테헤란로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "재산분할/친권 분쟁 경험",
       },
       {
@@ -31,7 +31,7 @@ const DATA = [
         tags: ["상속", "유류분"],
         phone: "02-000-0003",
         address: "서울 종로구 종로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "상속/유류분 소송 다수",
       },
       {
@@ -40,7 +40,7 @@ const DATA = [
         tags: ["가사", "친권·양육"],
         phone: "031-000-0004",
         address: "경기 성남시 분당구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "양육·면접교섭 합의 지원",
       },
       {
@@ -49,7 +49,7 @@ const DATA = [
         tags: ["국제이혼", "재판상이혼"],
         phone: "031-000-0005",
         address: "경기 수원시 영통구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "국제사건·국제사법 경험",
       },
       {
@@ -58,7 +58,7 @@ const DATA = [
         tags: ["부부", "가족", "개인"],
         phone: "02-111-1111",
         address: "서울 중구 세종대로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "부부·가족상담 프로그램",
       },
       {
@@ -67,7 +67,7 @@ const DATA = [
         tags: ["이혼후 회복", "애도"],
         phone: "02-111-1112",
         address: "서울 용산구 한강대로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "이별/이혼 회복 그룹",
       },
       {
@@ -76,7 +76,7 @@ const DATA = [
         tags: ["청소년", "정서"],
         phone: "02-111-1113",
         address: "경기 고양시 일산서구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "청소년 정서/행동",
       },
       {
@@ -85,7 +85,7 @@ const DATA = [
         tags: ["불안", "우울"],
         phone: "031-111-1114",
         address: "경기 의정부시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "성인 불안/우울",
       },
       {
@@ -94,7 +94,7 @@ const DATA = [
         tags: ["트라우마", "PTSD"],
         phone: "031-111-1115",
         address: "인천 미추홀구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "트라우마 전문",
       },
     ],
@@ -108,7 +108,7 @@ const DATA = [
         tags: ["가사", "이혼"],
         phone: "051-000-0001",
         address: "부산 연제구 법원로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가사 사건 대응",
       },
       {
@@ -117,7 +117,7 @@ const DATA = [
         tags: ["재산분할", "위자료"],
         phone: "051-000-0002",
         address: "부산 해운대구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "재산분할/위자료",
       },
       {
@@ -126,7 +126,7 @@ const DATA = [
         tags: ["친권", "면접교섭"],
         phone: "053-000-0003",
         address: "대구 수성구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "친권·양육",
       },
       {
@@ -135,7 +135,7 @@ const DATA = [
         tags: ["상속", "유류분"],
         phone: "055-000-0004",
         address: "경남 창원시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "상속 분쟁",
       },
       {
@@ -144,7 +144,7 @@ const DATA = [
         tags: ["국제이혼"],
         phone: "054-000-0005",
         address: "경북 포항시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "국제/해외 거주",
       },
       {
@@ -153,7 +153,7 @@ const DATA = [
         tags: ["부부", "가족"],
         phone: "051-111-1111",
         address: "부산 수영구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "부부상담",
       },
       {
@@ -162,7 +162,7 @@ const DATA = [
         tags: ["개인", "우울"],
         phone: "051-111-1112",
         address: "부산 남구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "개인상담",
       },
       {
@@ -171,7 +171,7 @@ const DATA = [
         tags: ["청소년", "학부모"],
         phone: "053-111-1113",
         address: "대구 중구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "청소년/부모 교육",
       },
       {
@@ -180,7 +180,7 @@ const DATA = [
         tags: ["불안", "공황"],
         phone: "055-111-1114",
         address: "경남 김해시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "불안/공황",
       },
       {
@@ -189,7 +189,7 @@ const DATA = [
         tags: ["트라우마"],
         phone: "054-111-1115",
         address: "경북 구미시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "트라우마",
       },
     ],
@@ -203,7 +203,7 @@ const DATA = [
         tags: ["가사", "이혼"],
         phone: "042-000-0001",
         address: "대전 서구 둔산로 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가사 사건",
       },
       {
@@ -212,7 +212,7 @@ const DATA = [
         tags: ["재산분할"],
         phone: "042-000-0002",
         address: "대전 유성구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "재산분할",
       },
       {
@@ -221,7 +221,7 @@ const DATA = [
         tags: ["친권", "양육"],
         phone: "043-000-0003",
         address: "충북 청주시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "친권·양육",
       },
       {
@@ -230,7 +230,7 @@ const DATA = [
         tags: ["상속"],
         phone: "041-000-0004",
         address: "충남 천안시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "상속",
       },
       {
@@ -239,7 +239,7 @@ const DATA = [
         tags: ["국제사건"],
         phone: "044-000-0005",
         address: "세종특별자치시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "국제·국내 연계",
       },
       {
@@ -248,7 +248,7 @@ const DATA = [
         tags: ["가족", "부부"],
         phone: "042-111-1111",
         address: "대전 중구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가족/부부상담",
       },
       {
@@ -257,7 +257,7 @@ const DATA = [
         tags: ["우울", "스트레스"],
         phone: "043-111-1112",
         address: "청주 상당구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "성인상담",
       },
       {
@@ -266,7 +266,7 @@ const DATA = [
         tags: ["청소년"],
         phone: "041-111-1113",
         address: "아산시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "청소년",
       },
       {
@@ -275,7 +275,7 @@ const DATA = [
         tags: ["불안", "공황"],
         phone: "041-111-1114",
         address: "천안시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "불안/공황",
       },
       {
@@ -284,7 +284,7 @@ const DATA = [
         tags: ["트라우마"],
         phone: "044-111-1115",
         address: "세종 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "트라우마",
       },
     ],
@@ -298,7 +298,7 @@ const DATA = [
         tags: ["가사", "이혼"],
         phone: "062-000-0001",
         address: "광주 동구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가사 사건",
       },
       {
@@ -307,7 +307,7 @@ const DATA = [
         tags: ["재산분할"],
         phone: "063-000-0002",
         address: "전북 전주시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "재산분할",
       },
       {
@@ -316,7 +316,7 @@ const DATA = [
         tags: ["친권", "양육"],
         phone: "061-000-0003",
         address: "전남 순천시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "친권·양육",
       },
       {
@@ -325,7 +325,7 @@ const DATA = [
         tags: ["국제이혼"],
         phone: "064-000-0004",
         address: "제주 제주시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "국제이혼",
       },
       {
@@ -334,7 +334,7 @@ const DATA = [
         tags: ["상속"],
         phone: "064-000-0005",
         address: "제주 서귀포시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "상속",
       },
       {
@@ -343,7 +343,7 @@ const DATA = [
         tags: ["부부", "가족"],
         phone: "062-111-1111",
         address: "광주 북구 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "부부/가족",
       },
       {
@@ -352,7 +352,7 @@ const DATA = [
         tags: ["우울", "불안"],
         phone: "061-111-1112",
         address: "전남 목포시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "성인상담",
       },
       {
@@ -361,7 +361,7 @@ const DATA = [
         tags: ["청소년"],
         phone: "063-111-1113",
         address: "전북 군산시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "청소년",
       },
       {
@@ -370,7 +370,7 @@ const DATA = [
         tags: ["트라우마"],
         phone: "064-111-1114",
         address: "제주 제주시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "트라우마",
       },
       {
@@ -379,7 +379,7 @@ const DATA = [
         tags: ["애도", "이별"],
         phone: "064-111-1115",
         address: "제주 서귀포시 000",
-        url: "http://127.0.0.1:5500/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "상실/애도",
       },
     ],
