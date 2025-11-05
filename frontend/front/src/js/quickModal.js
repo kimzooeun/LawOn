@@ -1,65 +1,124 @@
-// quickModal.js 간편 상담 모달 전용
-(function(){
-  const qs = (s, r=document)=>r.querySelector(s);
-  const quickModal = qs('#quickModal');
-  const quickClose = qs('#quickClose');
-  const quickForm = qs('#quickForm');
-  const quickText = qs('#quickText');
-  const quickMessages = qs('#quickMessages');
+// ============================================
+// 간편 상담 채팅 위젯
+// ============================================
 
-  function openQuick(){
-    quickModal?.classList.add('show');
-    setTimeout(()=> quickText?.focus(), 30);
-  }
-  function closeQuick(){
-    quickModal.classList.remove('show');
-  }
+const chatWidget = document.getElementById('chat-widget');
+const chatOverlay = document.getElementById('chat-overlay');
+const closeChatBtn = document.getElementById('close-chat-btn');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+const chatBody = document.getElementById('chat-body');
+const chatLoading = document.getElementById('chat-loading');
 
-  // 열기
-  document.addEventListener('click',(e)=>{
-    if(e.target.closest('[data-role="quick"]')) {
-      e.preventDefault(); openQuick();
+// 간편 상담 버튼 클릭 시 열기
+const quickBtn = document.querySelector('[data-role="quick"]');
+if (quickBtn) {
+  quickBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    openChat();
+  });
+}
+
+// 무료로 시작하기 버튼 클릭시 열기 
+const quick =document.getElementById('quick');
+if (quick) {
+  quick.addEventListener('click', (e) => {
+    e.preventDefault();
+    openChat();
+  });
+}
+
+
+// 채팅 열기
+function openChat() {
+  chatWidget.classList.add('is-open');
+  chatOverlay.classList.add('is-open');
+  document.body.classList.add('chat-open');
+  chatInput.focus();
+  // 로딩 숨기기
+  if (chatLoading) chatLoading.style.display = 'none';
+}
+
+// 채팅 닫기
+function closeChat() {
+  chatWidget.classList.remove('is-open');
+  chatOverlay.classList.remove('is-open');
+  document.body.classList.remove('chat-open');
+}
+
+
+
+if (closeChatBtn) {
+  closeChatBtn.addEventListener('click', closeChat);
+}
+
+
+// 오버레이 클릭 시 닫기
+if (chatOverlay) {
+  chatOverlay.addEventListener('click', closeChat);
+}
+
+// ESC 키로 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && chatWidget.classList.contains('is-open')) {
+    closeChat();
+  }
+});
+
+// 메시지 전송
+function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  // 유저 메시지 추가
+  addMessage(message, 'user');
+  chatInput.value = '';
+
+  // 로딩 표시
+  showLoading();
+
+  // 봇 응답 시뮬레이션 (실제로는 API 호출)
+  setTimeout(() => {
+    hideLoading();
+    addMessage('네, 알겠습니다. 더 자세한 내용을 알려주시면 도와드리겠습니다.', 'bot');
+  }, 1000);
+}
+
+// 메시지 추가 함수
+function addMessage(text, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${type}`;
+  messageDiv.textContent = text;
+  chatBody.appendChild(messageDiv);
+  
+  // 스크롤 맨 아래로
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// 로딩 표시/숨김
+function showLoading() {
+  if (chatLoading) {
+    chatLoading.style.display = 'block';
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+}
+
+function hideLoading() {
+  if (chatLoading) {
+    chatLoading.style.display = 'none';
+  }
+}
+
+// 전송 버튼 클릭
+if (chatSendBtn) {
+  chatSendBtn.addEventListener('click', sendMessage);
+}
+
+// Enter 키로 전송
+if (chatInput) {
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
     }
   });
-
-
-  // 닫기
-  quickClose?.addEventListener('click', closeQuick);
-
-  // ESC로 닫기
-  document.addEventListener('keydown',(e)=>{
-    if(e.key === 'Escape' && quickModal?.classList.contains('show')) closeQuick();
-  });
-
-  // 맞춤형 상담 버튼 클릭 시 → 간편상담 모달 닫고, 로그인 모달 열기  
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-role="custom"]');
-    if(!btn) return;
-    // 간편상담 모달 닫기
-    if(quickModal.classList.contains('show')) closeQuick();
-
-    // 로그인 모달 열기 (다른 스크립트의 openQuick 함수 호출)
-    const authModal = document.getElementById('authModal');
-    if(authModal) authModal.classList.add('show');
-  });
-
-
-  // ---------------API 추가해야함 메시지 추가------------------------------------------
-  function appendMsg(role,text){
-    const div=document.createElement('div');
-    div.className=`msg ${role}`;
-    div.textContent=text;
-    quickMessages.append(div);
-    setTimeout(()=>quickMessages.scrollTo({top:quickMessages.scrollHeight,behavior:'smooth'}),50);
-  }
-
-  // 전송
-  quickForm?.addEventListener('submit',(e)=>{
-    e.preventDefault();
-    const val=(quickText?.value||'').trim();
-    if(!val) return;
-    appendMsg('user',val);
-    quickText.value='';
-    setTimeout(()=> appendMsg('bot','문의 감사합니다! 맞춤형 상담 전 간편 상담을 해드릴게요.'), 350);
-  });
-})();
+}

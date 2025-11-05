@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="AI가 이혼 고민을 먼저 들어드리고, 맞춤 변호사 상담까지 연결해드립니다. 24시간 무료 상담 시작하기." />
+  <meta name="keywords" content="이혼상담, 법률상담, AI챗봇, 변호사 연결, 위자료, 양육권, 재산분할" />
+  <meta property="og:title" content="AI 이혼 상담 | LawOn" />
+  <meta property="og:description" content="AI가 이혼 고민을 먼저 들어드리고, 맞춤 변호사 상담까지 연결해드립니다." />
+  <meta property="og:image" content="images/og-lawon.png" />
   <title>이혼 관련 감정 공감, 법률 상담 테스트</title>
   <link rel="icon" type="image/png" sizes="32x32" href="images/black.png?v=2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -24,7 +29,7 @@
         <span class="logo-text">LawOn</span>
       </div>
       <ul class="nav-links">
-        <li><a href="#features">서비스 소개</a></li>
+        <li><a href="#process">서비스 소개</a></li>
         <li><a href="#features">이용 방법</a></li>
         <li><a href="#layerimg">변호사 소개</a></li>
       </ul>
@@ -72,114 +77,24 @@
             </div>
           </div>
           
-
-        <!-- 간편 상담 모달 (hero-image 위) -->
-        <!-- <div class="quick-modal" id="quickModal" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
-          <div class="quick-content">
-            <header class="quick-head">
-              <h3 id="quickTitle">간편 상담</h3>
-              <button class="close" id="quickClose" aria-label="닫기"><i class="fas fa-times"></i></button>
-            </header>
-            <div class="messages" id="quickMessages" aria-live="polite">
-              <div class="msg bot">안녕하세요! 무엇을 도와드릴까요? 😊</div>
-            </div>
-            <form id="quickForm" class="input-area" autocomplete="on">
-              <input type="text" id="quickText" placeholder="예) 이혼 관련 상담" required />
-              <button type="submit" class="btn btn-secondary">보내기</button>
-            </form>
-          </div>
-        </div> -->
-
-
       <!-- 로그인/회원가입 모달 -->
-      <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-        <div class="tabs" role="tablist">
-            <button id="tab-login" class="tab active" role="tab" aria-controls="panel-login" aria-selected="true">로그인</button>
-            <button id="tab-signup" class="tab" role="tab" aria-controls="panel-signup" aria-selected="false">회원가입</button>
-        </div>
-        <button class="close-btn" id="authClose" aria-label="닫기"><i class="fas fa-times"></i></button>
-            <!-- 로그인 -->
-          <div class="tab-content active" id="loginTab">
-            <div class="social-login-row">
-              <div class="section-title">간편로그인</div>
-
-              <div class="social-buttons">
-                <!-- <a href="/oauth2/authorization/kakao" class="social-btn kakao"><img src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg" width="222" alt="카카오 로그인 버튼" /></a> -->
-                <a href="/oauth2/authorization/kakao" class="social-btn kakao">
-                    <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
-                </a>
-                <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
-                <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
-              </div>
-            </div>
-            
-            <div class="section-title1">로그인</div>
-
-            <form id="panel-login" class="auth-panel" autocomplete="on">
-              <div class="input-group">
-                <input type="text" id="loginNickname" name="nickname" class="input-field" placeholder="아이디" required>
-              </div>
-
-              <div class="input-group">
-                <input type="password" id="loginPassword" name="password" class="input-field" placeholder="비밀번호" required>
-              </div>
-              <div class="c-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
-
-              <button type="submit" class="submit-btn">로그인</button>
-            </form>
-
-            <div class="link-group">
-              <button type="button" class="btn" id="forgotIdBtn">아이디 찾기</button>
-              <span class="separator">|</span>
-              <button type="button" class="btn" id="forgotBtn">비밀번호 찾기</button>
-            </div>
-          </div>
-
-          <!-------------------------------- 회원가입 탭 ----------------------------------------------------------------->
-          <div class="tab-content" id="signupTab">
-            <div class="social-login-row">
-              <div class="section-title">간편가입</div>
-              <div class="social-buttons">
-                <a href="/oauth2/authorization/kakao" class="social-btn kakao">
-                    <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
-                </a>
-
-                <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
-                <a href="/oauth2/authorization/naver" class="social-btn naver">N</a>
-              </div>
-            </div>
-
-          <div class="section-title1">회원가입</div>
-
-            <form id="panel-signup" class="auth-panel" autocomplete="on">
-              <div class="input-group">
-                <input type="text" class="input-field" id="signName" name="nickname" placeholder="닉네임" required>
-              </div>
-            <div class="input-group">
-              <input type="password" id="signPassword" name="password" class="input-field" placeholder="비밀번호" required>
-            </div>
-
-            <div class="input-group">
-              <input type="password" id="signPassword2" name="password2" class="input-field" placeholder="비밀번호확인" required>
-            </div>
-
-            <div class="c-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
-            <!-- <div class="verification-buttons">
-              <button class="verify-btn">휴대폰 인증</button>
-            </div> -->
-
-            <button type="submit" class="submit-btn">회원가입</button>
-            </form>
-          </div>
       </div>
-      </div>
-      <!-- /hero-image -->
     </div>
   </main>
 </div>
 
+<section class="cta reveal reveal-up" id="cta">
+    <h2>지금 바로 시작해보세요</h2>
+    <p>무료 상담은 회원가입 없이 바로 이용 가능합니다</p>
+    <button class="btn btn-white" id="quick">
+      <i class="fas fa-arrow-right"></i>
+      무료로 시작하기
+    </button>
+</section>
+
+
 <!-- 
-  <section class="text-content">
+  <section  class="reveal" class="text-content">
     <div class="container">
       <div class="text-box">
         
@@ -193,69 +108,926 @@
     </div>
   </section> -->
 
-  <section class="features" id="features">
-    <h2 class="section-title">왜 ???를 선택해야 할까요?</h2>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="feature-title">1단계: AI 사전 상담</div>
-        <div class="feature-desc">
-          복잡한 상황을 AI가 체계적으로 정리해드립니다. 
-          재산분할, 양육권, 위자료 등 핵심 쟁점을 파악합니다.
-        </div>
-      </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-file-pdf"></i>
-        </div>
-        <div class="feature-title">2단계: 상담 내역 PDF</div>
-        <div class="feature-desc">
-          대화 내용을 깔끔한 PDF로 저장하세요. 
-          변호사 면담 시 시간을 절약하고, 정확한 상담을 받을 수 있습니다.
-        </div>
-      </div>
+<section class="process-section" id="process">
+  <div class="section-header reveal">
+      <h2>왜 LawOn을 선택해야 할까요?</h2>
+      <p>AI 사전 상담부터 변호사 연결까지, 원스톱 법률 서비스</p>
+  </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-user-tie"></i>
-        </div>
-        <div class="feature-title">3단계: 변호사 연결</div>
-        <div class="feature-desc">
-          내 지역, 사건 유형에 맞는 전문 변호사를 추천해드립니다. 
-          사전 상담 내역을 공유하여 효율적인 상담이 가능합니다.
-        </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="feature-title">1단계: AI 사전 상담</div>
+      <div class="feature-desc">
+        복잡한 상황을 AI가 체계적으로 <br>정리해드립니다.
+        재산분할, 양육권, <br> 위자료 등  핵심 쟁점을파악합니다.
+      </div>
+  </div>
+
+  <div class="feature-card">
+      <div class="feature-icon">
+        <i class="fas fa-file-pdf"></i>
+      </div>
+      <div class="feature-title">2단계: 상담 내역 PDF</div>
+      <div class="feature-desc">
+        대화 내용을 깔끔한 PDF로 저장하세요. 
+        변호사 면담 시 시간을 절약하고, <br> 정확한 상담을 받을 수 있습니다.
+      </div>
+  </div>
+
+  <div class="feature-card">
+      <div class="feature-icon">
+        <i class="fas fa-user-tie"></i>
+      </div>
+      <div class="feature-title">3단계: 변호사 연결</div>
+      <div class="feature-desc">
+        내 지역, 사건 유형에 맞는 <br>  전문 변호사를 추천해드립니다. <br> 
+        사전 상담 내역을 공유하여 효율적인 <br>  상담이 가능합니다.
       </div>
     </div>
-  </section>
-  
+  </div>
+</section>
 
 
+<section class="lawyer-section reveal reveal-up">
+  <div class="section-header">
+      <h2 class="section-title">이혼전문변호사 추천</h2>
+      <p class="section-subtitle">LawON에 등록된 이혼전문변호사들입니다.</p>
+      
+      <div class="category-tabs">
+          <div class="category-tab active">이혼 · 가사법 변호사</div>
+          <div class="category-tab">세금 · 재산분할 업무팀</div>
+      </div>
+  </div>
 
-  <section class ="layerimg">
-      <div class="swiper mySwiper">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide"><img src="./images/counseling1.jpg" alt=""></div>
-          <div class="swiper-slide">Slide 2</div>
-          <div class="swiper-slide">Slide 3</div>
-          <div class="swiper-slide">Slide 4</div>
-          <div class="swiper-slide">Slide 5</div>
-          <div class="swiper-slide">Slide 6</div>
-          <div class="swiper-slide">Slide 7</div>
-          <div class="swiper-slide">Slide 8</div>
-          <div class="swiper-slide">Slide 9</div>
+  <div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/1_김서윤.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+                <div class="lawyer-name">김서윤</div>
+                <div class="lawyer-title">파트너변호사</div>
+                <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+                <ul class="description-list">
+                    <li>청주시 인사위원의 위원 경력</li>
+                    <li>충청북도 행정심판위원의 위원 경력</li>
+                    <li>대한변호사회의 등록 정산법/이혼 전문 변호사</li>
+                </ul>
+                <div class="arrow-link"></div>
+            </div>
+          </div>
         </div>
-    
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-pagination"></div>
+        
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/3_이준호.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/4_박지수.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/5_이수민.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/6_최민석.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/7_최민재.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/8_정다은.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/9_한가은.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/10_정도현.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/11_오예진.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/12_장우석.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/13_김보라.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/14_윤세은.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+                <div class="lawyer-name">윤자영</div>
+                <div class="lawyer-title">파트너변호사</div>
+                <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+                <ul class="description-list">
+                    <li>청주시 인사위원의 위원 경력</li>
+                    <li>충청북도 행정심판위원의 위원 경력</li>
+                    <li>대한변호사회의 등록 정산법/이혼 전문 변호사</li>
+                </ul>
+                <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/15_김도윤.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/16_이정관.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/17_박하늘.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/18_이서진.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/19_조현우.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/20_권예림.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/21_윤지후.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/22_백승민.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/23_서가온.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/24_임수정.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/25_조민성.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/26_하예준.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/27_임서연.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/28_한나래.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+                <div class="lawyer-name">윤자영</div>
+                <div class="lawyer-title">파트너변호사</div>
+                <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+                <ul class="description-list">
+                    <li>청주시 인사위원의 위원 경력</li>
+                    <li>충청북도 행정심판위원의 위원 경력</li>
+                    <li>대한변호사회의 등록 정산법/이혼 전문 변호사</li>
+                </ul>
+                <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/29_홍민기.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/30_김하린.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/31_안도원.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/32_박도현.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/33_백현우.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/34_이수빈.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/35_임경민.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/36_최서준.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/37_한예은.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/38_정민호.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/39_오서영.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/40_장태윤.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/41_윤하율.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/42_김태현.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+                <div class="lawyer-name">윤자영</div>
+                <div class="lawyer-title">파트너변호사</div>
+                <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+                <ul class="description-list">
+                    <li>청주시 인사위원의 위원 경력</li>
+                    <li>충청북도 행정심판위원의 위원 경력</li>
+                    <li>대한변호사회의 등록 정산법/이혼 전문 변호사</li>
+                </ul>
+                <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/43_박서연.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/44_이우진.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/45_조은재.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/46_권현서.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+        
+        
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/47_백지후.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/9_한가은.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/10_정도현.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/11_오예진.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/12_장우석.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="swiper-slide">
+          <div class="lawyer-card">
+            <div class="lawyer-image"><img src="./images/13_김보라.png" alt="변호사이름"></div>
+            <div class="lawyer-info">
+              <div class="lawyer-name">이가형</div>
+              <div class="lawyer-title">파트너변호사</div>
+              <div class="lawyer-specialty">정사, 기업법무, 학교폭력, 민사, 손해배상, 행정소송</div>
+              <ul class="description-list">
+                <li>대한변호사협회 등록 이혼/가사 전문 변호사</li>
+                <li>민사법원 변호사협회 등록 정산법/이혼 전문 변호사</li>
+              </ul>
+              <div class="arrow-link"></div>
+            </div>
+          </div>
+        </div>
+
     </div>
+
+    <div class="swiper-pagination"></div>
+  </div>
   </section>
 
-  
-  <section class="office-map-section">
+
+
+<section class="office-map-section reveal reveal-up">
   <div class="office-map-inner">
     <!-- 왼쪽 패널 -->
     <div class="office-left">
@@ -349,8 +1121,7 @@
 </section>
 
 
-<div class="c-overlay" id="overlay"></div>
-
+<!-- 간편 상담 관련 오버레이 + 위젯 -->
 <div class="chat-overlay" id="chat-overlay"></div>
 
 <aside class="chat-widget" id="chat-widget">
@@ -361,21 +1132,102 @@
     </button>
   </header>
 
-  <main class="chat-body" id="chat-body">
-    <div class="chat-message loading" id="chat-loading">
-      <span></span><span></span><span></span>
-    </div>
+  <main class="chat-body">
     <div class="chat-message bot">
       안녕하세요! 무엇을 도와드릴까요? 😊
     </div>
   </main>
 
   <footer class="chat-footer">
-    <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." />
-    <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+    <input type="text" placeholder="메시지를 입력하세요...">
+    <button><i class="fas fa-paper-plane"></i></button>
   </footer>
-</aside>
+  </aside>
 
+
+<div id="portal-root">
+    <!-- 맞춤형 상담용 오버레이 -->
+    <div class="auth-overlay" id="auth-overlay"></div>
+
+    <!-- 맞춤형 상담 모달 (로그인/회원가입) -->
+    <div class="auth-modal" id="authModal" role="dialog" aria-modal="true">
+      <button class="auth-close-btn" id="authClose" aria-label="닫기">
+        <i class="fas fa-times"></i>
+      </button>
+      
+      <div class="auth-tabs" id="authTabs">
+        <button id="tab-login" class="auth-tab active" data-tab="login">로그인</button>
+        <button id="tab-signup" class="auth-tab" data-tab="signup">회원가입</button>
+      </div>
+
+      <!-- 로그인 탭 -->
+      <div class="auth-content active" id="loginTab">
+        <div class="social-login-section">
+          <h4 class="auth-section-title">간편로그인</h4>
+          <div class="social-buttons">
+            <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+              <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+            </a>
+            <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+            <a href="/oauth2/authorization/naver" class="social-btn naver"><h3>N</h3></a>
+          </div>
+        </div>
+
+        <div class="auth-divider">
+          <span></span>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <div class="form-group">
+            <input type="text" id="loginNickname" name="nickname" placeholder="아이디" required>
+          </div>
+          <div class="form-group">
+            <input type="password" id="loginPassword" name="password" placeholder="비밀번호" required>
+          </div>
+          <div class="auth-error" id="loginError">이메일 또는 비밀번호를 확인하세요.</div>
+          <button type="submit" class="auth-submit-btn">로그인</button>
+        </form>
+
+        <div class="auth-links">
+          <button type="button" class="auth-link" id="forgotIdBtn">아이디 찾기</button>
+          <span class="separator">|</span>
+          <button type="button" class="auth-link" id="forgotBtn">비밀번호 찾기</button>
+        </div>
+      </div>
+
+      <!-- 회원가입 탭 -->
+      <div class="auth-content" id="signupTab">
+        <div class="social-login-section">
+          <h4 class="auth-section-title">간편가입</h4>
+          <div class="social-buttons">
+            <a href="/oauth2/authorization/kakao" class="social-btn kakao">
+              <img src="data:image/svg+xml,%3csvg%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M12.4978%205C8.35749%205%205%207.69691%205%2011.0231C5%2013.1883%206.42307%2015.0852%208.55693%2016.1472C8.40698%2016.7415%207.9901%2018.3017%207.90763%2018.6354C7.80566%2019.0499%208.05758%2019.0453%208.22103%2018.9402L11.1107%2016.9411C11.5713%2017.0111%2012.0365%2017.0462%2012.5022%2017.0462C16.644%2017.0462%2020%2014.3493%2020%2011.0231C20%207.69691%2016.6395%205%2012.4978%205Z'%20fill='black'/%3e%3c/svg%3e" alt="카카오">
+            </a>
+            <a href="/oauth2/authorization/google" class="social-btn google">G+</a>
+            <a href="/oauth2/authorization/naver" class="social-btn naver"><h3>N</h3></a>
+          </div>
+        </div>
+
+        <div class="auth-divider">
+          <span></span>
+        </div>
+
+        <form id="signupForm" class="auth-form">
+          <div class="form-group">
+            <input type="text" id="signName" name="nickname" placeholder="닉네임" required>
+          </div>
+          <div class="form-group">
+            <input type="password" id="signPassword" name="password" placeholder="비밀번호" required>
+          </div>
+          <div class="form-group">
+            <input type="password" id="signPassword2" name="password2" placeholder="비밀번호 확인" required>
+          </div>
+          <div class="auth-error" id="signupError">입력값을 확인하세요. (비밀번호 8자 이상)</div>
+          <button type="submit" class="auth-submit-btn">회원가입</button>
+        </form>
+      </div>
+    </div>
+</div>
 
 <footer class="site-footer">
     <div class="container">
@@ -385,7 +1237,7 @@
           LawON
         </div>
         <ul class="footer-links">
-          <li><a href="#features">서비스 소개</a></li>
+          <li><a href="#process">서비스 소개</a></li>
           <li><a href="#">이용약관</a></li>
           <li><a href="#">개인정보처리방침</a></li>
         </ul>
@@ -405,23 +1257,66 @@
 
 <script type="module" src="/src/js/main.js"></script>
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-<!-- Initialize Swiper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
 <script>
-  var swiper = new Swiper(".mySwiper", {
-    slidesPerView: 3,
-    spaceBetween: 30,
-    slidesPerGroup: 3,
-    loop: true,
-    loopFillGroupWithBlank: true,
-    pagination: {
-      el: ".swiper-pagination",
+const swiper = new Swiper('.mySwiper', {
+  slidesPerView: 4,
+  spaceBetween: 30,
+  loop: true,
+  navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+  },
+  pagination: {
+      el: '.swiper-pagination',
+      type: 'bullets',
       clickable: true,
-    },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev",
-    },
-  });
+      dynamicBullets: true,
+      dynamicMainBullets: 5,
+  },
+  autoplay: {
+      delay: 5000,
+      disableOnInteraction: false,
+  },
+  breakpoints: {
+      320: {
+          slidesPerView: 1,
+          spaceBetween: 15,
+      },
+      640: {
+          slidesPerView: 2,
+          spaceBetween: 20,
+      },
+      1024: {
+          slidesPerView: 3,
+          spaceBetween: 25,
+      },
+      1400: {
+          slidesPerView: 4,
+          spaceBetween: 30,
+      },
+  },
+});
+</script>
+
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  const reveals = document.querySelectorAll('.reveal');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach((el) => observer.observe(el));
+});
 </script>
 </body>
 </html>

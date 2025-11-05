@@ -13,6 +13,7 @@
   ];
 
   let idx=0;
+  let isPlaying = false;
   const delay = ms => new Promise(r=>setTimeout(r,ms));
   const showTyping = on => typing.style.opacity = on?'1':'0';
   const addBubble = ({role,text})=>{
@@ -25,6 +26,8 @@
   const clearBubbles=()=>wrap.innerHTML='';
 
   async function play(){
+    if (isPlaying) return;    //이미 실행 중이면 무시
+    isPlaying = true;
     clearBubbles(); idx=0;
     while(idx<script.length){
       const line=script[idx++];
@@ -33,7 +36,8 @@
       await delay(2000);
     }
     await delay(1000);
-    play();
+    isPlaying = false; 
+    play(); 
   }
 
   const target = document.querySelector('.cp-chat-preview');
