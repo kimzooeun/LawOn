@@ -1,14 +1,17 @@
 // ===================================
-// 1. 토닥토닥 [상태 & 유틸]
+// 1. 상태 & 유틸
 // (전역 변수, 스토리지, 모달, 토스트, 닉네임)
 // ===================================
 
 const STORE_KEY = "todak_chats_v1";
 const STT_ENDPOINT = "http://127.0.0.1:8000/stt"; // 로컬 Whisper 서버
-// const STT_ENDPOINT = "/stt";               // 배포용 엔드포인트
+// const STT_ENDPOINT = "/stt";                      // 배포용 엔드포인트
+
 const AUTO_SEND_STT = true; // 채팅 화면 STT 결과 자동 전송
 
+// 간단한 쿼리 셀렉터 유틸
 const qs = (s, r = document) => r.querySelector(s);
+
 // 사이드바 접힘 상태 로컬스토리지 키
 const SIDEBAR_COLLAPSED_KEY = "todak_sidebar_collapsed";
 
@@ -19,76 +22,12 @@ function applySidebarCollapsed(collapsed) {
   sidebar.classList.toggle("collapsed", !!collapsed);
 }
 
-// == 가짜 데이터 ==
-// [추가] 비어있는 스토어
+// == 비어있는 스토어 ==
 function createEmptyStore() {
   return { recents: [], sessions: {}, currentId: null };
 }
 
-// [추가] 더미 데이터 스토어 (최초 1회 로드용)
-function createDummyStore() {
-  const s1_id = "s_dummy_1";
-  const s2_id = "s_dummy_2";
-  const s3_id = "s_dummy_new"; // (새 채팅용)
-
-  const dummyState = {
-    recents: [
-      // 최근 대화 목록
-      {
-        id: s2_id,
-        title: "어제 나눴던 대화",
-        updatedAt: Date.now() - 86400000,
-      },
-      { id: s1_id, title: "첫 번째 테스트", updatedAt: Date.now() - 172800000 },
-    ],
-    sessions: {
-      // 실제 대화 내용
-      [s1_id]: {
-        id: s1_id,
-        title: "첫 번째 테스트",
-        createdAt: Date.now() - 172800000,
-        messages: [
-          { role: "user", text: "안녕, 잘 지내?", at: Date.now() - 172800000 },
-          {
-            role: "bot",
-            text: "그럼요. 잘 지내고 있습니다.",
-            at: Date.now() - 172800000,
-          },
-        ],
-      },
-      [s2_id]: {
-        id: s2_id,
-        title: "어제 나눴던 대화",
-        createdAt: Date.now() - 86400000,
-        messages: [
-          { role: "user", text: "어제 뭐했어?", at: Date.now() - 86400000 },
-          {
-            role: "bot",
-            text: "열심히 코딩 공부를 했습니다.",
-            at: Date.now() - 86400000,
-          },
-        ],
-      },
-      [s3_id]: {
-        id: s3_id,
-        title: "새 대화",
-        createdAt: Date.now(),
-        messages: [], // 새 대화는 비어있음
-      },
-    },
-    currentId: s3_id, // 현재 세션은 '새 대화'
-  };
-  return dummyState;
-}
-
 // ---- 스토리지 로드/저장 ----
-// function loadStore(){
-//   try{
-//     return JSON.parse(localStorage.getItem(STORE_KEY)) || { recents:[], sessions:{}, currentId:null };
-//   }catch{ return { recents:[], sessions:{}, currentId:null }; }
-// }
-// function saveStore(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
-// let state = loadStore();
 function loadStore() {
   try {
     const stored = localStorage.getItem(STORE_KEY);
@@ -96,13 +35,11 @@ function loadStore() {
       // 데이터가 있으면 파싱해서 반환
       return JSON.parse(stored) || createEmptyStore();
     }
-    // [수정] 저장된 데이터가 없으면, 더미 데이터 생성
-    // (테스트 후 createEmptyStore()로 되돌리세요)
-    showToast("✨ 테스트용 더미 데이터를 로드합니다.", "info", 2500);
-    return createDummyStore();
+    // 저장된 데이터가 없으면, 빈 스토어 생성
+    return createEmptyStore();
   } catch {
-    // 파싱 실패 시에도 더미 데이터
-    return createDummyStore();
+    // 파싱 실패 시에도 빈 스토어
+    return createEmptyStore();
   }
 }
 
@@ -112,7 +49,11 @@ function saveStore(s) {
 
 let state = loadStore();
 
-// [ADD] Confirm Modal helpers
+function saveStore(s) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(s));
+}
+
+// Confirm Modal helpers
 const Modal = {
   el: null,
   msgEl: null,
@@ -180,14 +121,109 @@ function showToast(text, variant = "info", ms = 1800) {
     el.className = "toast";
   }, ms);
 }
-function showDeleteWarning() {
-  showToast("⚠ 경고! 삭제 시 대화 내용을 되돌릴 수 없습니다", "info", 2500);
+
+// 닉네임 표시
+function updateNicknameDisplay() {
+  const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
+  const safeNick = nick || "게스트";
+
+  // 1. 마이페이지 타이틀 닉네임 (ID: mypageUserNickname)
+  const mypageEl = document.getElementById("mypageUserNickname");
+  if (mypageEl) {
+    mypageEl.textContent = safeNick;
+  }
+
+  // 2. 빈 채팅방 환영 닉네임 (Class: empty-hint-nickname)
+  const emptyChatEl = document.querySelector(".empty-hint-nickname");
+  if (emptyChatEl) {
+    emptyChatEl.textContent = safeNick;
+  }
 }
 
-// ✅ 닉네임 표시
-function updateNicknameDisplay() {
-  const el = document.getElementById("nicknameDisplay");
-  if (!el) return;
-  const nick = (localStorage.getItem("todak_nickname") || "").trim();
-  el.textContent = nick || "게스트";
-}
+const FormModal = {
+  el: null,
+  titleEl: null,
+  formEl: null,
+  okBtn: null,
+  cancelBtn: null,
+  closeBtn: null,
+  backdrop: null,
+  lastFocus: null,
+  onConfirmCallback: null,
+
+  init() {
+    this.el = document.getElementById("formModal");
+    if (!this.el) return;
+    this.titleEl = document.getElementById("formModalTitle");
+    this.formEl = document.getElementById("formModalBody");
+    this.okBtn = document.getElementById("formModalOk");
+    this.cancelBtn = document.getElementById("formModalCancel");
+    this.closeBtn = document.getElementById("formModalClose");
+    this.backdrop = this.el.querySelector(".modal-backdrop");
+
+    // 이벤트 리스너 바인딩
+    this.okBtn.addEventListener("click", () => this.handleConfirm());
+    this.cancelBtn.addEventListener("click", () => this.close());
+    this.closeBtn.addEventListener("click", () => this.close());
+    this.backdrop.addEventListener("click", () => this.close());
+
+    // Form 내부에서 Enter 키를 눌러도 폼이 제출(새로고침)되는 것을 방지
+    this.formEl.addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.handleConfirm(); // Enter 키로도 확인 버튼 클릭 효과
+    });
+  },
+
+  open({
+    title,
+    formHtml, // <input>, <label> 등이 포함된 HTML 문자열
+    okText = "저장",
+    onConfirm, // 확인 버튼 클릭 시 실행될 콜백
+  } = {}) {
+    if (!this.el) return;
+    this.lastFocus = document.activeElement;
+    this.titleEl.textContent = title;
+    this.formEl.innerHTML = formHtml;
+    this.okBtn.textContent = okText;
+    this.onConfirmCallback = onConfirm; // 콜백 저장
+
+    document.addEventListener(
+      "keydown",
+      (this._esc = (e) => {
+        if (e.key === "Escape") this.close();
+      }),
+      { once: true }
+    );
+    this.el.classList.remove("hidden");
+
+    // 폼의 첫 번째 입력창에 자동으로 포커스
+    this.formEl.querySelector("input")?.focus();
+  },
+
+  handleConfirm() {
+    if (!this.onConfirmCallback) {
+      this.close();
+      return;
+    }
+
+    // 1. 폼 데이터 객체로 변환
+    const formData = new FormData(this.formEl);
+    const data = Object.fromEntries(formData.entries());
+
+    // 2. 콜백 실행
+    // 콜백이 false를 반환하면 유효성 검사 실패로 간주하고 모달을 닫지 않음
+    const result = this.onConfirmCallback(data);
+    if (result !== false) {
+      this.close();
+    }
+  },
+
+  close() {
+    if (!this.el) return;
+    this.el.classList.add("hidden");
+    this.formEl.innerHTML = ""; // 폼 내용 비우기
+    this.onConfirmCallback = null;
+    document.removeEventListener("keydown", this._esc);
+    this.lastFocus && this.lastFocus.focus();
+  },
+};

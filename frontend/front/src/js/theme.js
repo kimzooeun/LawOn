@@ -1,5 +1,5 @@
 // ===================================
-// 4. 토닥토닥 [테마 변경]
+// 4. 테마 변경
 // (사이드바 Footer 테마 변경 기능)
 // ===================================
 
@@ -10,7 +10,7 @@
   const toggleBtn = footer.querySelector(".footer-link");
   if (!toggleBtn) return;
 
-  // 버튼 세트 만들기 (기존과 동일)
+  // 버튼 세트 만들기
   let btnWrap = footer.querySelector("#themeButtons");
   if (!btnWrap) {
     btnWrap = document.createElement("div");
@@ -18,7 +18,7 @@
     btnWrap.className = "theme-buttons hidden";
     btnWrap.innerHTML = `
       <button class="theme-chip" data-theme="yellow">Yellow</button>
-      <button class="theme-chip" data-theme="white">White</button>
+      <button class="theme-chip" data-theme="white">Pink</button>
       <button class="theme-chip" data-theme="purple">Purple</button>
       <button class="theme-chip" data-theme="orange">Orange</button>
       <button class="theme-chip" data-theme="green">Green</button>
@@ -27,7 +27,7 @@
     footer.appendChild(btnWrap);
   }
 
-  // 하드코딩 컬러 세트 (기존과 동일)
+  // 하드코딩 컬러 세트
   const themes = {
     yellow: {
       bg: "#FFFBEA",
@@ -36,10 +36,10 @@
       accent: "#FFD93D",
     },
     white: {
-      bg: "#ffffff",
-      text: "#222222",
-      card: "#f7f7f8",
-      accent: "#4d88ff",
+      bg: "#fffafd",
+      text: "#221a2e",
+      card: "#ffeef7",
+      accent: "#ee90b4",
     },
     purple: {
       bg: "#faf7ff",
@@ -60,10 +60,10 @@
       accent: "#58b48f",
     },
     reset: {
-      bg: "#fff6fb",
-      text: "#221a2e",
-      card: "#fff6fb",
-      accent: "#ee90b4",
+      bg: "#ffffff",
+      text: "#1c1c1c",
+      card: "#fafafa",
+      accent: "#b08d57",
     },
   };
 
@@ -71,12 +71,12 @@
   const saved = localStorage.getItem("hard_theme");
   if (saved && themes[saved]) applyTheme(saved);
 
-  // 토글 버튼 클릭 (기존과 동일)
+  // 토글 버튼 클릭
   toggleBtn.addEventListener("click", () => {
     btnWrap.classList.toggle("hidden");
   });
 
-  // 테마 선택 (기존과 동일)
+  // 테마 선택
   btnWrap.addEventListener("click", (e) => {
     const btn = e.target.closest(".theme-chip");
     if (!btn) return;
@@ -90,14 +90,12 @@
     else localStorage.setItem("hard_theme", theme);
   });
 
-  // 밖 클릭 시 닫기 (기존과 동일)
+  // 밖 클릭 시 닫기
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".sidebar-footer")) btnWrap.classList.add("hidden");
   });
 
-  // =======================================================
-  // ▼▼▼ [핵심 수정] 2. 테마 적용 함수 ▼▼▼
-  // =======================================================
+  // 테마 적용 함수
   function applyTheme(name) {
     const t = themes[name];
     if (!t) return;
@@ -129,29 +127,28 @@
         "--violet",
       ];
 
-      // [핵심] 'unset' 대신 'removeProperty'를 사용해야
-      // CSS 파일의 :root 기본값으로 돌아갑니다.
+      // CSS 파일의 :root 기본값으로 복원
       vars.forEach((v) => root.style.removeProperty(v));
 
       return; // 'reset'일 경우 여기서 함수 종료
     }
 
-    // [수정] JS 객체(t)의 단순한 4가지 색상을 CSS 변수에 매핑합니다.
+    // JS 객체(t)의 단순한 4가지 색상을 CSS 변수에 매핑
     root.style.setProperty("--bg", t.bg);
     root.style.setProperty("--ink", t.text);
     root.style.setProperty("--panel", t.card);
     root.style.setProperty("--panel-2", t.card);
     root.style.setProperty("--primary", t.accent);
-    root.style.setProperty("--primary-700", t.accent); // (단순화)
-    root.style.setProperty("--lavender", t.accent); // (단순화)
-    root.style.setProperty("--lavender-600", t.accent); // (단순화)
+    root.style.setProperty("--primary-700", t.accent);
+    root.style.setProperty("--lavender", t.accent);
+    root.style.setProperty("--lavender-600", t.accent);
     root.style.setProperty("--violet", t.accent);
 
     // 버튼/입력창 배경은 흰색으로 고정
     root.style.setProperty("--btn-bg", "#ffffff");
     root.style.setProperty("--input-bg", "#ffffff");
 
-    // [수정] Hover 색상을 t.bg(페이지 배경) 대신 t.card(패널 배경)로 변경
+    // Hover 색상을 t.bg(페이지 배경) 대신 t.card(패널 배경) 변경
     root.style.setProperty("--btn-bg-hover", t.card);
 
     // 라인/테두리 색상
@@ -163,7 +160,4 @@
     root.style.setProperty("--scroll-thumb", t.accent + "66");
     root.style.setProperty("--scroll-thumb-hover", t.accent + "88");
   }
-  // =======================================================
-  // ▲▲▲ [핵심 수정] 2. 테마 적용 함수 ▲▲▲
-  // =======================================================
 })();
