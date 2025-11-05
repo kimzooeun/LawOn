@@ -13,7 +13,7 @@ const DATA = [
         tags: ["가사", "이혼", "상속"],
         phone: "02-000-0001",
         address: "서울 서초구 서초대로 000",
-        url: "http://127.0.0.1:3000/frontend/front/lawyer.html",
+        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
         note: "가사/이혼 전문 상담 운영",
       },
       {
