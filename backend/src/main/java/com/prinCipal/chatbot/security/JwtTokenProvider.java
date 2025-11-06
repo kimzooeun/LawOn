@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.Cookie;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 //JWT 토큰 생성, 검증 , 파싱 등 JWT 관련 모든 작업 처리 
@@ -157,5 +159,32 @@ public class JwtTokenProvider {
 				.getPayload()
 				.getSubject();  // getSubject로 토큰 생성시 넣었던 사용자이름을 반환
 	}
+	
+	// 쿠키에서 RefreshToken 추출
+	public String resolveRefreshToken(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null) return null; 
+		 for (Cookie cookie : cookies) {
+		        if ("refreshToken".equals(cookie.getName())) {
+		            return cookie.getValue(); 
+		        }
+		    }
+		return null;
+	}
+	
+	// 헤더에서 AccessToken 추출
+	public String resolveAccessToken(HttpServletRequest request) {
+	    String bearer = request.getHeader("Authorization");
+	    if (bearer != null && bearer.startsWith("Bearer ")) {
+	        return bearer.substring(7);
+	    }
+	    return null;
+	}
+	
+	
+	
+	
+	
+	
 
 }

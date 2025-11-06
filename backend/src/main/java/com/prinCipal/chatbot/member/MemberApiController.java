@@ -2,6 +2,7 @@ package com.prinCipal.chatbot.member;
 
 import java.util.Map;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,16 +63,14 @@ public class MemberApiController {
 		}
 	}
 	
-	
-	
-	
-	
+
 	// 새로운 AccessToken 발급하기 위함 
 	@PostMapping("/refresh")
 	public ResponseEntity<TokenResponse> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken, 
 												HttpServletResponse response){
 		if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new TokenResponse("fail", "RefreshToken이 없거나 만료됨", null));
 		}
 		
 		String newAccessToken = this.memberService.newAccessToken(refreshToken, response);
@@ -79,20 +79,28 @@ public class MemberApiController {
 	
 	
 	// Refresh Token을 서버 쿠키에서 삭제하는 방식
-	@PostMapping("/logout")
-	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-        		.httpOnly(true)
-        		.secure(false)
-                .maxAge(0)
-                .sameSite("Lax") 
-                .path("/")
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-        return response;
-    }
+//	@PostMapping("/logout")
+//	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
+//        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+//        		.httpOnly(true)
+//        		.secure(false)
+//                .maxAge(0)
+//                .sameSite("Lax") 
+//                .path("/")
+//                .build();
+//        response.addHeader("Set-Cookie", cookie.toString());
+//        return response;
+//    }
 	
-	
+//	@PostMapping("/logout")
+//	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
+//		String header = request.getHeader("Authorization");
+//		if(header != null && header.startsWith(("Bearer ")){
+//			String token = header.substring(7);
+//			jwtTokenProvider.invalidateToken(token); // Redis나 블랙리스트에서 삭제
+//		}
+//		return ResponseEntity.ok(Map.of("message", "로그아웃 성공"));
+//	}
 	
 
 	

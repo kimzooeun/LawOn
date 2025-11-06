@@ -1,6 +1,7 @@
 // ============================================
 // 맞춤형 상담 (로그인/회원가입) 모달
 // ============================================
+import { TokenManager } from './token.js';
 
 const authModal = document.getElementById('authModal');
 const authOverlay = document.getElementById('auth-overlay');
@@ -48,7 +49,7 @@ function closeAuthModal() {
   document.body.style.overflow = ''; // 스크롤 복원
   chatOverlay?.style.removeProperty('pointer-events');
   portalRoot.style.pointerEvents = 'none';
-
+  resetAuthForms(); 
   // transition 끝난 후 overflow 복원
   authModal.addEventListener('transitionend', () => {
     document.body.style.overflow = '';
@@ -77,8 +78,6 @@ portalRoot?.addEventListener('click', (e) => {
 });
 
 
-
-
 // 탭 전환 (이벤트 위임 사용 → appendChild 영향 안받음)
 document.addEventListener('click', (e) => {
   const tab = e.target.closest('.auth-tab');
@@ -105,35 +104,199 @@ document.addEventListener('click', (e) => {
 
 
 
-
+//-----------------------------------------------------------------------------
 // 로그인 폼 제출
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nickname = document.getElementById('loginNickname').value;
-    const password = document.getElementById('loginPassword').value;
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const nickname = document.getElementById('loginNickname').value;
+  const password = document.getElementById('loginPassword').value;
 
-    // 여기에 실제 로그인 로직 추가
-    console.log('로그인:', nickname, password);
-  });
+  if (!nickname || !password) {
+  const errDiv = document.getElementById("login-error-message");
+  errDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
+  errDiv.classList.add("show");
+  return;
 }
 
-// 회원가입 폼 제출
-const signupForm = document.getElementById('signupForm');
-if (signupForm) {
-  signupForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nickname = document.getElementById('signName').value;
-    const password = document.getElementById('signPassword').value;
-    const password2 = document.getElementById('signPassword2').value;
+  try{
+    const response = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    credentials: 'include', // 쿠키 전송 허용
+    body: JSON.stringify({nickname, password})
+    });
 
-    if (password !== password2) {
-      document.getElementById('signupError').classList.add('show');
-      return;
+    let resData = {};
+    try {
+      resData = await response.json();  // 위 JSON을 받음
+    } catch (err) {
     }
 
-    // 여기에 실제 회원가입 로직 추가
-    console.log('회원가입:', nickname, password);
+    
+    if(response.ok){
+      //200 OK 성공 처리 JWT 저장 
+      TokenManager.setTokens(resData.accessToken, false);
+      showToast("로그인 완료!<br>맞춤형 상담 페이지로 이동"); 
+      resetAuthForms(); 
+      console.log(resData);
+      setTimeout(() => {
+        window.location.href = '/chat';
+      }, 800);
+    } else if (response.status === 400 && resData) {
+        // 400 Bad Request (유효성 검사 실패) 처리
+        const div = document.getElementById("login-error-message");
+        if(div) div.innerText = resData.message;
+        div.classList.add("show");
+    } else {
+      // 500 Internal Server Error 또는 기타 서버 오류 처리 
+      const errorDiv = document.getElementById("login-error-message");
+      errorDiv.innerText = resData.message || "서버에서 알 수 없는 오류가 발생했습니다.";
+      errorDiv.classList.add("show");
+    }
+  } catch(err){
+    // 네트워크 오류, JSON 파싱 실패 등 예상치 못한 오류 처리 
+    const errorDiv = document.getElementById("login-error-message");
+    errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
+    errorDiv.classList.add("show");
+  }
+});
+
+
+
+//-----------------------------------------------------------------------------
+// 회원가입 폼 제출
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const nickname = document.getElementById("nickname").value;
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  // 오류 초기화
+	["nickname","password","confirmPassword"].forEach(id => {
+    const el = document.getElementById(`error-${id}`);
+    if (el) {
+      el.innerText = "";
+      el.classList.remove("show");
+    }
+  });
+
+
+  try{
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({nickname : nickname, 
+			password : password , confirmPassword : confirmPassword})
+    });
+
+    let resData = {};
+    try {
+      resData = await response.json();
+    } catch (err) {
+    }
+
+    if(response.ok){
+      //200 OK 성공 처리 
+      showToast("회원가입이 완료되었습니다!<br>    로그인해주세요!"); 
+      switchToLoginTab();
+      setTimeout(() => {
+        document.getElementById("loginNickname").focus();
+      }, 300);
+    } else if (response.status === 400 && resData && resData.errors) {
+        // 400 Bad Request (유효성 검사 실패) 처리 
+        if(resData.errors){
+          for(const [key, msg] of Object.entries(resData.errors)){
+            const div = document.getElementById(`error-${key}`);
+            if(div) div.innerText = msg;
+            div.classList.add("show");
+          }
+        } else{
+          // 400 응답이지만, errors 필드가 없을 경우를 대비(일반적인 400 오류)
+          const errorDiv = document.getElementById("signup-error-message");
+          errorDiv.innerText = resData.message || "유효성 검사 실패. 다시 확인해주세요.";
+          errorDiv.classList.add("show");
+        }
+    } else {
+      // 500 Internal Server Error 또는 기타 서버 오류 처리 
+      const errorDiv = document.getElementById("signup-error-message");
+      errorDiv.innerText = resData.message || "서버에서 알 수 없는 오류가 발생했습니다.";
+      errorDiv.classList.add("show");
+    }
+  } catch(err){
+    // 네트워크 오류, JSON 파싱 실패 등 예상치 못한 오류 처리 
+    const errorDiv = document.getElementById("signup-error-message");
+    errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
+    errorDiv.classList.add("show");
+  }
+});
+
+function showToast(message) {
+  const toast = document.getElementById("auth-toast");
+  toast.innerHTML = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 회원가입 탭 클릭 시 폼 리셋
+  const tabSignup = document.getElementById("tab-signup");
+  if (tabSignup) {
+    tabSignup.addEventListener("click", () => {
+      const signupForm = document.getElementById("signupForm");
+      if (signupForm) signupForm.reset();
+
+      ["nickname", "password", "confirmPassword"].forEach(id => {
+        const el = document.getElementById(`error-${id}`);
+        if (el) el.innerText = "";
+      });
+    });
+  }
+
+  // 로그인 탭 클릭 시 폼 리셋 
+  const tabLogin = document.getElementById("tab-login");
+  if(tabLogin){
+    tabLogin.addEventListener("click", () => {
+      const loginForm = document.getElementById("loginForm");
+      if(loginForm) loginForm.reset();
+      ["nickname", "password", "confirmPassword"].forEach(id => {
+        const el = document.getElementById(`error-${id}`);
+        if (el) el.innerText = "";
+      });
+    });
+  }
+
+
+  // 로그인 탭으로 전환할 때 폼 리셋
+  window.switchToLoginTab = function () {
+    document.getElementById("tab-login")?.classList.add("active");
+    document.getElementById("tab-signup")?.classList.remove("active");
+    document.getElementById("loginTab")?.classList.add("active");
+    document.getElementById("signupTab")?.classList.remove("active");
+
+    resetAuthForms(); 
+  };
+});
+
+function resetAuthForms() {
+  // 모든 폼 리셋
+  document.getElementById("loginForm")?.reset();
+  document.getElementById("signupForm")?.reset();
+
+  // 모든 에러 텍스트와 show 클래스 제거
+  ["nickname", "password", "confirmPassword"].forEach(id => {
+    const el = document.getElementById(`error-${id}`);
+    if (el) {
+      el.innerText = "";
+      el.classList.remove("show");
+    }
+  });
+
+  const alertEls = document.querySelectorAll(".alert-danger");
+  alertEls.forEach(el => {
+    el.innerText = "";
+    el.classList.remove("show");
   });
 }

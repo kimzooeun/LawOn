@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,7 +31,9 @@ public class MemberService{
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
 	private final CookieHeader cookieHeader;
+	private final RedisTemplate<String, String> redisTemplate;
 	
+	// 회원가입 시, 유효성 검사 
 	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
 	    Map<String, String> errors = new HashMap<>();
 	    if(this.memberRepository.existsByNickname(signUpRequest.getNickname())) {
@@ -41,7 +46,7 @@ public class MemberService{
 	    return errors;
 	}
 
-	
+	// 회원가입 
 	public void registerUser(SignupRequest signUpRequest) {
 		Map<String, String> errors = validateSignup(signUpRequest);
 		 if (!errors.isEmpty()) {
@@ -60,9 +65,10 @@ public class MemberService{
 			Member member = Member.builder()
 		            .nickname(signUpRequest.getNickname())
 		            .password(passwordEncoder.encode(signUpRequest.getPassword()))
+		            .socialProvider("local")
 		            .role(UserRole.USER)
 		            .build();
-
+			System.out.println(">>>> socialProvider: " + member.getSocialProvider());
 			this.memberRepository.save(member);
 		}
 		 
@@ -97,11 +103,18 @@ public class MemberService{
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
 		}
 		
-		String socialId = this.jwtTokenProvider.getUsernameFromToken(refreshToken);
-
-		Member member = this.memberRepository.findBySocialId(socialId)
+		
+		String nickname = this.jwtTokenProvider.getUsernameFromToken(refreshToken);
+		Member member = this.memberRepository.findByNickname(nickname)
 					.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
 		 
+		Long userId = member.getUserId();
+		String storedToken = redisTemplate.opsForValue().get("RT:" +userId);
+		
+		// Redis에 저장된 refreshToken이 없거나 일치하지 않으면 탈락. 
+		if(storedToken == null || !storedToken.equals(refreshToken)) {
+			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
+		}
 		
 		// DB에서 가져온 최신 정보로 새로운 Authentication 객체를 생성
 	    Authentication newAuthentication = new UsernamePasswordAuthenticationToken(

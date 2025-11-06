@@ -923,20 +923,48 @@ header .container {
   color: #aaa;
 }
 
-/* 에러 메시지 */
-.auth-error {
+/* 로그인과 회원가입 유효성 검사 등 에러 메시지 css */
+.alert-danger,
+.text-danger {
   display: none;
-  padding: 12px;
-  background: #ffe8e8;
-  border: 1px solid #ffcccc;
-  border-radius: 8px;
   color: #c42424;
   font-size: 14px;
   text-align: center;
+  padding: 5px;
+  margin-bottom: -10px;
 }
-.auth-error.show {
+
+/* 보이기 상태 */
+.alert-danger.show,
+.text-danger.show {
   display: block;
 }
+
+
+/* 회원가입 성공 토스트 css */
+.auth-toast {
+  position: absolute;
+  top: 40%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(68, 68, 68, 0.95);
+  color: #ffffff;
+  padding: 14px 24px;
+  border-radius: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 2000; 
+  font-size: 1rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.auth-toast.show {
+  opacity: 1;
+  transform: translate(-50%, -55%);
+}
+
 
 /* 제출 버튼 */
 .auth-submit-btn {

@@ -23,14 +23,16 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class MemberDetailService implements UserDetailsService{
 	// 일반 로그인/회원가입을 위한 클래스
+	// DB에서 사용자 정보 조회
 	private final MemberRepository memberRepository;
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
 		Member member = this.memberRepository.findByNickname(nickname)
 							.orElseThrow(() -> new UsernameNotFoundException("사용자 찾을 수 없음" + nickname));
 	
 		Collection<GrantedAuthority> authorities = getAuthorities(member);
+
 		return new CustomOAuth2User(member,Map.of("name",member.getNickname()),"name", authorities);		
 	}
 
@@ -45,6 +47,5 @@ public class MemberDetailService implements UserDetailsService{
 		return authorities;
 	} 
 }
-
 
 

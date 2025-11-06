@@ -18,14 +18,16 @@ public class GlobalExceptionHandler {
 	        Map<String, String> errors = new HashMap<>();
 	        e.getBindingResult().getFieldErrors()
 	          .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-	        return ResponseEntity.badRequest().body(Map.of(
-		            "status", "fail",
-		            "message", "검증 실패",
-		            "errors", errors
-		        ));
+	        Map<String, Object> body = new HashMap<>();
+	        body.put("status", 400);
+	        body.put("errors", errors);
+
+	        return ResponseEntity.badRequest().body(body);
+	
 	    }
 		
-		// 유효성 검사 오류 처리 위함
+
+		// 회원가입시 , 유효성 검사 오류 처리 위함
 	    @ExceptionHandler(SignupValidationException.class)
 	    public ResponseEntity<?> handleSignupValidation(SignupValidationException e) {
 	        return ResponseEntity.badRequest().body(Map.of(
@@ -43,6 +45,7 @@ public class GlobalExceptionHandler {
 	            "message", e.getMessage() 
 	        ));
 	    }
+	    
 	    
 	    
 	    // authentication 없을때 오류 처리 
