@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.prinCipal.chatbot.member.MemberService;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -26,12 +27,13 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
-	
-	private final JwtTokenProvider jwtTokenProvider;
 	public static final String AUTHORIZATION_HEADER = "Authorization";
 	public static final String BEARER_PREFIX = "Bearer ";
-	private final MemberService memberService;
 	private final AntPathMatcher pathMatcher = new AntPathMatcher();
+	
+	private final JwtTokenProvider jwtTokenProvider;
+	private final MemberService memberService;
+	private final BlackTokenRepository blackTokenRepository;
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
 	
@@ -62,6 +64,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		String jwt = resolveToken(request);
 	
 		if(StringUtils.hasText(jwt)) {
+			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(jwt);
+			// 블랙리스트에 있는지 확인
+			if(this.blackTokenRepository.isBlocked(claims.getId())) {
+				// 블랙리스트에 있다 => 로그아웃된 사용자
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setContentType("application/json;charset=UTF-8");
+				response.getWriter().write("{\"status\":\"fail\", \"message\":\"로그아웃된 토큰입니다.\"}");
+				return; 
+			}
+			
 			if(this.jwtTokenProvider.validateToken(jwt)) {
 				Authentication auth = this.jwtTokenProvider.getAuthentication(jwt);
 				SecurityContextHolder.getContext().setAuthentication(auth);

@@ -34,7 +34,6 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
 		
 		System.out.println("Jwt 로그인 처리중 !!!");
-		System.out.println("🌐 Frontend URL: " + frontendUrl);  // 디버깅용
 		
 		 // CustomOAuth2User에서 사용자 정보 추출
 	    CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();

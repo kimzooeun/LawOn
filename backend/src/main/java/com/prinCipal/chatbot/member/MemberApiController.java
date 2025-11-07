@@ -2,7 +2,6 @@ package com.prinCipal.chatbot.member;
 
 import java.util.Map;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -92,15 +91,13 @@ public class MemberApiController {
 //        return response;
 //    }
 	
-//	@PostMapping("/logout")
-//	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
-//		String header = request.getHeader("Authorization");
-//		if(header != null && header.startsWith(("Bearer ")){
-//			String token = header.substring(7);
-//			jwtTokenProvider.invalidateToken(token); // Redis나 블랙리스트에서 삭제
-//		}
-//		return ResponseEntity.ok(Map.of("message", "로그아웃 성공"));
-//	}
+	
+	
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
+		this.memberService.logout(request,response);
+		return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
+	}
 	
 
 	

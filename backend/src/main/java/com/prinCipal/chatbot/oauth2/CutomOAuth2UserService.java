@@ -1,6 +1,7 @@
 package com.prinCipal.chatbot.oauth2;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,7 +36,7 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 	
 		DefaultOAuth2UserService defaultService = new DefaultOAuth2UserService();
 		
-		OAuth2User oauth2User =  defaultService.loadUser(userRequest);
+		OAuth2User oauth2User =  defaultService.loadUser(userRequest);  // 소셜 프로필의 기본 데이터 수집 -> SocialUserInfoFactory-> member저장 
 		
 		// getRegistrationId() : 현재 로그인을 시도하는 OAuth2 서비스 제공자를 식별하는 고유한 ID(어떤소셜로그인 서비스인지 구분 가능) 
 		String registId = userRequest.getClientRegistration().getRegistrationId();
@@ -48,8 +49,12 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 		// KaKao  : "id"
 		// Naver : "response" 
 		
+		
+		String accessToken = userRequest.getAccessToken().getTokenValue();
+
+		
 		// 소셜 사용자 정보 통합 처리
-		SocialUserInfo socialUserinfo = SocialUserInfoFactory.getSocialUserInfo(registId, oauth2User.getAttributes());
+		SocialUserInfo socialUserinfo = SocialUserInfoFactory.getSocialUserInfo(registId, oauth2User.getAttributes(), accessToken);
 		
 		// 회원 정보 저장 or 업데이트
 		Member member = this.socialUserService.saveOrUpdateSocialMember(socialUserinfo, registId);

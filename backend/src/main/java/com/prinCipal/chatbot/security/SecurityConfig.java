@@ -34,6 +34,7 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
 
     private static final String[] PERMIT_URL = {
+    		"/api/redis/test",      // Redis 관련 
     		"/api/auth/login",  // 일반 로그인 
     		"/api/login", "/api/signup", "/api/refresh",  "/api/logout",
 		    "/oauth2/**",     // 소셜 로그인
@@ -101,8 +102,8 @@ public class SecurityConfig {
 	
 	// OAuth2에서 사용하는 jwt토큰 인증 필터
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, MemberService memberService) {
-	    return new JwtAuthenticationFilter(jwtTokenProvider, memberService);
+	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, MemberService memberService, BlackTokenRepository blackTokenRepository) {
+	    return new JwtAuthenticationFilter(jwtTokenProvider, memberService, blackTokenRepository);
 	}
 	
 	@Bean

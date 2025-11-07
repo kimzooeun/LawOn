@@ -4,9 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,21 +15,30 @@ import org.springframework.stereotype.Service;
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
+import com.prinCipal.chatbot.security.BlackTokenRepository;
 import com.prinCipal.chatbot.security.CookieHeader;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
+import com.prinCipal.chatbot.security.RefreshTokenRepository;
 
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
 public class MemberService{
+	@Value("${jwt.refresh-token-days:2}")
+	private int refreshDays;
+	
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
 	private final CookieHeader cookieHeader;
-	private final RedisTemplate<String, String> redisTemplate;
+	private final RefreshTokenRepository refreshTokenRepository;
+	private final BlackTokenRepository blackTokenRepository;
+	
 	
 	// 회원가입 시, 유효성 검사 
 	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
@@ -104,17 +111,20 @@ public class MemberService{
 		}
 		
 		
+		// Redis에서 해당 사용자 RefreshToken 확인
 		String nickname = this.jwtTokenProvider.getUsernameFromToken(refreshToken);
 		Member member = this.memberRepository.findByNickname(nickname)
 					.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
 		 
 		Long userId = member.getUserId();
-		String storedToken = redisTemplate.opsForValue().get("RT:" +userId);
+
+		String storedRefreshToken = this.refreshTokenRepository.findByKey("RT:"+ userId);
 		
 		// Redis에 저장된 refreshToken이 없거나 일치하지 않으면 탈락. 
-		if(storedToken == null || !storedToken.equals(refreshToken)) {
+		if(storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
 		}
+		
 		
 		// DB에서 가져온 최신 정보로 새로운 Authentication 객체를 생성
 	    Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
@@ -127,6 +137,7 @@ public class MemberService{
 		if(this.jwtTokenProvider.isRefreshTokenExpiringSoon(refreshToken)) {
 			String newRefreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication);
 			this.cookieHeader.SendCookieWithRefreshToken(response,newRefreshToken);
+			this.refreshTokenRepository.save("RT:"+ userId,newRefreshToken,refreshDays);
 		}
 		
 		// 새로운 Access 토큰 생성 
@@ -136,11 +147,36 @@ public class MemberService{
 
 	
 	public MemberProfileDto getUserProfile(String nickname) {
-	    Member member = memberRepository.findByNickname(nickname)
+	    Member member = this.memberRepository.findByNickname(nickname)
 	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 	    return new MemberProfileDto(member);
 	}
 
+	
+	
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
+		
+		// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
+		Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
+		String jti = claims.getId();
+		Member member = this.memberRepository.findByNickname(claims.getSubject())
+				.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		
+		// RefreshToken을 redis에서 삭제
+		this.refreshTokenRepository.delete("RT:" + member.getUserId());
+		
+		// accessToken을 더 이상 유효하지 않게 블랙리스트에 등록 
+		long ttlSeconds = this.jwtTokenProvider.getRemainingTtlSeconds(accessToken); 
+		if(ttlSeconds > 0) {
+			this.blackTokenRepository.block(jti, ttlSeconds);
+		}
+		
+		// 쿠키도 정리 
+		this.cookieHeader.clearRefreshCookie(response);		
+	}
+
 }
+
 
 	

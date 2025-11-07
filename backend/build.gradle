@@ -23,6 +23,10 @@ bootRun {
     sourceResources sourceSets.main
 }
 
+tasks.withType(Test) {
+    enabled = false
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'

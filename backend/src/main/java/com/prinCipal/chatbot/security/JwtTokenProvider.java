@@ -19,6 +19,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.prinCipal.chatbot.exception.NotAuthenticatedException;
+import com.prinCipal.chatbot.exception.TokenValidationException;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -26,6 +29,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -160,6 +164,8 @@ public class JwtTokenProvider {
 				.getSubject();  // getSubject로 토큰 생성시 넣었던 사용자이름을 반환
 	}
 	
+	
+	
 	// 쿠키에서 RefreshToken 추출
 	public String resolveRefreshToken(HttpServletRequest request) {
 		Cookie[] cookies = request.getCookies();
@@ -172,19 +178,56 @@ public class JwtTokenProvider {
 		return null;
 	}
 	
+	
+	
 	// 헤더에서 AccessToken 추출
 	public String resolveAccessToken(HttpServletRequest request) {
 	    String bearer = request.getHeader("Authorization");
-	    if (bearer != null && bearer.startsWith("Bearer ")) {
-	        return bearer.substring(7);
-	    }
-	    return null;
+	    if (bearer == null || !bearer.startsWith("Bearer ")) {
+            throw new NotAuthenticatedException("토큰이 없습니다.");
+        }
+	    return bearer.substring(7);
 	}
 	
 	
 	
-	
-	
-	
+	// 만료된 토큰이여도, 서명을 검증하고 클레임 반환 
+	public Claims parseClaimsAllowExpired(String accessToken) {
+		try {
+			// 토큰 -> 서명 검증 + 만료 체크 
+			return Jwts.parser()
+					.verifyWith(this.getSigningKey())
+					.build()
+					.parseSignedClaims(accessToken)
+					.getPayload(); // Payload에 실제 Claims 객체 포함	
+		} catch (ExpiredJwtException e) {
+			// 토큰은 만료됐지만, 서명은 유효해서 e안의 claims을 꺼내서 사용은 가능 
+			return e.getClaims();
+		} catch (UnsupportedJwtException e) {
+            throw new TokenValidationException("지원되지 않는 토큰 형식입니다.");
+        } catch (MalformedJwtException e) {
+            throw new TokenValidationException("잘못된 토큰 형식입니다.");
+        } catch (SignatureException e) {
+            throw new TokenValidationException("시그니처가 유효하지 않습니다.");
+        } catch (IllegalArgumentException e) {
+            throw new TokenValidationException("토큰이 비어있습니다.");
+        }
+	}
 
+	
+	// accessToken의 남은 TTL (초 단위) 
+	public long getRemainingTtlSeconds(String accessToken) {
+		Claims claims = parseClaimsAllowExpired(accessToken);
+		Date expiration = claims.getExpiration();
+		if (expiration == null) return 0;
+		long remainTtl = expiration.getTime() - System.currentTimeMillis();
+		return Math.max(remainTtl / 1000, 0);  // 남은 ttl을 초단위로 계산하되, 음수가 되면 0으로 처리 
+	}
+	
 }
+
+
+
+
+
+

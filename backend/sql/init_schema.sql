@@ -11,7 +11,7 @@ SET FOREIGN_KEY_CHECKS=0;
 
 
 -- 사용자 정보 테이블
-CREATE TABLE Users (
+CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     nickname VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE Users (
 );
 
 -- 상담 세션 테이블
-CREATE TABLE CounsellingSession (
+CREATE TABLE counsellingSession (
     session_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT DEFAULT NULL,
     start_time  DATETIME NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE CounsellingSession (
 
 
 -- 음성 상호작용 로그
-CREATE TABLE VoiceInteraction (
+CREATE TABLE voiceInteraction (
     interaction_id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT DEFAULT NULL,
     user_id INT DEFAULT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE VoiceInteraction (
 );
 
 -- 상담 콘텐츠
-CREATE TABLE CounsellingContent (
+CREATE TABLE counsellingContent (
     content_id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT DEFAULT NULL,
     sender ENUM('USER', 'BOT') NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE CounsellingContent (
 
 
 -- 감정 분석 결과
-CREATE TABLE EmotionAnalysis (
+CREATE TABLE emotionAnalysis (
     analysis_id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT DEFAULT NULL,
     content_id INT DEFAULT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE EmotionAnalysis (
 
 
 
-CREATE TABLE CrisisTypeCode (
+CREATE TABLE crisisTypeCode (
     type_id INT AUTO_INCREMENT PRIMARY KEY,
     type_code VARCHAR(50) NOT NULL UNIQUE,   -- 예: 'SUICIDAL', 'PANIC'
     type_description VARCHAR(255) DEFAULT NULL,   -- 예: '자살 의도 감지'
@@ -106,7 +106,7 @@ CREATE TABLE CrisisTypeCode (
 
 
 -- 위기 알림 테이블
-CREATE TABLE CrisisAlert (
+CREATE TABLE crisisAlert (
     alert_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT DEFAULT NULL, 
     session_id INT DEFAULT NULL,                         

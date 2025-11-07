@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -15,17 +15,20 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+
 
 // Spring의 기본 핸들러를 상속하지 않고, AuthenticationSuccessHandler 인터페이스 구현
 @Component
 @RequiredArgsConstructor
 public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
+	@Value("${jwt.refresh-token-days}")
+	private int refreshDays;
+	
     private final JwtTokenProvider jwtTokenProvider;
     private final CookieHeader cookieHeader;
     private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 처리를 위한 ObjectMapper
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -47,10 +50,10 @@ public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSucce
         this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
         
         // redis에 refreshToken 저장 
-        redisTemplate.opsForValue().set(
-        		"RT:"+ customUser.getMember().getUserId(),
-        		 refreshToken, 2 ,TimeUnit.DAYS
-        );
+        String redisKey = "RT:" + customUser.getMember().getUserId();
+        this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
+        
+
         
         // JSON 응답 설정 (200 OK)
         response.setContentType("application/json");

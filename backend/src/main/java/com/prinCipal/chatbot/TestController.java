@@ -1,15 +1,22 @@
 package com.prinCipal.chatbot;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*; // GetMapping, PostMapping 등
-import java.util.Map; // Map 자료구조 사용
-/**
-* @RestController
-* 이 클래스가 API 요청을 받는 컨트롤러임을 Spring에게 알립니다.
-* 이 어노테이션이 붙은 클래스의 메소드들은 기본적으로 JSON 형태의 데이터를 반환합니다.
-*/
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api") // 이 클래스의 모든 메소드에 공통적으로 /api 경로를 붙여줍니다.
 public class TestController {
+	private final StringRedisTemplate redisTemplate;
+	public TestController(StringRedisTemplate redisTemplate) {
+	        this.redisTemplate = redisTemplate;
+	}
+	
+	@GetMapping("/redis/test")
+    public String test() {
+        redisTemplate.opsForValue().set("test-key", "hello");
+        return redisTemplate.opsForValue().get("test-key");
+    }
    /**
     * GET /api/test 요청을 처리하는 메소드
     * * Postman에서 GET http://localhost:8080/api/test 로 호출 시 실행됩니다.
@@ -45,8 +52,5 @@ public class TestController {
        );
    }
    
-   @GetMapping("/test2")
-   public String test() {
-       return "변경 테스트 1hhgggg";  // 👈 이 숫자를 2, 3, 4로 계속 바꿔보세요
-   }
+
 }
