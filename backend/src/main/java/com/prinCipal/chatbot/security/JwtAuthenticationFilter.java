@@ -74,10 +74,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 				return; 
 			}
 			
+			boolean isValid = this.jwtTokenProvider.validateToken(jwt);
+			System.out.println("✅ AccessToken 유효성 결과: " + isValid);
+
 			if(this.jwtTokenProvider.validateToken(jwt)) {
+				System.out.println("🟢 AccessToken 유효함 → 인증 세팅");
 				Authentication auth = this.jwtTokenProvider.getAuthentication(jwt);
 				SecurityContextHolder.getContext().setAuthentication(auth);
 			} else {
+				System.out.println("🟡 AccessToken 만료 → RefreshToken 검사 시작");
 				// Access Token 만료 → 쿠키에서 Refresh Token 확인
 				String refreshToken = null;
 				if(request.getCookies() != null) {   // HttpOnly 쿠키에서 토큰 확인

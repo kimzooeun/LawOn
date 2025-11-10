@@ -77,20 +77,6 @@ public class MemberApiController {
 	}
 	
 	
-	// Refresh Token을 서버 쿠키에서 삭제하는 방식
-//	@PostMapping("/logout")
-//	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
-//        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-//        		.httpOnly(true)
-//        		.secure(false)
-//                .maxAge(0)
-//                .sameSite("Lax") 
-//                .path("/")
-//                .build();
-//        response.addHeader("Set-Cookie", cookie.toString());
-//        return response;
-//    }
-	
 	
 	
 	@PostMapping("/logout")

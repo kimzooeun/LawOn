@@ -118,6 +118,7 @@ public class JwtTokenProvider {
     		System.out.println("잘못된 JWT 시그니처에요");
     	}catch(ExpiredJwtException e) {
 			System.out.println("만료된 토큰이니 재발급이 필요해요");
+			return false;
 		} catch(UnsupportedJwtException e) {
 			System.out.println("지원하지 않는 JWT 토큰입니다.");
 		} catch (IllegalArgumentException e) {

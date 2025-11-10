@@ -58,6 +58,7 @@ public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSucce
         // JSON 응답 설정 (200 OK)
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        response.setHeader("Authorization", "Bearer " + accessToken);
         
         // 토큰과 사용자 정보를 JSON Body에 담아 전송
         Map<String, Object> responseBody = new HashMap<>();

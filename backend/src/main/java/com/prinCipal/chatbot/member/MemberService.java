@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +19,7 @@ import com.prinCipal.chatbot.exception.SignupValidationException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
 import com.prinCipal.chatbot.security.BlackTokenRepository;
 import com.prinCipal.chatbot.security.CookieHeader;
+import com.prinCipal.chatbot.security.JwtAuthenticationFilter;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 import com.prinCipal.chatbot.security.RefreshTokenRepository;
 
@@ -38,7 +41,7 @@ public class MemberService{
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final BlackTokenRepository blackTokenRepository;
-	
+	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
 	// 회원가입 시, 유효성 검사 
 	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
@@ -125,7 +128,7 @@ public class MemberService{
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
 		}
 		
-		
+		logger.info("🌀 RefreshToken으로 새 AccessToken 발급 시작");
 		// DB에서 가져온 최신 정보로 새로운 Authentication 객체를 생성
 	    Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
 	        member, // 또는 user 객체 자체를 principal로 사용
