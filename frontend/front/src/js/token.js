@@ -31,7 +31,7 @@ export const TokenManager = (() => {
 	const clearTokens = () => {
 		inMemoryAccess = null;
 		localStorage.removeItem(ACCESS_KEY);
-	  sessionStorage.removeItem(ACCESS_KEY);
+	    sessionStorage.removeItem(ACCESS_KEY);
 		localStorage.removeItem(refreshToken);
 		sessionStorage.removeItem(refreshToken);
 	};

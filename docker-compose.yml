@@ -20,11 +20,6 @@ services:
                                      # “OK” 응답을 받을 때까지 기다렸다가 frontend를 시작
     develop:
       watch:
-        - action: sync
-          path: ./frontend/front
-          target: /app
-          ignore:
-            - node_modules/
         - action: rebuild
           path: package.json        
 
