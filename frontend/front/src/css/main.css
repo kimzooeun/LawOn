@@ -1369,9 +1369,34 @@ body.page-fading {
 
 .section-subtitle {
     font-size: 16px;
+    margin-left: 30px;
     color: #666;
     line-height: 1.6;
     margin-bottom: 40px;
+}
+
+.lawyer-lists{
+  position: relative;
+  width: 100%;
+  transition: height 0.5s ease;
+}
+
+.lawyer-category {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.lawyer-category.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .category-tabs {
@@ -1397,11 +1422,11 @@ body.page-fading {
 }
 
 .swiper {
-    padding: 40px 0 80px 0;
+    padding: 0px 0 80px 0;
 }
 
 .swiper-slide {
-    height: auto;
+    height: 500px;
     display: flex;
     justify-content: center;
 }
@@ -1456,7 +1481,7 @@ body.page-fading {
 }
 
 .lawyer-specialty {
-    font-size: 12px;
+    font-size: 14px;
     color: #888;
     line-height: 1.5;
     margin-bottom: 20px;
@@ -1466,25 +1491,11 @@ body.page-fading {
     overflow: hidden;
 }
 
-.lawyer-description {
-    font-size: 12px;
-    color: #666;
-    line-height: 1.6;
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.lawyer-description span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
 .description-list {
     text-align: left;
-    font-size: 12px;
-    color: #666;
+    margin-left: 10px;
+    font-size: 14px;
+    color: #2e2d2d;
     line-height: 1.8;
     margin-bottom: 16px;
 }
@@ -1494,11 +1505,6 @@ body.page-fading {
     margin-bottom: 4px;
 }
 
-.description-list li:before {
-    content: "•";
-    margin-right: 6px;
-    color: #a89968;
-}
 
 .arrow-link {
   display: inline-flex;
