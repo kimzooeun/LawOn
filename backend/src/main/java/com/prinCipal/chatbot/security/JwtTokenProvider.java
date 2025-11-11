@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
+import com.prinCipal.chatbot.member.Member;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -53,15 +54,34 @@ public class JwtTokenProvider {
     
 	// Access Token 생성
     public String generateAccessToken(Authentication authentication) {
-    	String authorities = authentication.getAuthorities().
-    						stream().map(GrantedAuthority::getAuthority)
-    						.collect(Collectors.joining(","));
+    	Object principal = authentication.getPrincipal();
+    	String nickname;
+    	String authorities;
 
     	long now = System.currentTimeMillis();
     	Date validity = new Date(now + ACCESS_TOKEN_VALIDITY);
+
+    	if(principal instanceof Member member) {
+    		nickname = member.getNickname();
+    		authorities = member.getRole().name();
+    	} else if (principal instanceof User user) {
+    		nickname = user.getUsername();
+    		authorities = authentication.getAuthorities().
+					stream().map(GrantedAuthority::getAuthority)
+					.collect(Collectors.joining(","));
+    	} else if (principal instanceof String str) {
+    		nickname = str;
+    		authorities = authentication.getAuthorities().
+					stream().map(GrantedAuthority::getAuthority)
+					.collect(Collectors.joining(","));
+    	} else {
+    		throw new IllegalArgumentException("지원하지 않는 principal 타입: " + principal.getClass());
+        }
+    	
+    
     	return Jwts.builder()
-    			.subject(authentication.getName())
-    			.claim("auth", authorities)
+    			.subject(nickname)
+    			.claim("auth",authorities)
     			.issuedAt(new Date())
     			.expiration(validity)
     			.signWith(this.getSigningKey())
@@ -72,11 +92,33 @@ public class JwtTokenProvider {
     
     // Refresh Token 생성 (별도 정보 없이 만료 시간만 길게)
     public String generateRefreshToken(Authentication authentication) {
+      	Object principal = authentication.getPrincipal();
+    	String nickname;
+    	String authorities;
+    
     	long now = System.currentTimeMillis();
     	Date validity = new Date(now + refreshDays * 24L * 60 * 60 * 1000);
     	
+    	if(principal instanceof Member member) {
+    		nickname = member.getNickname();
+    		authorities = member.getRole().name();
+    	} else if (principal instanceof User user) {
+    		nickname = user.getUsername();
+    		authorities = authentication.getAuthorities().
+					stream().map(GrantedAuthority::getAuthority)
+					.collect(Collectors.joining(","));
+    	} else if (principal instanceof String str) {
+    		nickname = str;
+    		authorities = authentication.getAuthorities().
+					stream().map(GrantedAuthority::getAuthority)
+					.collect(Collectors.joining(","));
+    	} else {
+    		throw new IllegalArgumentException("지원하지 않는 principal 타입: " + principal.getClass());
+        }
+
     	return Jwts.builder()
-    			.subject(authentication.getName())
+    			.subject(nickname)
+    			.claim("auth",authorities)
     			.issuedAt(new Date())
     			.expiration(validity)
     			.signWith(this.getSigningKey())

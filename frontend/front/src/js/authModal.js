@@ -185,8 +185,11 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     const response = await fetch('/api/signup', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({nickname : nickname, 
-			password : password , confirmPassword : confirmPassword})
+      body: JSON.stringify(
+        {nickname : nickname, 
+			   password : password,
+         confirmPassword : confirmPassword
+        })
     });
 
     let resData = {};
@@ -229,6 +232,7 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     errorDiv.classList.add("show");
   }
 });
+
 
 function showToast(message) {
   const toast = document.getElementById("auth-toast");

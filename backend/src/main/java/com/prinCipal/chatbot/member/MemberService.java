@@ -147,36 +147,40 @@ public class MemberService{
 		return this.jwtTokenProvider.generateAccessToken(newAuthentication);
 	}
 
+	
+	
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
+		
+		if(accessToken != null && this.jwtTokenProvider.validateToken(accessToken)) {
+			// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
+			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
+			String jti = claims.getId();     // 토큰의 고유ID
+			// claims.getSubject() => 사용자의 닉네임 반환 가능 
+			Member member = this.memberRepository.findByNickname(claims.getSubject())
+					.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+			
+			// RefreshToken을 redis에서 삭제
+			this.refreshTokenRepository.delete("RT:" + member.getUserId());
+			
+			// accessToken을 더 이상 유효하지 않게 블랙리스트에 등록 (남은 유효기간 만큼) 
+			long ttlSeconds = this.jwtTokenProvider.getRemainingTtlSeconds(accessToken); 
+			if(ttlSeconds > 0) {
+				this.blackTokenRepository.block(jti, ttlSeconds);
+			}
+		}
+		
+		// 쿠키도 정리 
+		this.cookieHeader.clearRefreshCookie(response);		
+	}
+
+	
 
 	
 	public MemberProfileDto getUserProfile(String nickname) {
 	    Member member = this.memberRepository.findByNickname(nickname)
 	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 	    return new MemberProfileDto(member);
-	}
-
-	
-	
-	public void logout(HttpServletRequest request, HttpServletResponse response) {
-		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
-		
-		// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
-		Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
-		String jti = claims.getId();
-		Member member = this.memberRepository.findByNickname(claims.getSubject())
-				.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
-		
-		// RefreshToken을 redis에서 삭제
-		this.refreshTokenRepository.delete("RT:" + member.getUserId());
-		
-		// accessToken을 더 이상 유효하지 않게 블랙리스트에 등록 
-		long ttlSeconds = this.jwtTokenProvider.getRemainingTtlSeconds(accessToken); 
-		if(ttlSeconds > 0) {
-			this.blackTokenRepository.block(jti, ttlSeconds);
-		}
-		
-		// 쿠키도 정리 
-		this.cookieHeader.clearRefreshCookie(response);		
 	}
 
 }

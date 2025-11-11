@@ -37,6 +37,8 @@ export const TokenManager = (() => {
 	};
 	
 
+
+	// 로그인/로그아웃 되면 버튼 change 되는 로직 구현 
 	document.addEventListener("DOMContentLoaded", () => {
     const accessToken = TokenManager.getAccessToken();
     const simpleChatBtn = document.getElementById("simpleChatBtn");
@@ -56,35 +58,38 @@ export const TokenManager = (() => {
     }
   });
 
+  	// 로그아웃 로직 
 	document.getElementById("logoutBtn").addEventListener("click", async() =>{
 		try{
-			const token = TokenManager.getAccessToken();
-			await fetch('/api/logout', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-		} catch(err){
+			const response = await fetch('/api/logout', {
+				method: 'POST',
+				credentials: "include",
+    		});
+
+			if(response.ok){
+				TokenManager.clearTokens();
+				showToast("로그아웃 되었습니다.");
+				setTimeout(() => window.location.href = "/", 400);
+			}else{
+				const message = await response.text();
+				alert("로그아웃 실패:"+message);
+			}
+		}catch(err){
 			console.error("서버 로그아웃 실패 : ", err);
-		} finally {
-			// 무조건 클라이언트 토큰 제거 
-			TokenManager.clearTokens();
-			showToast("로그아웃 되었습니다.");
-			setTimeout(() => window.location.href = "/", 800);
+			alert("네트워크 오류 발생!");
 		}
 	});
 
 
 	function showToast(message) {
-  const toast = document.getElementById("auth-toast");
-  toast.innerHTML = message;
-  toast.classList.add("show");
+		const toast = document.getElementById("auth-toast");
+		toast.innerHTML = message;
+		toast.classList.add("show");
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 1000);
-}
+		setTimeout(() => {
+			toast.classList.remove("show");
+		}, 1000);
+	}
 
 	return {getAccessToken, setTokens, updateAccessToken, clearTokens};
 }) ();

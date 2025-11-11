@@ -5,7 +5,11 @@ import {TokenManager} from './token.js';
 // 즉, 모든 API 요청에 공통으로 들어갈 옵션을 한 곳에서 관리하는 역할 
 const originalFetch = window.fetch;
 
+// 로그인/회원가입/리프레시 요청은 Authorization 헤더 제외
+const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
+
 window.fetch = async(url, options = {}) => {
+	const isSkipAuth = skipAuth.some(path => url.includes(path));
 	let accessToken = TokenManager.getAccessToken();
 	options = { ...options };  // 기존 options 객체를 복사해서 새 객체를 만드는 부분
 	options.headers =  options.headers || {};    // 안전하게 헤더를 추가할 수 있도록 하는 준비 코드
@@ -15,17 +19,27 @@ window.fetch = async(url, options = {}) => {
 		options.headers['Content-Type'] = 'application/json';
 	}
 
-	// 실제로 Authorization 헤더에 JWT 토큰을 붙임
+
+	// 실제로 Authorization 헤더에 JWT 토큰을 붙임 (단, skipAuth 제외)
 	// 로그인 후 API 요청 시 인증을 위해 꼭 필요한 부분
-	if(accessToken) options.headers['Authorization'] = `Bearer ${accessToken}`;	
+	if(accessToken && !isSkipAuth)  options.headers['Authorization'] = `Bearer ${accessToken}`;	
 	options.credentials = "include";  // refreshToken 쿠키 자동 전송
 
 	let res = await originalFetch(url, options);
 	console.log('📡 첫 요청 결과:', res.status);
 
-	// AccessToken 만료 시 (401 or 403이면 refresh 시도)
+
+	// 백엔드에서 새 AccessToken이 헤더에 왔는지 확인 
+	const newAuthHeader = res.headers.get("Authorization");
+	if(newAuthHeader){
+		const newAccessToken = newAuthHeader.replace("Bearer ", "");
+		TokenManager.updateAccessToken(newAccessToken);
+		console.log("🔄 서버에서 새 AccessToken 재발급 감지:", newAccessToken);
+	}
+
+	// 혹시라도 401이 왔다면
 	if (res.status === 401 || res.status === 403){
-		console.log("🔁 AccessToken 만료 → Refresh 시도");
+		console.log("🔁 AccessToken 만료 → /api/refresh 직접 호출");
 		
 		const refreshRes = await originalFetch("/api/refresh", {
 			method: "POST",
@@ -39,10 +53,8 @@ window.fetch = async(url, options = {}) => {
 			throw new Error("세션 만료. 다시 로그인해주세요.");
 		}
 
-		// accessToken의 재발급이 올바르게 온다면
+		 // 새 AccessToken 받아서 저장
 		const newTokens = await refreshRes.json();
-		console.log("🔄 새 AccessToken 발급 완료:", newTokens);
-
 		const newAccessToken = newTokens.accessToken || newTokens.data?.accessToken;
 
 		if (newAccessToken) {
@@ -67,10 +79,5 @@ window.fetch = async(url, options = {}) => {
 		throw new Error(`API 요청 실패 (${res.status}): ${message}`);
 	}
 
-	// JSON 파싱 (에러 방지용 try/catch)
-	try{
-		return await res.json();
-	} catch(err){
-		return null;
-	}
+	return res;
 };
