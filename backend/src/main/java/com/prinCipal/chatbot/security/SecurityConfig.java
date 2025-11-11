@@ -77,7 +77,6 @@ public class SecurityConfig {
 				// API 요청이 들어올 때마다 JWT 토큰을 검증할 커스텀 필터 => JwtAuthenticationFilter
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterAt(customLoginFilter, UsernamePasswordAuthenticationFilter.class)    // 일반 로그인(JSON) 처리를 위한 커스텀 필터 등록
-	
 				.build();
 	}
 

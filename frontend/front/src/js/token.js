@@ -1,18 +1,12 @@
 export const TokenManager = (() => {
 	const ACCESS_KEY = "accessToken";
-
-	// in-memory copy (우선순위)
-	let inMemoryAccess = null;
 	
 	const getAccessToken = () => {
-		if (inMemoryAccess) return inMemoryAccess;
-		// fallback: sessionStorage/localStorage (앱 시작 직후 복구용)
 		return localStorage.getItem(ACCESS_KEY) || sessionStorage.getItem(ACCESS_KEY)
 	};
 		
 
 	const setTokens = (accessToken, rememberMe) => {
-		inMemoryAccess = accessToken;
 		if(rememberMe){
 			localStorage.setItem(ACCESS_KEY, accessToken);
 		} else{
@@ -21,7 +15,6 @@ export const TokenManager = (() => {
 	};
 	
 	const updateAccessToken = (newToken) => {
-		inMemoryAccess = newToken;
 		if (localStorage.getItem(ACCESS_KEY)) localStorage.setItem(ACCESS_KEY, newToken);
 		else sessionStorage.setItem(ACCESS_KEY, newToken);
 	};
@@ -29,56 +22,59 @@ export const TokenManager = (() => {
 
 
 	const clearTokens = () => {
-		inMemoryAccess = null;
 		localStorage.removeItem(ACCESS_KEY);
 	    sessionStorage.removeItem(ACCESS_KEY);
-		localStorage.removeItem(refreshToken);
-		sessionStorage.removeItem(refreshToken);
 	};
 	
 
 
-	// 로그인/로그아웃 되면 버튼 change 되는 로직 구현 
 	document.addEventListener("DOMContentLoaded", () => {
-    const accessToken = TokenManager.getAccessToken();
-    const simpleChatBtn = document.getElementById("simpleChatBtn");
-    const customChatBtn = document.getElementById("btnCustom");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    if (accessToken) {
-      // 로그인된 상태
-      if (simpleChatBtn) simpleChatBtn.style.display = "none";
-      if (customChatBtn) customChatBtn.style.display = "inline-block";
-      if (logoutBtn) logoutBtn.style.display = "inline-block";
-    } else {
-      // 비로그인 상태
-      if (simpleChatBtn) simpleChatBtn.style.display = "inline-block";
-      if (customChatBtn) customChatBtn.style.display = "inline-block";
-      if (logoutBtn) logoutBtn.style.display = "none";
-    }
+		updateButtonVisibility();    // 페이지 로드 시 버튼 상태 초기화 
+		
+		const logoutBtn = document.getElementById("logoutBtn");
+		if(logoutBtn){
+			logoutBtn.addEventListener("click", async() =>{
+				try{
+					const response = await fetch('/api/logout', {
+						method: 'POST',
+						credentials: "include",
+    				});
+					
+					if(response.ok){
+						TokenManager.clearTokens();
+						showToast("로그아웃 되었습니다.");
+						setTimeout(() => window.location.href = "/", 600);
+					}else{
+						const message = await response.text();
+						alert("로그아웃 실패:"+message);
+					}
+				}catch(err){
+					console.error("서버 로그아웃 실패 : ", err);
+					alert("네트워크 오류 발생!");
+				}
+			});
+		}
   });
 
-  	// 로그아웃 로직 
-	document.getElementById("logoutBtn").addEventListener("click", async() =>{
-		try{
-			const response = await fetch('/api/logout', {
-				method: 'POST',
-				credentials: "include",
-    		});
+	// 로그인/로그아웃 되면 버튼 change 되는 로직 구현 
+	function updateButtonVisibility(){
+		const accessToken = TokenManager.getAccessToken();
+		const simpleChatBtn = document.getElementById("simpleChatBtn");
+		const customChatBtn = document.getElementById("btnCustom");
+		const logoutBtn = document.getElementById("logoutBtn");
 
-			if(response.ok){
-				TokenManager.clearTokens();
-				showToast("로그아웃 되었습니다.");
-				setTimeout(() => window.location.href = "/", 400);
-			}else{
-				const message = await response.text();
-				alert("로그아웃 실패:"+message);
-			}
-		}catch(err){
-			console.error("서버 로그아웃 실패 : ", err);
-			alert("네트워크 오류 발생!");
+		if (accessToken) {
+			// 로그인된 상태
+			if (simpleChatBtn) simpleChatBtn.style.display = "none";
+			if (customChatBtn) customChatBtn.style.display = "inline-block";
+			if (logoutBtn) logoutBtn.style.display = "inline-block";
+		} else {
+			// 비로그인 상태
+			if (simpleChatBtn) simpleChatBtn.style.display = "inline-block";
+			if (customChatBtn) customChatBtn.style.display = "inline-block";
+			if (logoutBtn) logoutBtn.style.display = "none";
 		}
-	});
+	}
 
 
 	function showToast(message) {

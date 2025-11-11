@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
@@ -175,6 +176,39 @@ public class MemberService{
 	}
 
 	
+	// 회원탈퇴
+	@Transactional
+	public void withdraw(HttpServletRequest request, HttpServletResponse response) {
+		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
+		if(accessToken != null && this.jwtTokenProvider.validateToken(accessToken)) {
+			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
+			String jti = claims.getId();     // 토큰의 고유ID
+			Member member = this.memberRepository.findByNickname(claims.getSubject())
+					.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+			
+			// accessToken을 더 이상 유효하지 않게 블랙리스트에 등록 (남은 유효기간 만큼) 
+			long ttlSeconds = this.jwtTokenProvider.getRemainingTtlSeconds(accessToken); 
+			if(jti != null && ttlSeconds > 0) {
+				this.blackTokenRepository.block(jti, ttlSeconds);
+				logger.info("회원 탈퇴 처리 진행 중. AccessToken 블랙리스트 등록(jti={}, ttl={}s)", jti, ttlSeconds);
+			}
+			
+			// RefreshToken을 redis에서 삭제
+			this.refreshTokenRepository.delete("RT:" + member.getUserId());
+			logger.info("회원 탈퇴 처리 진행중. {} 의 RT 삭제완료", member.getNickname());
+			
+			// 회원 삭제 전 연관 데이터 정리 => 필요 시 
+			// 예) 상담 기록, 소셜 링크 등
+			// 		별도 서비스로 쪼개서, 순서 보장 필요시 트랜잭션 안에서 호출
+			//		JPA cascade = REMOVE로 이미 묶여 있으면 생략 가능
+			this.memberRepository.delete(member);
+			logger.info("회원 탈퇴 처리 완료 ({})", member.getNickname());
+			
+		}
+		
+		// 쿠키도 정리
+		this.cookieHeader.clearRefreshCookie(response);
+	}
 
 	
 	public MemberProfileDto getUserProfile(String nickname) {
@@ -182,6 +216,8 @@ public class MemberService{
 	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 	    return new MemberProfileDto(member);
 	}
+
+	
 
 }
 

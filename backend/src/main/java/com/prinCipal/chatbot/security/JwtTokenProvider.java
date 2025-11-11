@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
@@ -80,6 +81,7 @@ public class JwtTokenProvider {
     	
     
     	return Jwts.builder()
+    			.id(UUID.randomUUID().toString())       // 토큰 고유 식별자 -> JTI 부여 
     			.subject(nickname)
     			.claim("auth",authorities)
     			.issuedAt(new Date())
@@ -117,6 +119,7 @@ public class JwtTokenProvider {
         }
 
     	return Jwts.builder()
+    			.id(UUID.randomUUID().toString()) 
     			.subject(nickname)
     			.claim("auth",authorities)
     			.issuedAt(new Date())

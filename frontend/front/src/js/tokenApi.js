@@ -67,17 +67,23 @@ window.fetch = async(url, options = {}) => {
 			res = await originalFetch(url, options);
 			console.log('🔁 새 토큰으로 재요청 결과:', res.status);
 		} else {
-		throw new Error("새 AccessToken 발급 실패");
+			TokenManager.clearTokens();
+			alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+			window.location.href = "/";
+			throw new Error("새 AccessToken 발급 실패");
 		}
 	}
 
 
-	// 최종 응답 처리
-	if(!res.ok){
-		const message = await res.text();
-		console.error(`🚨 API 요청 실패 (${res.status}): ${message}`);
-		throw new Error(`API 요청 실패 (${res.status}): ${message}`);
-	}
-
+	// 여기서도 여전히 401이면 (블랙리스트 등)
+	if (res.status === 401) {
+  console.warn("🚨 [전역 tokenApi.js] 세션 만료 감지됨!");
+  TokenManager.clearTokens();
+  alert("세션 만료 테스트 중 (3초 후 redirect)");
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 3000);
+  throw new Error("401 Unauthorized");
+}
 	return res;
 };

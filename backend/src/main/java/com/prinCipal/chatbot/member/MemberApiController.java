@@ -44,8 +44,6 @@ public class MemberApiController {
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
-		    
-		logger.info("SignupRequest 들어옴: {}", signUpRequest);
 			this.memberService.registerUser(signUpRequest);
 			return ResponseEntity.ok(Map.of("status", "success", "message", "회원가입 성공"));
 	}
@@ -89,6 +87,13 @@ public class MemberApiController {
 		}
 	}
 	
+	
+	// 회원 탈퇴 
+	@PostMapping("/withdraw")
+	public ResponseEntity<?> withdraw(HttpServletRequest request, HttpServletResponse response){
+		this.memberService.withdraw(request,response);
+		return ResponseEntity.ok(Map.of("status", "success", "message", "회원탈퇴가 완료되었습니다."));
+		
+	}
 }
-
 

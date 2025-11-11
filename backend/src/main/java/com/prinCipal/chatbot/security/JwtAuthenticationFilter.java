@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 			// 블랙리스트에 있는지 확인
 			if(this.blackTokenRepository.isBlocked(claims.getId())) {
 				// 블랙리스트에 있다 => 로그아웃된 사용자
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  //  블랙리스트 차단 응답 401
 				response.setContentType("application/json;charset=UTF-8");
 				response.getWriter().write("{\"status\":\"fail\", \"message\":\"로그아웃된 토큰입니다.\"}");
 				return; 
@@ -107,8 +107,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 				}
 			}
 		}
-		
-		filterChain.doFilter(request, response);
+		// 응답이 이미 커밋된 경우엔 다음 필터로 넘기지 않음
+		if(!response.isCommitted()) {
+			// 요청을 다음 Spring Security 내부 필터들로 항상 넘김
+			filterChain.doFilter(request, response);
+		}
 	}
 
 	
