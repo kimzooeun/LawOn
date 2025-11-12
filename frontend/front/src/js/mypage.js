@@ -3,8 +3,27 @@
 // (탐색형 마이페이지 전환, 검색/필터, 액션)
 // ===================================
 
+import {
+  Modal,
+  FormModal,
+  showToast,
+  updateNicknameDisplay,
+  state,
+  createEmptyStore,
+} from "./utils.js";
+
+import {
+  updateNickname,
+  updatePassword,
+  clearAllSessions,
+  deleteUser,
+} from "./api.js";
+
+import { createNewSession } from "./chat.js";
+import { openDocModal } from "./init.js";
+
 // === 탐색형 마이페이지 전환 & 검색/필터 ===
-function initMypageListeners() {
+export function initMypageListeners() {
   const exploreBtn = document.getElementById("exploreBtn");
   const explore = document.getElementById("mypageExplore");
 
@@ -45,7 +64,6 @@ function initMypageListeners() {
     const action = btn.dataset.action;
 
     const currentUserId = localStorage.getItem(USER_ID_KEY);
-    s;
 
     // 공통 확인창
     const ask = (msg) => {

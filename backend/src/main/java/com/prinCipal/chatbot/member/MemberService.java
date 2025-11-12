@@ -86,7 +86,7 @@ public class MemberService{
 	}
 
 
-	public String loginUser(LoginRequest loginRequest, HttpServletResponse response) {
+	public LoginResponseDto loginUser(LoginRequest loginRequest, HttpServletResponse response) {
 		Member member = this.memberRepository.findByNickname(loginRequest.getNickname())
 						.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
 		
@@ -104,7 +104,7 @@ public class MemberService{
 		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication);
 		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
 	
-		return accessToken;
+		return new LoginResponseDto(accessToken, member.getUserId(), member.getNickname());
 		
 	}
 	

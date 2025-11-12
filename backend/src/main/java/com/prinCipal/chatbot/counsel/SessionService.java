@@ -15,6 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -51,6 +56,69 @@ public class SessionService {
         sessionRepository.delete(session);
     }
 
+    /**
+     * [추가] 사용자의 전체 채팅방/최근 목록 조회
+     * (SessionController의 getInitialData에서 호출)
+     */
+    @Transactional(readOnly = true) // 읽기 전용 트랜잭션
+    public Map<String, Object> getInitialDataForUser(Member member) {
+        Map<String, Object> initialData = new HashMap<>();
+
+        // 1. 'recents' (최근 대화 목록)
+        // DB에서 최근 수정 순으로 세션 '요약' 정보를 가져옵니다.
+        // (SessionRepository에 findByMemberOrderByLastMessageTimeDesc가 이미 있습니다)
+        List<CounsellingSession> recentSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
+        
+        List<Map<String, Object>> recentsList = recentSessions.stream()
+            .map(session -> {
+                Map<String, Object> recent = new HashMap<>();
+                recent.put("id", session.getSessionId()); // CounsellingSession에 getSessionId() 필요
+                recent.put("title", session.getSummaryTitle()); // CounsellingSession에 getSummaryTitle() 필요
+                recent.put("updatedAt", session.getLastMessageTime()); // CounsellingSession에 getLastMessageTime() 필요
+                return recent;
+            })
+            .collect(Collectors.toList());
+        
+        initialData.put("recents", recentsList);
+
+        // 2. 'sessions' (전체 세션 상세 맵)
+        // (프론트엔드 최적화: 'recents'와 동일한 세션 목록을 사용)
+        Map<Long, Object> sessionsMap = recentSessions.stream()
+            .collect(Collectors.toMap(
+                CounsellingSession::getSessionId, // CounsellingSession::getSessionId 가정
+                session -> {
+                    Map<String, Object> sessionDetail = new HashMap<>();
+                    sessionDetail.put("id", session.getSessionId());
+                    sessionDetail.put("title", session.getSummaryTitle());
+                    
+                    // [중요] 세션의 '모든' 메시지를 가져옵니다.
+                    // (CounsellingSession에 @OneToMany List<CounsellingContent> contents; 매핑이 있다고 가정)
+                    List<Map<String, Object>> messages = session.getContents().stream() 
+                        .map(content -> {
+                            Map<String, Object> msg = new HashMap<>();
+                            // Sender Enum을 프론트엔드 'role'로 변환
+                            msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
+                            msg.put("text", content.getContent());
+                            msg.put("at", content.getCreatedAt()); // CounsellingContent에 getCreatedAt() (Timestamp) 필요
+                            return msg;
+                        })
+                        .collect(Collectors.toList());
+
+                    sessionDetail.put("messages", messages);
+                    return sessionDetail;
+                },
+                (existing, replacement) -> existing // (혹시 모를 중복 키 충돌 방지)
+            ));
+
+        initialData.put("sessions", sessionsMap);
+
+        // 3. 'currentId' (가장 최근 세션 ID)
+        Long currentId = recentsList.isEmpty() ? null : (Long) recentsList.get(0).get("id");
+        initialData.put("currentId", currentId);
+
+        return initialData;
+    }
+    
     /**
      * 메시지 저장 및 봇 응답 처리 (ChatRequestDto를 직접 사용)
      */

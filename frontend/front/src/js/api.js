@@ -1,11 +1,15 @@
+import { TokenManager } from "./token.js";
+
 // 백엔드 서버 주소
 const API_BASE_URL = "/api";
 
 /**
  * (R) 앱 로드 시 채팅 데이터 전체 조회
  */
-async function getInitialData() {
-  const response = await fetch(`${API_BASE_URL}/chats`);
+export async function getInitialData() {
+  const response = await fetch(`${API_BASE_URL}/chats`, {
+    headers: getAuthHeaders(false),
+  });
   if (!response.ok) {
     throw new Error("데이터 로드 실패");
   }
@@ -35,7 +39,7 @@ async function getInitialData() {
  * @param {number} userId    // 사용자 ID 추가
  * @param {object} messageData (예: { role: 'user', text: '...' })
  */
-async function saveMessage(sessionId, userId, messageData) {
+export async function saveMessage(sessionId, userId, messageData) {
   // 1. 요청 경로를 /api/chat으로 변경
   const CHAT_ENDPOINT = `${API_BASE_URL}/chat`; // -> /api/chat
 
@@ -51,7 +55,7 @@ async function saveMessage(sessionId, userId, messageData) {
   const response = await fetch(CHAT_ENDPOINT, {
     // 👈 CHAT_ENDPOINT 사용
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify(requestBody), // 👈 requestBody 사용
   });
 
@@ -77,10 +81,10 @@ async function saveMessage(sessionId, userId, messageData) {
 //   return response.ok; // 성공 여부
 // }
 
-async function updateNickname(userId, newNickname) {
+export async function updateNickname(userId, newNickname) {
   const response = await fetch(`${API_BASE_URL}/user/${userId}/nickname`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ nickname: newNickname }),
   });
   if (!response.ok) {
@@ -109,10 +113,10 @@ async function updateNickname(userId, newNickname) {
 // }
 
 /*비밀번호 변경*/
-async function updatePassword(userId, currentPassword, newPassword) {
+export async function updatePassword(userId, currentPassword, newPassword) {
   const response = await fetch(`${API_BASE_URL}/user/${userId}/password`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   if (!response.ok) {
@@ -122,10 +126,10 @@ async function updatePassword(userId, currentPassword, newPassword) {
 }
 
 /* (D) 회원 탈퇴 (백엔드에 아직 구현 안 됨)*/
-async function deleteUser(userId) {
+export async function deleteUser(userId) {
   // 👈 [수정] userId 인자 추가
   const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
-    // 👈 (가정)
+    headers: getAuthHeaders(),
     method: "DELETE",
   });
   if (!response.ok) {
@@ -138,10 +142,10 @@ async function deleteUser(userId) {
  * (C) 새 세션 생성
  * (백엔드에서 새 세션 객체를 만들어 반환한다고 가정)
  */
-async function createSession(userId) {
+export async function createSession(userId) {
   const response = await fetch(`${API_BASE_URL}/sessions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ userId: userId }),
   });
   if (!response.ok) {
@@ -154,8 +158,9 @@ async function createSession(userId) {
 /**
  * (D) 모든 대화 삭제
  */
-async function clearAllSessions() {
+export async function clearAllSessions() {
   const response = await fetch(`${API_BASE_URL}/sessions/clear-all`, {
+    headers: getAuthHeaders(),
     method: "DELETE",
   });
   if (!response.ok) {
@@ -168,12 +173,31 @@ async function clearAllSessions() {
  * (D) 대화 삭제
  * @param {string} sessionId
  */
-async function deleteSession(sessionId) {
+export async function deleteSession(sessionId) {
   const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+    headers: getAuthHeaders(),
     method: "DELETE",
   });
   if (!response.ok) {
     throw new Error("대화 삭제 실패");
   }
   return response.ok;
+}
+
+/**
+ * 인증 토큰을 포함한 fetch 헤더를 반환합니다.
+ * @returns {HeadersInit}
+ */
+function getAuthHeaders(includeContentType = true) {
+  const token = TokenManager.getAccessToken(); // TokenManager에서 토큰 가져오기
+  const headers = {};
+
+  if (includeContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`; // "Bearer" 접두사 포함
+  }
+  return headers;
 }

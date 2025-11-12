@@ -3,17 +3,32 @@
 // (세션/메시지 관리, 최근 대화, 삭제, 렌더링)
 // ===================================
 
+import { showToast, state, qs, Modal } from "./utils.js";
+import { createSession, saveMessage, deleteSession } from "./api.js";
+import { showPage } from "./init.js";
+
 const USER_ID_KEY = "todak_user_id";
 
+/**
+ * 로그인이 필요할 때 로그인 페이지로 리디렉션합니다.
+ */
+function redirectToLogin() {
+  showToast("로그인이 필요합니다. 로그인 페이지로 이동합니다.", "error", 2000);
+  setTimeout(() => {
+    // index.html 또는 / 등 실제 로그인 페이지 주소로 변경하세요.
+    window.location.href = "/";
+  }, 2100);
+}
+
 // ---- 세션 ----
-async function createNewSession() {
+export async function createNewSession() {
   const currentUserId = localStorage.getItem(USER_ID_KEY);
 
   if (!currentUserId) {
     showToast("로그인이 필요합니다. 로그인 후 다시 시도해주세요.", "error");
     // (선택적) 로그인 모달 열기
     if (typeof openAuthModal === "function") {
-      openAuthModal();
+      redirectToLogin();
     }
     return false;
   }
@@ -31,12 +46,12 @@ async function createNewSession() {
     return false; //
   }
 }
-function current() {
+export function current() {
   return state.sessions[state.currentId] || null;
 }
 
 // ---- 메시지 ----
-async function addMessage(role, text) {
+export async function addMessage(role, text) {
   const sess = current();
   if (!sess) return;
 
@@ -55,14 +70,9 @@ async function addMessage(role, text) {
     const currentUserId = localStorage.getItem(USER_ID_KEY);
 
     if (!currentUserId) {
-      showToast("로그인이 필요합니다. 로그인 후 다시 시도해주세요.", "error");
-      // 낙관적 UI 롤백 (화면에 그린 사용자 메시지 제거)
       sess.messages.pop();
       renderChat();
-
-      if (typeof openAuthModal === "function") {
-        openAuthModal();
-      }
+      redirectToLogin();
       return;
     }
 
@@ -99,7 +109,7 @@ async function addMessage(role, text) {
 }
 
 // ---- 최근 저장 ----
-function archiveCurrent() {
+export function archiveCurrent() {
   const sess = current();
   if (!sess || !sess.messages.length) return;
   state.recents = state.recents.filter((r) => r.id !== sess.id);
@@ -113,7 +123,7 @@ function archiveCurrent() {
 
 // ---- 삭제 기능 ----
 // deleteRecent 함수를  변경
-async function deleteRecent(id) {
+export async function deleteRecent(id) {
   try {
     // 1. 서버에 먼저 삭제 요청 (api.js 함수 호출)
     await deleteSession(id); //
@@ -147,7 +157,7 @@ async function deleteRecent(id) {
 
 // --- 삭제 애니메이션 ---
 // async await 추가, showToast 주석 처리
-async function animateAndDeleteRecent(li, id) {
+export async function animateAndDeleteRecent(li, id) {
   const item = li.querySelector(".recent-item");
   if (!item) {
     await deleteRecent(id);
@@ -166,7 +176,7 @@ async function animateAndDeleteRecent(li, id) {
 }
 
 // ---- 렌더링 ----
-function renderRecents() {
+export function renderRecents() {
   const ul = qs("#recentList");
   ul.innerHTML = "";
   if (!state.recents.length) {
@@ -215,7 +225,7 @@ function renderRecents() {
   });
 }
 
-function renderChat() {
+export function renderChat() {
   const msgs = qs("#messages");
   msgs.innerHTML = "";
   const sess = current();
@@ -261,7 +271,7 @@ function renderChat() {
 }
 
 // ---- 전송 ----
-async function handleSend(e) {
+export async function handleSend(e) {
   e.preventDefault();
   const input = qs("#chatInput");
   const text = input.value.trim();

@@ -3,7 +3,6 @@ package com.prinCipal.chatbot.member;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.prinCipal.chatbot.member.LoginResponseDto;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
@@ -35,12 +35,15 @@ public class MemberApiController {
 	 
 	
 	@PostMapping("/login")
-	public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,HttpServletResponse response){
-		String accessToken = this.memberService.loginUser(loginRequest, response);
-		return ResponseEntity.ok(new TokenResponse("success", "로그인 성공", accessToken));
-
+	public ResponseEntity<LoginResponseDto> loginUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response){
+		
+		// ⬇️ [수정 2] String이 아닌 LoginResponseDto 객체로 받습니다.
+		LoginResponseDto loginResponse = this.memberService.loginUser(loginRequest, response);
+		
+		// ⬇️ [수정 3] new TokenResponse(...) 대신, 서비스에서 받은 객체를 그대로 반환합니다.
+		// (이 객체 안에는 accessToken, userId, nickname이 모두 포함되어 있습니다.)
+		return ResponseEntity.ok(loginResponse);
 	}
-	
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){

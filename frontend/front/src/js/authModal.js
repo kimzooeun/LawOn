@@ -2,6 +2,7 @@
 // 맞춤형 상담 (로그인/회원가입) 모달
 // ============================================
 import { TokenManager } from "./token.js";
+import { showToast } from "./utils.js";
 
 const authModal = document.getElementById("authModal");
 const authOverlay = document.getElementById("auth-overlay");
@@ -22,7 +23,7 @@ if (customBtn) {
 }
 
 // 모달 열기
-function openAuthModal() {
+export function openAuthModal() {
   // 포털로 이동
   if (portalRoot && authOverlay && authModal) {
     portalRoot.appendChild(authOverlay);
@@ -249,15 +250,15 @@ document
     }
   });
 
-function showToast(message) {
-  const toast = document.getElementById("auth-toast");
-  toast.innerHTML = message;
-  toast.classList.add("show");
+// function showToast(message) {
+//   const toast = document.getElementById("auth-toast");
+//   toast.innerHTML = message;
+//   toast.classList.add("show");
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 1000);
-}
+//   setTimeout(() => {
+//     toast.classList.remove("show");
+//   }, 1000);
+// }
 
 document.addEventListener("DOMContentLoaded", () => {
   // 회원가입 탭 클릭 시 폼 리셋
