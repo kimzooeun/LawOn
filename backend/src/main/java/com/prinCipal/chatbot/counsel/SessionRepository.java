@@ -1,7 +1,11 @@
 package com.prinCipal.chatbot.counsel;
 
 import com.prinCipal.chatbot.member.Member;
+
+import io.lettuce.core.dynamic.annotation.Param;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +19,8 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
     
     // (선택적) 나중에 '최근 대화' 목록을 가져오기 위함
     List<CounsellingSession> findByMemberOrderByLastMessageTimeDesc(Member member);
+    
+    @Query("SELECT DISTINCT s FROM CounsellingSession s LEFT JOIN FETCH s.contents WHERE s.member = :member ORDER BY s.lastMessageTime DESC")
+    List<CounsellingSession> findByMemberOrderByLastMessageTimeDescWithContents(@Param("member") Member member);
+    
 }

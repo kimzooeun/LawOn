@@ -10,28 +10,14 @@ export async function getInitialData() {
   const response = await fetch(`${API_BASE_URL}/chats`, {
     headers: getAuthHeaders(false),
   });
+
+  console.log(response + "응답");
+
   if (!response.ok) {
     throw new Error("데이터 로드 실패");
   }
   return response.json(); // { recents: [...], sessions: {...}, ... } 형태
 }
-
-// /**
-//  * (C) 새 메시지 전송
-//  * @param {string} sessionId
-//  * @param {object} messageData (예: { role: 'user', text: '...' })
-//  */
-// async function saveMessage(sessionId, messageData) {
-//   const response = await fetch(`${API_BASE_URL}/chat/${sessionId}/messages`, {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify(messageData),
-//   });
-//   if (!response.ok) {
-//     throw new Error("메시지 저장 실패");
-//   }
-//   return response.json(); // 저장된 메시지나 세션 정보 반환
-// }
 
 /**
  * (C) 새 메시지 전송 (POST /api/chat 호출)
@@ -65,22 +51,6 @@ export async function saveMessage(sessionId, userId, messageData) {
   return response.json();
 }
 
-// /**
-//  * (U) 닉네임 변경
-//  * @param {string} newNickname
-//  */
-// async function updateNickname(newNickname) {
-//   const response = await fetch(`${API_BASE_URL}/user/nickname`, {
-//     method: "PUT", // 또는 'PATCH'
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ nickname: newNickname }),
-//   });
-//   if (!response.ok) {
-//     throw new Error("닉네임 변경 실패");
-//   }
-//   return response.ok; // 성공 여부
-// }
-
 export async function updateNickname(userId, newNickname) {
   const response = await fetch(`${API_BASE_URL}/user/${userId}/nickname`, {
     method: "PUT",
@@ -92,25 +62,6 @@ export async function updateNickname(userId, newNickname) {
   }
   return response.ok; // 성공 여부
 }
-
-// /**
-//  * (U) 비밀번호 변경
-//  * @param {string} currentPassword
-//  * @param {string} newPassword
-//  */
-// async function updatePassword(currentPassword, newPassword) {
-//   const response = await fetch(`${API_BASE_URL}/user/password`, {
-//     method: "PUT",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ currentPassword, newPassword }),
-//   });
-
-//   if (!response.ok) {
-//     // 401: 현재 비밀번호 불일치, 400: 유효성 검사 실패 등
-//     throw new Error("비밀번호 변경 실패");
-//   }
-//   return response.ok;
-// }
 
 /*비밀번호 변경*/
 export async function updatePassword(userId, currentPassword, newPassword) {
@@ -148,6 +99,8 @@ export async function createSession(userId) {
     headers: getAuthHeaders(),
     body: JSON.stringify({ userId: userId }),
   });
+  console.log(response + "새 세션 생성 응답");
+
   if (!response.ok) {
     throw new Error("새 세션 생성 실패");
   }

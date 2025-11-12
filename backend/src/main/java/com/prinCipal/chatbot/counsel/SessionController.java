@@ -12,8 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Collections;
+
+import org.slf4j.Logger; // 👈 로그 Import 추가
+import org.slf4j.LoggerFactory; // 👈 로그 Import 추가
 
 @RestController
 @RequestMapping("/api")
@@ -22,6 +24,8 @@ public class SessionController {
     
     private final SessionService sessionService;
     private final MemberRepository memberRepository;
+    
+    private static final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
     /**
      * 1. 초기 데이터 로드 (GET /api/chats)
@@ -41,6 +45,8 @@ public class SessionController {
         //    (SessionService에 이 메서드를 새로 추가해야 합니다.)
         Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
         
+        logger.info("✅ GET /api/chats: 사용자 '{}'에게 초기 데이터 반환", nickname);
+        
         return ResponseEntity.ok(initialData);
     }
     
@@ -52,7 +58,7 @@ public class SessionController {
     public ResponseEntity<?> createSession(@RequestBody SessionCreationRequestDto requestDto) { // 👈 1. DTO 받기
         
         Long userId = requestDto.getUserId(); // 👈 2. DTO에서 userId 꺼내기
-
+        
         // 3. 하드코딩 대신 전달받은 ID로 사용자를 찾음
         Member tempMember = memberRepository.findById(userId) 
                 .orElseThrow(() -> new RuntimeException(userId + "번 사용자를 찾을 수 없습니다. (DB 확인 필요)"));

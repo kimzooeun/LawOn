@@ -34,6 +34,9 @@ export let state = createEmptyStore(); // 일단 빈 상태로 시작
 export async function loadInitialData() {
   try {
     const dataFromServer = await getInitialData(); // 1. API 호출
+
+    console.log("[Debug] 서버로부터 받은 초기 데이터:", dataFromServer);
+
     Object.assign(state, dataFromServer); // 2. 전역 state에 덮어쓰기
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);

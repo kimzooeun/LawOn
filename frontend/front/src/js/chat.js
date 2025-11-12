@@ -229,13 +229,8 @@ export function renderChat() {
   const msgs = qs("#messages");
   msgs.innerHTML = "";
   const sess = current();
-  if (!sess) {
-    createNewSession();
-    return;
-  }
 
-  // 빈 채팅방 환영 문구
-  if (!sess.messages.length) {
+  if (!sess || !sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
     // 1. 템플릿 가져오기
     const template = document.getElementById("emptyChatTemplate");
@@ -276,6 +271,16 @@ export async function handleSend(e) {
   const input = qs("#chatInput");
   const text = input.value.trim();
   if (!text) return;
+
+  let sess = current();
+  if (!sess) {
+    // 2. 👈 [추가] 세션이 없으면 (첫 메시지) -> 새로 생성
+    const success = await createNewSession(); // DB에 세션 생성
+    if (!success) {
+      // (createNewSession 내부에서 이미 에러 토스트를 띄움)
+      return; // 세션 생성 실패 시 중단
+    }
+  }
 
   // 1. 사용자 메시지를 먼저 추가 (API 호출 포함)
   await addMessage("user", text); // await 추가

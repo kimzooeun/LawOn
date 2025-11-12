@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger; // 👈 Import 추가
+import org.slf4j.LoggerFactory; // 👈 Import 추가
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +32,8 @@ public class SessionService {
     private final CounsellingContentRepository contentRepository;
     private final ChatService chatService; 
     private final MemberRepository memberRepository; 
+    
+    private static final Logger logger = LoggerFactory.getLogger(SessionService.class);
     
     /**
      * 새 상담 세션 생성
@@ -115,6 +120,11 @@ public class SessionService {
         // 3. 'currentId' (가장 최근 세션 ID)
         Long currentId = recentsList.isEmpty() ? null : (Long) recentsList.get(0).get("id");
         initialData.put("currentId", currentId);
+        
+        logger.info("📦 DB에서 생성된 초기 데이터 (사용자: {}): recents 개수 = {}, sessions 개수 = {}",
+                member.getNickname(), // 👈 Member 엔티티에 getNickname()이 있다고 가정
+                recentsList.size(),
+                sessionsMap.size());
 
         return initialData;
     }
