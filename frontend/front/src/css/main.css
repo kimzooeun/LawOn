@@ -1623,7 +1623,7 @@ body.page-fading {
   position: relative;
 }
 .office-region-list button.active {
-  color: #000;
+  color: #8b7a52;
   font-weight: 600;
 }
 .office-region-list button.active::after {
@@ -1633,12 +1633,12 @@ body.page-fading {
   right: 0;
   bottom: -6px;
   height: 2px;
-  background: #000;
+  background:  #8b7a52;
   border-radius: 15px;
 }
 
 .office-detail {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #000000;
   padding-top: 22px;
   margin-bottom: 28px;
 }
@@ -1651,15 +1651,42 @@ body.page-fading {
   border-radius: 999px;
   margin-bottom: 10px;
 }
+
+/* 이름 + 전문영역 한 줄 */
+.office-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap; 
+  gap: 6px;
+}
+
 .office-name {
   font-size: 16px;
   margin: 0 0 6px;
 }
+
 .office-addr,
+.office-specialty,
 .office-tel {
   font-size: 13px;
   color: #666;
   margin: 2px 0;
+}
+
+/* 점 구분자 추가 (디자인용) */
+.office-specialty::before {
+  content: "|";
+  margin: 0 4px;
+  color: #bbb;
+}
+
+.office-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #ccc; /* 얇은 회색 구분선 */
+}
+
+.office-item:last-child {
+  border-bottom: none; /* 마지막 항목엔 줄 제거 */
 }
 
 .office-right {
@@ -1669,8 +1696,7 @@ body.page-fading {
   align-items: center;
 }
 .korea-map {
-  width: min(800px, 90vw);
-  background: #f5f5f5;
+  width: min(1000px, 90vw);
   border-radius: 30px;
   padding: 0px;
   display: flex;
@@ -1678,8 +1704,9 @@ body.page-fading {
   justify-content: center;
   align-items: center;
 }
+
 .k-map-svg {
-  width: 100%;
+  width: 1000px;
   height: auto;
 }
 .korea-map .land.active {
@@ -1693,7 +1720,12 @@ body.page-fading {
 
 .region-label{
   fill: #aaa6a6;
-  font-size: 14px
+  font-size: 10px
+}
+
+.region-label.active {
+  fill: #ffffff; 
+  font-size: 10px;
 }
 
 @media (max-width: 992px) {
