@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC 법률 사무소 - 신뢰할 수 있는 법률 파트너</title>
+    <style>
+        /* 기본적인 스타일 (실제로는 별도 CSS 파일로 분리해야 합니다) */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        /* 헤더 (로고 및 네비게이션) */
+        header {
+            background: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header h1 a {
+            text-decoration: none;
+            color: #222;
+        }
+
+        nav ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        nav li {
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: bold;
+        }
+
+        /* 메인 배너 (히어로 섹션) */
+        .hero {
+            background: #003366;
+            /* 전문성을 나타내는 어두운 파란색 */
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .hero h2 {
+            margin: 0;
+            font-size: 36px;
+        }
+
+        /* 메인 컨텐츠 섹션 */
+        section {
+            padding: 40px 0;
+        }
+
+        section h3 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* 업무 분야 */
+        .services-grid {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .service-item {
+            flex-basis: 30%;
+            min-width: 250px;
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* CTA (Call to Action) 버튼 */
+        .cta-button {
+            display: inline-block;
+            background: #d9a500;
+            /* 신뢰감을 주는 금색/노란색 계열 */
+            color: #fff;
+            padding: 12px 25px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        /* 푸터 (하단 정보) */
+        footer {
+            background: #333;
+            color: #ccc;
+            padding: 30px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <h1><a href="index.html">ABC 법률 사무소</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="#about">사무소 소개</a></li>
+                    <li><a href="#services">업무 분야</a></li>
+                    <li><a href="#attorneys">변호사 소개</a></li>
+                    <li><a href="#contact">상담 안내</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h2>여러분의 든든한 법률 동반자</h2>
+        <p>풍부한 경험과 전문성으로 최상의 법률 서비스를 제공합니다.</p>
+        <a href="#contact" class="cta-button">지금 바로 상담 예약하기</a>
+    </section>
+
+    <main class="container">
+
+        <section id="about">
+            <h3>사무소 소개</h3>
+            <p>ABC 법률 사무소는 고객의 신뢰를 최우선으로 생각하며... (이곳에 사무소 소개글을 작성합니다.)</p>
+        </section>
+
+        <hr>
+
+        <section id="services">
+            <h3>주요 업무 분야</h3>
+            <div class="services-grid">
+                <div class="service-item">
+                    <h4>민사 소송</h4>
+                    <p>대여금, 손해배상, 부동산 분쟁 등 각종 민사 사건을 다룹니다.</p>
+                </div>
+                <div class="service-item">
+                    <h4>형사 소송</h4>
+                    <p>수사 단계부터 재판까지 의뢰인과 동행하며 변호합니다.</p>
+                </div>
+                <div class="service-item">
+                    <h4>가사·이혼</h4>
+                    <p>이혼, 재산분할, 상속 등 복잡한 가사 분쟁을 해결합니다.</p>
+                </div>
+                <div class="service-item">
+                    <h4>기업 법무</h4>
+                    <p>계약서 검토, 법률 자문 등 기업 운영에 필요한 법률 서비스를 제공합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="contact" style="text-align: center;">
+            <h3>상담 안내</h3>
+            <p>전화 또는 온라인으로 간편하게 상담을 예약하실 수 있습니다.</p>
+            <p><strong>전화:</strong> 02-1234-5678<br>
+                <strong>이메일:</strong> contact@abclaw.com
+            </p>
+            <a href="#" class="cta-button">온라인 상담 신청</a>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>ABC 법률 사무소 | 대표 변호사: OOO</p>
+            <p>주소: 서울특별시 OO구 OO로 123, OO빌딩 5층</p>
+            <p>사업자등록번호: 123-45-67890</p>
+            <p>&copy; 2025 ABC Law Office. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

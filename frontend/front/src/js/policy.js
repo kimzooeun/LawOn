@@ -1,13 +1,10 @@
 // ===================================
-// 6. 토닥토닥 [정책/약관 모달]
+// 6. 정책/약관 모달
 // (전역 openDocModal 함수 사용)
 // ===================================
 
 (function () {
-  // [수정] aaa8.js에 정의된 전역 openDocModal 함수를 사용하므로
-  // ensureDocModal, openDocModal 유틸 함수 모두 제거.
-
-  // 3) 문서 본문 템플릿
+  // 문서 본문 템플릿
   const TEMPLATES = {
     privacy: `
       <h4>제1조 (총칙)</h4>
@@ -218,11 +215,10 @@
     `,
   };
 
-  // 4) 클릭 리스너
+  // 클릭 리스너
   document.addEventListener("click", (e) => {
-    // [수정] 전역 openDocModal 함수가 존재하는지 확인
+    // 전역 openDocModal 함수가 존재하는지 확인
     if (typeof openDocModal !== "function") {
-      // aaa8.js가 아직 로드되지 않았거나 함수 정의에 실패한 경우
       return;
     }
 
@@ -232,24 +228,11 @@
     const action = btn.getAttribute("data-action");
 
     if (action === "open-privacy") {
-      // [수정] 전역 함수 호출 (기본값 size='lg' 사용)
+      // 전역 함수 호출 (기본값 size='lg' 사용)
       openDocModal("개인정보처리방침", TEMPLATES.privacy);
     } else if (action === "open-terms") {
-      // [수정] 전역 함수 호출 (기본값 size='lg' 사용)
+      // 전역 함수 호출 (기본값 size='lg' 사용)
       openDocModal("이용약관", TEMPLATES.terms);
-    } else if (action === "open-modal") {
-      // [수정] 전역 함수 호출 (size='default'로 작은 모달 사용)
-      openDocModal(
-        "문서 보기",
-        `
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" data-action="open-privacy">개인정보처리방침</button>
-          <button class="btn" data-action="open-terms">이용약관</button>
-        </div>
-        <p class="modal-hint" style="margin-top:10px;color:var(--ink-muted)">원하는 문서를 선택하세요.</p>
-        `,
-        "default" // 작은 모달 크기 지정
-      );
     }
   });
 })();

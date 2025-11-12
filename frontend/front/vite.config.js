@@ -1,15 +1,14 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  root: '.', // 프로젝트 루트
+  root: ".", // 프로젝트 루트
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     rollupOptions: {
       input: {
-        index: 'index.html', 
-        chat: 'chat.html',
-        mypage: 'mypage.html',
-        oauth2_success: 'oauth2_success.html',
+        index: "index.html",
+        chat: "chat.html",
+        oauth2_success: "oauth2_success.html",
       },
     },
   },
@@ -34,6 +33,3 @@ export default defineConfig({
     },
   },
 });
-
-
-
