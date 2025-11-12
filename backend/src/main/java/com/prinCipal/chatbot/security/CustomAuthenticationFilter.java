@@ -3,6 +3,7 @@ package com.prinCipal.chatbot.security;
 import java.io.IOException;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -25,16 +26,21 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 	
 	@Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
+		if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            throw new AuthenticationServiceException("인증 메서드 오류 : " + request.getMethod());
+        }
         try {
             // HTTP 요청의 Body에서 JSON 데이터를 읽어 LoginRequest 객체로 변환
             LoginRequest loginRequest = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
+            
 
             // AuthenticationManager에게 전달할 토큰 생성
             UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                     loginRequest.getNickname(), 
                     loginRequest.getPassword() 
             );
+            setDetails(request, authRequest);
+            
             
             // AuthenticationManager에게 인증 요청 (MemberDetailService의 loadUserByUsername 호출)
             return this.getAuthenticationManager().authenticate(authRequest);

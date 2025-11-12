@@ -1,137 +1,306 @@
-// authModal.js 로그인/회원가입 모달 + API 연동
-(function(){
-  const qs=(s,r=document)=>r.querySelector(s);
-  const modal = qs('#authModal');
-  const tabLogin = qs('#tab-login');
-  const tabSignup = qs('#tab-signup');
-  const loginTab = qs('#loginTab');
-  const signupTab = qs('#signupTab');
-  const loginError = qs('#loginError');
-  const signupError = qs('#signupError');
-  const authClose = qs('#close-btn');
+// ============================================
+// 맞춤형 상담 (로그인/회원가입) 모달
+// ============================================
+import { TokenManager } from './token.js';
 
-  // 탭 전환
-  function switchTab(which){
-    const isLogin = which === 'login';
-    tabLogin.classList.toggle('active',isLogin);
-    tabSignup.classList.toggle('active',!isLogin);
-    loginTab.style.display = isLogin?'block':'none';
-    signupTab.style.display = isLogin?'none':'block';
-  }
-
-  tabLogin?.addEventListener('click',()=>switchTab('login'));
-  tabSignup?.addEventListener('click',()=>switchTab('signup'));
-
-  // 모달 열기/닫기
-  function openAuthModal(defaultTab='login'){
-    switchTab(defaultTab);
-    modal.classList.add('show');
-  }
-
-  function closeAuthModal(){
-    modal.classList.remove('show');
-    loginError?.classList.remove('show');
-    signupError?.classList.remove('show');
-  }
-
-  // 열기 버튼
-  document.addEventListener('click',(e)=>{
-    if(e.target.closest('[data-role="custom"]')){
-      e.preventDefault();
-      openAuthModal();
-    }
-  });
-
-  // 닫기
-  authClose?.addEventListener('click', closeAuthModal);
-
-  // ESC로 닫기
-  document.addEventListener('keydown',(e)=>{
-    if(e.key === 'Escape' && modal?.classList.contains('show')) closeAuthModal();
-  });
-
-  // 간편 상담 버튼 클릭 시 → 로그인모달 닫고, 간편상담 모달 열기 
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-role="quick"]');
-    if(!btn) return;
-    // 로그인 모달 닫기
-    if(modal.classList.contains('show')) closeAuthModal();
-
-    // 간편상담 모달 열기 (다른 스크립트의 openQuick 함수 호출)
-    const quickModal = document.getElementById('quickModal');
-    if(quickModal) quickModal.classList.add('show');
-  });
+const authModal = document.getElementById('authModal');
+const authOverlay = document.getElementById('auth-overlay');
+const authCloseBtn = document.getElementById('authClose');
+const portalRoot  = document.getElementById('portal-root');
+const chatWidget = document.getElementById('chat-widget');
+const chatOverlay = document.getElementById('chat-overlay');
 
 
-
-
-  // ----------------로그인 처리 API --------------------------------
-  const loginForm = qs('#panel-login');
-  loginForm?.addEventListener('submit', async(e)=>{
+// 맞춤형 상담 버튼 클릭 시 열기
+const customBtn = document.getElementById('btnCustom');
+if (customBtn) {
+  customBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    const nickname = qs('#loginNickname').value.trim();
-    const password = qs('#loginPassword').value;
-    loginError?.classList.remove('show');
+    openAuthModal();
+  });
+}
 
-    if(!nickname || password.length<8){
-      loginError.textContent = '아이디/비밀번호를 확인하세요.';
-      loginError.classList.add('show');
-      return;
+// 모달 열기
+function openAuthModal() {
+  // 포털로 이동
+  if (portalRoot && authOverlay && authModal) {
+    portalRoot.appendChild(authOverlay);
+    portalRoot.appendChild(authModal);
+  }
+
+  portalRoot.style.pointerEvents = 'auto';
+  authModal.style.pointerEvents = 'auto';
+
+  chatWidget?.classList.remove('is-open');
+  chatOverlay?.classList.remove('is-open');
+  chatOverlay?.style.setProperty('pointer-events', 'none');
+
+  authModal.classList.add('is-open');
+  authOverlay.classList.add('is-open');
+  document.body.style.overflow = 'hidden'; // 스크롤 방지
+}
+
+
+// 모달 닫기
+function closeAuthModal() {
+  authModal.classList.remove('is-open');
+  authOverlay.classList.remove('is-open');
+
+  document.body.style.overflow = ''; // 스크롤 복원
+  chatOverlay?.style.removeProperty('pointer-events');
+  portalRoot.style.pointerEvents = 'none';
+  resetAuthForms(); 
+  // transition 끝난 후 overflow 복원
+  authModal.addEventListener('transitionend', () => {
+    document.body.style.overflow = '';
+  }, { once: true });
+  
+}
+
+// 닫기 버튼
+if (authCloseBtn) {
+  authCloseBtn.addEventListener('click', closeAuthModal);
+}
+
+// ESC 키로 닫기 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && authModal.classList.contains('is-open')) {
+    closeAuthModal();
+  }
+});
+
+
+// 오버레이 클릭 시 닫기
+portalRoot?.addEventListener('click', (e) => {
+  if (e.target === authOverlay && authModal.classList.contains('is-open')) {
+    closeAuthModal();
+  }
+});
+
+
+// 탭 전환 (이벤트 위임 사용 → appendChild 영향 안받음)
+document.addEventListener('click', (e) => {
+  const tab = e.target.closest('.auth-tab');
+  if (!tab) return; // 다른 곳 클릭시 무시
+
+  const targetTab = tab.dataset.tab; // "login" or "signup"
+  if (!targetTab) return;
+
+  // 모든 탭/콘텐츠 초기화
+  document.querySelectorAll('.auth-tab').forEach((t) => t.classList.remove('active'));
+  document.querySelectorAll('.auth-content').forEach((c) => c.classList.remove('active'));
+
+  // 클릭한 탭 활성화
+  tab.classList.add('active');
+
+  // 대응되는 콘텐츠 활성화
+  const content = document.getElementById(`${targetTab}Tab`);
+  if (content) {
+    content.classList.add('active');
+  } else {
+    console.warn(`탭 콘텐츠를 찾을 수 없음: #${targetTab}Tab`);
+  }
+});
+
+
+
+//-----------------------------------------------------------------------------
+// 로그인 폼 제출
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const nickname = document.getElementById('loginNickname').value;
+  const password = document.getElementById('loginPassword').value;
+
+  if (!nickname || !password) {
+  const errDiv = document.getElementById("login-error-message");
+  errDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
+  errDiv.classList.add("show");
+  return;
+}
+
+  try{
+    const response = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    credentials: 'include', // 쿠키 전송 허용
+    body: JSON.stringify({nickname, password})
+    });
+
+    let resData = {};
+    try {
+      resData = await response.json();  // 위 JSON을 받음
+    } catch (err) {
     }
 
-    try{
-      const res = await fetch('/api/auth/login',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nickname,password})
-      });
-      const data = await res.json();
+    
+    if(response.ok){
+      //200 OK 성공 처리 JWT 저장 
+      TokenManager.setTokens(resData.accessToken, false);
+      showToast("로그인 완료!<br>맞춤형 상담 페이지로 이동"); 
+      resetAuthForms(); 
+      console.log(resData);
+      setTimeout(() => {
+        window.location.href = '/chat';
+      }, 800);
+    } else if (response.status === 400 && resData) {
+        // 400 Bad Request (유효성 검사 실패) 처리
+        const div = document.getElementById("login-error-message");
+        if(div) div.innerText = resData.message;
+        div.classList.add("show");
+    } else {
+      // 500 Internal Server Error 또는 기타 서버 오류 처리 
+      const errorDiv = document.getElementById("login-error-message");
+      errorDiv.innerText = resData.message || "서버에서 알 수 없는 오류가 발생했습니다.";
+      errorDiv.classList.add("show");
+    }
+  } catch(err){
+    // 네트워크 오류, JSON 파싱 실패 등 예상치 못한 오류 처리 
+    const errorDiv = document.getElementById("login-error-message");
+    errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
+    errorDiv.classList.add("show");
+  }
+});
 
-      if(!res.ok){
-        loginError.textContent = '로그인 실패: 아이디나 비밀번호 확인';
-        loginError.classList.add('show');
-      } else {
-        localStorage.setItem('accessToken',data.token);
-        alert('로그인 성공!');
-        window.location.href='/user-profile';
-      }
-    }catch(err){
-      loginError.textContent='서버 오류 발생';
-      loginError.classList.add('show');
+
+
+//-----------------------------------------------------------------------------
+// 회원가입 폼 제출
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const nickname = document.getElementById("nickname").value;
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  // 오류 초기화
+	["nickname","password","confirmPassword"].forEach(id => {
+    const el = document.getElementById(`error-${id}`);
+    if (el) {
+      el.innerText = "";
+      el.classList.remove("show");
     }
   });
 
-  // --------------------- 회원가입 처리 API -------------------------
-  const signupForm = qs('#panel-signup');
-  signupForm?.addEventListener('submit', async(e)=>{
-    e.preventDefault();
-    const nickname = qs('#signName').value.trim();
-    const pw = qs('#signPassword').value;
-    const pw2 = qs('#signPassword2').value;
-    signupError?.classList.remove('show');
 
-    if(!nickname || pw.length<8 || pw!==pw2){
-      signupError.textContent='입력값 확인: 비밀번호 8자 이상 & 일치해야 합니다.';
-      signupError.classList.add('show');
-      return;
+  try{
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(
+        {nickname : nickname, 
+			   password : password,
+         confirmPassword : confirmPassword
+        })
+    });
+
+    let resData = {};
+    try {
+      resData = await response.json();
+    } catch (err) {
     }
 
-    try{
-      const res = await fetch('/api/auth/signup',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nickname,password:pw})
+    if(response.ok){
+      //200 OK 성공 처리 
+      showToast("회원가입이 완료되었습니다!<br>    로그인해주세요!"); 
+      switchToLoginTab();
+      setTimeout(() => {
+        document.getElementById("loginNickname").focus();
+      }, 300);
+    } else if (response.status === 400 && resData && resData.errors) {
+        // 400 Bad Request (유효성 검사 실패) 처리 
+        if(resData.errors){
+          for(const [key, msg] of Object.entries(resData.errors)){
+            const div = document.getElementById(`error-${key}`);
+            if(div) div.innerText = msg;
+            div.classList.add("show");
+          }
+        } else{
+          // 400 응답이지만, errors 필드가 없을 경우를 대비(일반적인 400 오류)
+          const errorDiv = document.getElementById("signup-error-message");
+          errorDiv.innerText = resData.message || "유효성 검사 실패. 다시 확인해주세요.";
+          errorDiv.classList.add("show");
+        }
+    } else {
+      // 500 Internal Server Error 또는 기타 서버 오류 처리 
+      const errorDiv = document.getElementById("signup-error-message");
+      errorDiv.innerText = resData.message || "서버에서 알 수 없는 오류가 발생했습니다.";
+      errorDiv.classList.add("show");
+    }
+  } catch(err){
+    // 네트워크 오류, JSON 파싱 실패 등 예상치 못한 오류 처리 
+    const errorDiv = document.getElementById("signup-error-message");
+    errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
+    errorDiv.classList.add("show");
+  }
+});
+
+
+function showToast(message) {
+  const toast = document.getElementById("auth-toast");
+  toast.innerHTML = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 회원가입 탭 클릭 시 폼 리셋
+  const tabSignup = document.getElementById("tab-signup");
+  if (tabSignup) {
+    tabSignup.addEventListener("click", () => {
+      const signupForm = document.getElementById("signupForm");
+      if (signupForm) signupForm.reset();
+
+      ["nickname", "password", "confirmPassword"].forEach(id => {
+        const el = document.getElementById(`error-${id}`);
+        if (el) el.innerText = "";
       });
-      if(res.ok){
-        alert('회원가입 완료! 로그인해주세요.');
-        switchTab('login');
-      } else {
-        signupError.textContent='이미 존재하는 아이디거나 서버 오류';
-        signupError.classList.add('show');
-      }
-    }catch(err){
-      signupError.textContent='서버 통신 실패';
-      signupError.classList.add('show');
+    });
+  }
+
+  // 로그인 탭 클릭 시 폼 리셋 
+  const tabLogin = document.getElementById("tab-login");
+  if(tabLogin){
+    tabLogin.addEventListener("click", () => {
+      const loginForm = document.getElementById("loginForm");
+      if(loginForm) loginForm.reset();
+      ["nickname", "password", "confirmPassword"].forEach(id => {
+        const el = document.getElementById(`error-${id}`);
+        if (el) el.innerText = "";
+      });
+    });
+  }
+
+
+  // 로그인 탭으로 전환할 때 폼 리셋
+  window.switchToLoginTab = function () {
+    document.getElementById("tab-login")?.classList.add("active");
+    document.getElementById("tab-signup")?.classList.remove("active");
+    document.getElementById("loginTab")?.classList.add("active");
+    document.getElementById("signupTab")?.classList.remove("active");
+
+    resetAuthForms(); 
+  };
+});
+
+function resetAuthForms() {
+  // 모든 폼 리셋
+  document.getElementById("loginForm")?.reset();
+  document.getElementById("signupForm")?.reset();
+
+  // 모든 에러 텍스트와 show 클래스 제거
+  ["nickname", "password", "confirmPassword"].forEach(id => {
+    const el = document.getElementById(`error-${id}`);
+    if (el) {
+      el.innerText = "";
+      el.classList.remove("show");
     }
   });
-})();
+
+  const alertEls = document.querySelectorAll(".alert-danger");
+  alertEls.forEach(el => {
+    el.innerText = "";
+    el.classList.remove("show");
+  });
+}

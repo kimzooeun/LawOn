@@ -9,17 +9,15 @@
     .logout-btn { margin-top:20px; background:#fee500; border:none; padding:10px 20px; cursor:pointer; border-radius:5px; }
   </style>
 </head>
+
 <body>
   <div class="profile">
     <h2 id="welcome"></h2>
     <div class="profile">
-   <h2 id="welcome"></h2> 
-
-<div id="profile-details-container">
- </div>
-    
-    <button id="logoutBtn" class="logout-btn">로그아웃</button>   </div>
-  </div>
+    <h2 id="welcome"></h2> 
+<div id="profile-details-container"></div>
+<button id="logoutBtn" class="logout-btn">로그아웃</button>   </div>
+</div>
 
 <script type="module">
   import { TokenManager } from '/src/js/token.js';
@@ -27,23 +25,27 @@
 
   async function loadUserProfile() {
     try {
+      // tokenApi("/api/profile/me")
+      // const response = await tokenApi("/api/profile/me");
+      // console.log(response)
       const accessToken = TokenManager.getAccessToken();
+      console.log(accessToken)
       if (!accessToken) {
         window.location.href = "main.html";
         return;
       }
 
-      const response = await fetch("/api/profile/me", {
-        method: "GET",
-         headers: {
-            "Authorization": `Bearer ${accessToken}`,
-        },
-      });
+      // const response = await fetch("/api/profile/me", {
+      //   method: "GET",
+      //   headers: {
+      //       "Authorization": `Bearer ${accessToken}`,
+      //   },
+      // });
 
       if (!response.ok) {
         if (response.status === 401) {
-          TokenManager.clearTokens();
-          window.location.href = "main.html"; // 로그인 페이지로 리다이렉트
+          // TokenManager.clearTokens();
+          // window.location.href = "main.html"; // 로그인 페이지로 리다이렉트
           return;
         }
         throw new Error("유저 정보 요청 실패");

@@ -1,5 +1,7 @@
 package com.prinCipal.chatbot.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +34,8 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
 
     private static final String[] PERMIT_URL = {
+    		"/api/redis/test",      // Redis 관련 
+    		"/api/auth/login",  // 일반 로그인 
     		"/api/login", "/api/signup", "/api/refresh",  "/api/logout",
 		    "/oauth2/**",     // 소셜 로그인
 		    "/login/oauth2/code/**",  
@@ -44,11 +48,20 @@ public class SecurityConfig {
 		String[] cookiesToClear = {"JSESSIONID", "refreshToken"};
 		return http
 				.csrf((csrf) -> csrf.disable())
+	            .cors(cors -> cors.configurationSource(request -> {
+	                var config = new org.springframework.web.cors.CorsConfiguration();
+	                config.setAllowedOrigins(List.of("http://localhost:3000", "http://finalproject-frontend:3000")); // 프론트 주소
+	                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+	                config.setAllowCredentials(true);
+	                config.setAllowedHeaders(List.of("*"));
+	                config.setExposedHeaders(List.of("Authorization"));
+	                return config;
+	            }))
 				.httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
 	            .formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
 			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
 	            .sessionManagement(session -> session
-	                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 👈 필요할 때 세션을 사용
+	            	    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 	            .oauth2Login(oauth2 -> oauth2
 						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler)
@@ -72,11 +85,13 @@ public class SecurityConfig {
 	// 입력된 비밀번호와 데이터베이스에 저장된 비밀번호를 비교 (사용자 정보 로드와 비밀번호 검증 담당)
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(memberdetailService);
-		authProvider.setPasswordEncoder(passwordEncoder);
-		return authProvider;
+	    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+	    authProvider.setUserDetailsService(memberdetailService);
+	    authProvider.setPasswordEncoder(passwordEncoder);
+	    return authProvider;
 	}
 	
+
 	
 	// (인증 요청을 처리할 중심)
 	// AuthenticationManager는 여러 AuthenticationProvider를 사용하여 인증을 시도하는데 주로 DaoAuthenticationProvider를 사용
@@ -85,13 +100,14 @@ public class SecurityConfig {
 	    return authenticationConfiguration.getAuthenticationManager();
 	}
 	
+	// OAuth2에서 사용하는 jwt토큰 인증 필터
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, MemberService memberService) {
-	    return new JwtAuthenticationFilter(jwtTokenProvider, memberService);
+	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, MemberService memberService, BlackTokenRepository blackTokenRepository) {
+	    return new JwtAuthenticationFilter(jwtTokenProvider, memberService, blackTokenRepository);
 	}
 	
 	@Bean
-	public CustomAuthenticationFilter customAuthenticationFilter(AuthenticationManager authenticationManager, JwtAuthenticationSuccessHandler jwtSuccessHandler,JwtAuthenticationFailureHandler jwtFailureHandler) {
+	public CustomAuthenticationFilter customAuthenticationFilter(AuthenticationManager authenticationManager, LocalJwtAuthenticationSuccessHandler jwtSuccessHandler,LocalJwtAuthenticationFailureHandler jwtFailureHandler) {
 		CustomAuthenticationFilter filter = new CustomAuthenticationFilter(authenticationManager);
 		filter.setAuthenticationSuccessHandler(jwtSuccessHandler);  // 일반 로그인 성공시 JSON 응답 핸들러 
 		filter.setAuthenticationFailureHandler(jwtFailureHandler);  // 일반 로그인 실패시 JSON 에러 응답 핸들러 

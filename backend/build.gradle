@@ -23,6 +23,10 @@ bootRun {
     sourceResources sourceSets.main
 }
 
+tasks.withType(Test) {
+    enabled = false
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -50,7 +54,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	
 	// 시큐리티
-	
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	

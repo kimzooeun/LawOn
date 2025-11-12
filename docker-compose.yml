@@ -18,6 +18,10 @@ services:
       backend:
         condition: service_healthy   # 도커가 backend의 /actuator/health (Spring Boot 기본 헬스 체크) 에서
                                      # “OK” 응답을 받을 때까지 기다렸다가 frontend를 시작
+    develop:
+      watch:
+        - action: rebuild
+          path: package.json        
 
   backend:
     build: ./backend
@@ -35,7 +39,6 @@ services:
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
     command: ./gradlew bootRun --continuous --no-daemon  # 👈 수정
-
 
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
@@ -58,7 +61,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+          ignore:
+            - build/
+            - target/
+        - action: rebuild
+          path: ./backend/build.gradle
+        - action: rebuild
+          path: ./backend/settings.gradle
 
 
   fastapi:

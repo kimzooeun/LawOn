@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +44,6 @@ public class MemberApiController {
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
-		    
-		logger.info("SignupRequest 들어옴: {}", signUpRequest);
 			this.memberService.registerUser(signUpRequest);
 			return ResponseEntity.ok(Map.of("status", "success", "message", "회원가입 성공"));
 	}
@@ -61,16 +60,14 @@ public class MemberApiController {
 		}
 	}
 	
-	
-	
-	
-	
+
 	// 새로운 AccessToken 발급하기 위함 
 	@PostMapping("/refresh")
 	public ResponseEntity<TokenResponse> refresh(@CookieValue(name="refreshToken", required = false) String refreshToken, 
 												HttpServletResponse response){
 		if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new TokenResponse("fail", "RefreshToken이 없거나 만료됨", null));
 		}
 		
 		String newAccessToken = this.memberService.newAccessToken(refreshToken, response);
@@ -78,26 +75,25 @@ public class MemberApiController {
 	}
 	
 	
-	// Refresh Token을 서버 쿠키에서 삭제하는 방식
+	
+	
 	@PostMapping("/logout")
-	public HttpServletResponse deleteTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-        		.httpOnly(true)
-        		.secure(false)
-                .maxAge(0)
-                .sameSite("Lax") 
-                .path("/")
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-        return response;
-    }
+	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
+		try {
+			this.memberService.logout(request,response);
+			return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그아웃 실패: " + e.getMessage());
+		}
+	}
 	
 	
-	
-
-	
-	
-	
+	// 회원 탈퇴 
+	@PostMapping("/withdraw")
+	public ResponseEntity<?> withdraw(HttpServletRequest request, HttpServletResponse response){
+		this.memberService.withdraw(request,response);
+		return ResponseEntity.ok(Map.of("status", "success", "message", "회원탈퇴가 완료되었습니다."));
+		
+	}
 }
-
 

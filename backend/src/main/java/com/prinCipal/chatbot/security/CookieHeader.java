@@ -29,5 +29,17 @@ public class CookieHeader {
 		
 		response.addHeader("Set-Cookie", cookie.toString());   // 응답 헤더에 쿠키 추가 
 	}
+	
+	public void clearRefreshCookie(HttpServletResponse response) {
+		// 즉시 만료되는 쿠키를 설정
+		ResponseCookie expiredCookie = ResponseCookie.from("refreshToken", "")
+				.httpOnly(true)
+				.secure(false)
+				.path("/")
+				.maxAge(0)
+				.sameSite("Lax")
+				.build();
+		
+		response.addHeader("Set-Cookie", expiredCookie.toString());
+	}
 }
-

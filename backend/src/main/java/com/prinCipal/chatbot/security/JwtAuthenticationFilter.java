@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.prinCipal.chatbot.member.MemberService;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -26,19 +27,20 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
-	
-	private final JwtTokenProvider jwtTokenProvider;
 	public static final String AUTHORIZATION_HEADER = "Authorization";
 	public static final String BEARER_PREFIX = "Bearer ";
-	private final MemberService memberService;
 	private final AntPathMatcher pathMatcher = new AntPathMatcher();
+	
+	private final JwtTokenProvider jwtTokenProvider;
+	private final MemberService memberService;
+	private final BlackTokenRepository blackTokenRepository;
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
 	
 	// 공개 경로는 JWT 인증 스킵
 	// 인증이 필요없는 경로들
 	private static final String[] PERMIT_URL = {
-		    "/auth/signup", "/auth/login", "/auth/refresh", 
+		    "/auth/signup", "/auth/login", "/auth/refresh", "/api/auth/login",
 		    "/oauth2/","login/oauth2/",
 		    "/css/**", "/js/**", "/images/**", "/favicon.ico" // 정적 파일
 		};
@@ -62,10 +64,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		String jwt = resolveToken(request);
 	
 		if(StringUtils.hasText(jwt)) {
+			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(jwt);
+			// 블랙리스트에 있는지 확인
+			if(this.blackTokenRepository.isBlocked(claims.getId())) {
+				// 블랙리스트에 있다 => 로그아웃된 사용자
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  //  블랙리스트 차단 응답 401
+				response.setContentType("application/json;charset=UTF-8");
+				response.getWriter().write("{\"status\":\"fail\", \"message\":\"로그아웃된 토큰입니다.\"}");
+				return; 
+			}
+			
+			boolean isValid = this.jwtTokenProvider.validateToken(jwt);
+			System.out.println("✅ AccessToken 유효성 결과: " + isValid);
+
 			if(this.jwtTokenProvider.validateToken(jwt)) {
+				System.out.println("🟢 AccessToken 유효함 → 인증 세팅");
 				Authentication auth = this.jwtTokenProvider.getAuthentication(jwt);
 				SecurityContextHolder.getContext().setAuthentication(auth);
 			} else {
+				System.out.println("🟡 AccessToken 만료 → RefreshToken 검사 시작");
 				// Access Token 만료 → 쿠키에서 Refresh Token 확인
 				String refreshToken = null;
 				if(request.getCookies() != null) {   // HttpOnly 쿠키에서 토큰 확인
@@ -90,8 +107,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 				}
 			}
 		}
-		
-		filterChain.doFilter(request, response);
+		// 응답이 이미 커밋된 경우엔 다음 필터로 넘기지 않음
+		if(!response.isCommitted()) {
+			// 요청을 다음 Spring Security 내부 필터들로 항상 넘김
+			filterChain.doFilter(request, response);
+		}
 	}
 
 	
