@@ -12,24 +12,31 @@ SET FOREIGN_KEY_CHECKS=0;
 
 -- 사용자 정보 테이블
 CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    nickname VARCHAR(100) NOT NULL,
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nickname VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     user_role ENUM('USER', 'ADMIN') DEFAULT 'USER',
+    
+    -- ▼ [추가] 소셜 로그인용 컬럼 3개
+    social_provider VARCHAR(50) DEFAULT NULL,
+    social_id VARCHAR(255) DEFAULT NULL UNIQUE,
+    profile_image_url VARCHAR(255) DEFAULT NULL,
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 상담 세션 테이블
-CREATE TABLE counsellingSession (
-    session_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT DEFAULT NULL,
+CREATE TABLE counselling_session (
+    session_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT DEFAULT NULL,
     start_time  DATETIME NOT NULL,
     end_time DATETIME DEFAULT NULL,
     duration_sec INT GENERATED ALWAYS AS (TIMESTAMPDIFF(SECOND, start_time, end_time)) STORED, 
     completion_status ENUM('ONGOING', 'PAUSED', 'COMPLETED', 'TIMEOUT', 'CANCELLED') DEFAULT 'ONGOING' NOT NULL, 
     last_message_time DATETIME DEFAULT NULL,           
     -- 마지막 사용자 or 챗봇 메시지 시각 → 타임아웃 판단 가능
+    summary_title TEXT DEFAULT NULL,
     summary TEXT DEFAULT NULL,
     resume_token VARCHAR(100) DEFAULT NULL,                
     -- 재개용 토큰 (사용자가 이어서 대화할 때)
@@ -40,31 +47,14 @@ CREATE TABLE counsellingSession (
     -- LLM의 기억, 대화 요약, 감정 상태 같은 정보 JSON으로 저장 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL                           
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL                           
 );
 
-
--- 음성 상호작용 로그
-CREATE TABLE voiceInteraction (
-    interaction_id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT DEFAULT NULL,
-    user_id INT DEFAULT NULL,
-    voice_file_path VARCHAR(255),
-    transcript_text TEXT,
-    response_text TEXT,
-    start_time DATETIME NOT NULL,
-    end_time DATETIME,
-    duration_ms INT GENERATED ALWAYS AS (TIMESTAMPDIFF(MICROSECOND, start_time, end_time) / 1000) STORED,  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
-);
 
 -- 상담 콘텐츠
-CREATE TABLE counsellingContent (
-    content_id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT DEFAULT NULL,
+CREATE TABLE counselling_content (
+    content_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT DEFAULT NULL,
     sender ENUM('USER', 'BOT') NOT NULL,
     content TEXT NOT NULL,
     is_divorce BOOLEAN DEFAULT NULL,
@@ -73,45 +63,31 @@ CREATE TABLE counsellingContent (
     alert_triggered BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES counselling_session(session_id) ON DELETE CASCADE
 );
 
 
-
-
-
 -- 감정 분석 결과
-CREATE TABLE emotionAnalysis (
-    analysis_id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT DEFAULT NULL,
-    content_id INT DEFAULT NULL,
+CREATE TABLE emotion_analysis (
+    analysis_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT DEFAULT NULL,
+    content_id BIGINT DEFAULT NULL,
     emotion_label VARCHAR(50) NOT NULL,
     analysis_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     alert_triggered BOOLEAN DEFAULT FALSE,                        
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (content_id) REFERENCES CounsellingContent(content_id) ON DELETE CASCADE   
-);
-
-
-
-
-CREATE TABLE crisisTypeCode (
-    type_id INT AUTO_INCREMENT PRIMARY KEY,
-    type_code VARCHAR(50) NOT NULL UNIQUE,   -- 예: 'SUICIDAL', 'PANIC'
-    type_description VARCHAR(255) DEFAULT NULL,   -- 예: '자살 의도 감지'
-    is_active BOOLEAN DEFAULT TRUE
+    FOREIGN KEY (session_id) REFERENCES counselling_session(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (content_id) REFERENCES counselling_content(content_id) ON DELETE CASCADE   
 );
 
 
 -- 위기 알림 테이블
-CREATE TABLE crisisAlert (
-    alert_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT DEFAULT NULL, 
-    session_id INT DEFAULT NULL,                         
-    analysis_id INT DEFAULT NULL,    
-    type_id INT NOT NULL,
+CREATE TABLE crisis_alert (
+    alert_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT DEFAULT NULL, 
+    session_id BIGINT DEFAULT NULL,                         
+    analysis_id BIGINT DEFAULT NULL,    
     alert_severity ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL') DEFAULT 'LOW', 
     alert_status ENUM('PENDING', 'IN_REVIEW', 'ESCALATED', 'RESOLVED', 'CANCELLED') DEFAULT 'PENDING' NOT NULL,          
     auto_escalate BOOLEAN DEFAULT FALSE,                 
@@ -123,12 +99,16 @@ CREATE TABLE crisisAlert (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL,
-    FOREIGN KEY (session_id) REFERENCES CounsellingSession(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (analysis_id) REFERENCES EmotionAnalysis(analysis_id) ON DELETE CASCADE,
-    FOREIGN KEY (type_id) REFERENCES CrisisTypeCode(type_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
+    FOREIGN KEY (session_id) REFERENCES counselling_session(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (analysis_id) REFERENCES emotion_analysis(analysis_id) ON DELETE CASCADE
 );
+
 
 SET FOREIGN_KEY_CHECKS=1;
 
+
+-- 1번 테스트 사용자 추가
+INSERT INTO users (user_id, nickname, password, user_role) 
+VALUES (1, '테스트유저', '$2a$10$kEAO1hxQk3gPtXKBN6nsIOBKJC3aJGYAfZT4t5OcRlH1vtO0zgHLC', 'USER');
 

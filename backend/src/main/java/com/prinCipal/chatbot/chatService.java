@@ -1,43 +1,56 @@
 package com.prinCipal.chatbot;
 
-
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import com.prinCipal.chatbot.dto.ChatRequest;
-import com.prinCipal.chatbot.dto.ChatResponse;
+import com.prinCipal.chatbot.dto.ChatRequestDto;
+import com.prinCipal.chatbot.dto.ChatResponseDto;
+import com.prinCipal.chatbot.dto.FastApiRequestDto;
+import com.prinCipal.chatbot.dto.FastApiResponseDto;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import lombok.RequiredArgsConstructor;
 
 @Service
-public class chatService {
+@RequiredArgsConstructor
+public class ChatService {
 
-    private final ChatMessageLogRepository repo;
+    // 1. AppConfig에서 만든 RestTemplate을 주입받음
+    private final RestTemplate restTemplate;
 
-    public chatService(ChatMessageLogRepository repo) {
-        this.repo = repo;
-    }
+    // 2. FastAPI 엔드포인트 주소 (docker-compose의 서비스 이름 사용)
+    private final String FASTAPI_URL = "http://fastapi:8000/generate-response";
 
-    @Transactional
-    public ChatResponse handleChat(ChatRequest req) {
-        // 1) 사용자 메세지 저장
-        ChatMessageLog userMsg = new ChatMessageLog();
-        userMsg.setSessionId(req.sessionId());
-        userMsg.setUserId(req.userId());
-        userMsg.setSender(ChatMessageLog.Sender.USER);
-        userMsg.setMessageText(req.message());
-        repo.save(userMsg);
+	public ChatResponseDto getFastApiResponse(ChatRequestDto requestDto) {
+	        
+        // 1. 프론트에서 받은 메시지
+        String userMessage = requestDto.getUserMessage();
+        
+        // 2. FastAPI가 요구하는 DTO 형식으로 변환 ("query" 필드 사용)
+        FastApiRequestDto fastApiRequest = new FastApiRequestDto(userMessage);
 
-        // 2) (임시) 봇 응답 생성 — 실제론 FastAPI 호출/LLM 결과 등을 넣으면 됨
-        String botReply = "너가 말한 건: " + req.message();
+        // 3. Http 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        HttpEntity<FastApiRequestDto> entity = new HttpEntity<>(fastApiRequest, headers);
 
-        // 3) 봇 메세지 저장
-        ChatMessageLog botMsg = new ChatMessageLog();
-        botMsg.setSessionId(req.sessionId());
-        botMsg.setUserId(req.userId());
-        botMsg.setSender(ChatMessageLog.Sender.BOT);
-        botMsg.setMessageText(botReply);
-        repo.save(botMsg);
+        // 4. (중요) RestTemplate으로 FastAPI에 POST 요청
+        FastApiResponseDto fastApiResponse = restTemplate.postForObject(
+            FASTAPI_URL, 
+            entity, 
+            FastApiResponseDto.class
+        );
 
-        return new ChatResponse(botReply);
-    }
+        // 5. FastAPI로부터 받은 응답("final_response")을 추출
+        String botAnswer = "오류가 발생했습니다."; // 기본값
+        if (fastApiResponse != null && fastApiResponse.getFinal_response() != null) {
+            botAnswer = fastApiResponse.getFinal_response();
+        }
+
+        // 6. 프론트엔드(chat.js)가 요구하는 DTO("text" 필드)로 변환하여 반환
+        return new ChatResponseDto(botAnswer);
+        }
 }
-
