@@ -23,7 +23,7 @@ export const TokenManager = (() => {
 
 	const clearTokens = () => {
 		localStorage.removeItem(ACCESS_KEY);
-	    sessionStorage.removeItem(ACCESS_KEY);
+	  sessionStorage.removeItem(ACCESS_KEY);
 	};
 	
 
@@ -86,6 +86,5 @@ export const TokenManager = (() => {
 			toast.classList.remove("show");
 		}, 1000);
 	}
-
 	return {getAccessToken, setTokens, updateAccessToken, clearTokens};
 }) ();

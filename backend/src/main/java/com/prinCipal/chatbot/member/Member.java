@@ -19,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
@@ -66,7 +67,7 @@ public class Member {
 		this.nickname = nickname;
 		this.password = password;
 		this.role = role; 
-		this.socialProvider = socialProvider;
+		this.socialProvider = (socialProvider != null) ? socialProvider : "local";
 		this.socialId = socialId;
 		this.profileImageUrl = profileImageUrl;
 	}
@@ -82,7 +83,12 @@ public class Member {
 	@Column
 	private String profileImageUrl;  // 프로필 이미지 url
 	
-	
+//	@PrePersist
+//	public void prePersist() {
+//	    if (this.socialProvider == null) {
+//	        this.socialProvider = "LOCAL";
+//	    }
+//	}
 	
     // 소셜 로그인 시 기존 회원 정보 업데이트
     // 구글쪽 이미지랑 연관시키고 싶으면 필요한 업데이트 메소드 
@@ -95,10 +101,4 @@ public class Member {
         }
     	this.updatedAt = LocalDateTime.now();
     }
-
-
-
-
-	
-	
 }

@@ -80,6 +80,7 @@ public class MemberApiController {
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
 		try {
+			System.out.println();
 			this.memberService.logout(request,response);
 			return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
 		} catch (Exception e) {

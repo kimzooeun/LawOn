@@ -5,9 +5,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -15,13 +18,14 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.prinCipal.chatbot.member.Member;
+import com.prinCipal.chatbot.security.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
 public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>{
-	
+	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	// OAuth2Userservice : 소셜 로그인 구현시 사용자 정보를 가져오고 처리하는 핵심 인터페이스 
 	// 파라미터를 2개를 받는 것을 무조건 원칙으로 함 
 	
@@ -30,6 +34,11 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 	// 				-> 사용자의 이름, 이메일 등의 속성들을 포함
 	
 	private final SocialUserService socialUserService;
+	
+	
+	// OAuth2 로그인 시 OAuth2AuthorizedClient를 통해 accessToken을 관리함
+	private final OAuth2AuthorizedClientService authorizedClientService;
+	
 	
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -50,11 +59,8 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 		// Naver : "response" 
 		
 		
-		String accessToken = userRequest.getAccessToken().getTokenValue();
-
-		
 		// 소셜 사용자 정보 통합 처리
-		SocialUserInfo socialUserinfo = SocialUserInfoFactory.getSocialUserInfo(registId, oauth2User.getAttributes(), accessToken);
+		SocialUserInfo socialUserinfo = SocialUserInfoFactory.getSocialUserInfo(registId, oauth2User.getAttributes());
 		
 		// 회원 정보 저장 or 업데이트
 		Member member = this.socialUserService.saveOrUpdateSocialMember(socialUserinfo, registId);
@@ -63,8 +69,10 @@ public class CutomOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 													.map(role -> new SimpleGrantedAuthority(role.getAuthority()))
 													.collect(Collectors.toSet());
 		
+		String social_accessToken = userRequest.getAccessToken().getTokenValue();
+
 		// CustomOAuth2User 객체를 생성한 후 리턴
-		return new CustomOAuth2User(member, oauth2User.getAttributes(), userNameAttributeName, authorities);
+		return new CustomOAuth2User(member, oauth2User.getAttributes(), userNameAttributeName, authorities,social_accessToken);
 	}
 
 }
