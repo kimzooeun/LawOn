@@ -19,8 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 @RequestMapping("/api")
@@ -30,19 +28,14 @@ public class MemberApiController {
 
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
-	private static final Logger logger = LoggerFactory.getLogger(MemberApiController.class);
 	 
 	
 	@PostMapping("/login")
-	public ResponseEntity<LoginResponseDto> loginUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response){
-		
-		// ⬇️ [수정 2] String이 아닌 LoginResponseDto 객체로 받습니다.
-		LoginResponseDto loginResponse = this.memberService.loginUser(loginRequest, response);
-		
-		// ⬇️ [수정 3] new TokenResponse(...) 대신, 서비스에서 받은 객체를 그대로 반환합니다.
-		// (이 객체 안에는 accessToken, userId, nickname이 모두 포함되어 있습니다.)
-		return ResponseEntity.ok(loginResponse);
-	}
+	   public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,HttpServletResponse response){
+	      String accessToken = this.memberService.loginUser(loginRequest, response);
+	      return ResponseEntity.ok(new TokenResponse("success", "로그인 성공", accessToken));
+
+	   }
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){

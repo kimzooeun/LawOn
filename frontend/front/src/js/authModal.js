@@ -144,6 +144,8 @@ document
         if (resData.userId && resData.nickname) {
           localStorage.setItem(USER_ID_KEY, resData.userId);
           localStorage.setItem(NICK_KEY, resData.nickname);
+          console.log("로그인 성공: ", resData.nickname);
+          console.log("userId:", resData.userId);
         } else {
           // 백엔드 응답에 userId나 nickname이 없는 경우 경고
           console.warn(

@@ -63,6 +63,7 @@ public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSucce
         // 토큰과 사용자 정보를 JSON Body에 담아 전송
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("accessToken", accessToken);
+        responseBody.put("nickname", customUser.getMember().getUserId());
         responseBody.put("nickname", customUser.getMember().getNickname());
         responseBody.put("provider", customUser.getMember().getSocialProvider()); // local인지 kakao인지 등
         
