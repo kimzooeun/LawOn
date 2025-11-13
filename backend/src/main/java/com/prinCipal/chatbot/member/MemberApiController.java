@@ -33,14 +33,7 @@ public class MemberApiController {
 	private final JwtTokenProvider jwtTokenProvider;
 	private static final Logger logger = LoggerFactory.getLogger(MemberApiController.class);
 	 
-	
-	@PostMapping("/login")
-	public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,HttpServletResponse response){
-		String accessToken = this.memberService.loginUser(loginRequest, response);
-		return ResponseEntity.ok(new TokenResponse("success", "로그인 성공", accessToken));
 
-	}
-	
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){

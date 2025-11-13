@@ -16,6 +16,15 @@ const customBtn = document.getElementById('btnCustom');
 if (customBtn) {
   customBtn.addEventListener('click', (e) => {
     e.preventDefault();
+    const accessToken = TokenManager.getAccessToken();
+    if(accessToken){
+      document.body.classList.add("fade-out");
+      setTimeout(() => {
+      window.location.href = "/chat.html";
+      }, 500);
+      return;
+    }
+    // 비로그인 상태 
     openAuthModal();
   });
 }

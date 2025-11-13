@@ -29,8 +29,8 @@ export const TokenManager = (() => {
 
 
 	document.addEventListener("DOMContentLoaded", () => {
-		updateButtonVisibility();    // 페이지 로드 시 버튼 상태 초기화 
-		
+		updateButtonVisibility();    // 페이지 로드 시 버튼 상태 초기화
+	
 		const logoutBtn = document.getElementById("logoutBtn");
 		if(logoutBtn){
 			logoutBtn.addEventListener("click", async() =>{

@@ -47,25 +47,30 @@
   <script type="module" src="/src/js/tokenApi.js"></script>
   <script type="module">
     import { TokenManager } from '/src/js/token.js';
-    const params = new URLSearchParams(window.location.search)
-    const accessToken = params.get("token");
-    const nickname = params.get("nickname");
-    const provider = params.get("provider");
+    window.addEventListener('DOMContentLoaded',() =>{
+      const params = new URLSearchParams(window.location.search)
+      const accessToken = params.get("token");
+      const nickname = params.get("nickname");
+      const provider = params.get("provider");
 
-    if(accessToken){
+      if(accessToken){
       console.log("✅ OAuth2 로그인 완료:", { nickname, provider });
       TokenManager.setTokens(accessToken, false);
       showToast(`${nickname}님 환영합니다! (${provider} 로그인)`);
+  
       setTimeout(() => {
-        window.location.href = '/chat';
+        window.location.replace('chat.html'); // 히스토리에서 제거하고 이동
       }, 700);
-    } else {
-      console.error("로그인 토큰이 전달되지 않았습니다.");
-      showToast("로그인 중 오류가 발생했습니다.");
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
-    }
+      } else{
+        console.error("로그인 토큰이 전달되지 않았습니다.");
+        showToast("로그인 중 오류가 발생했습니다.");
+    
+        setTimeout(() => {
+          window.location.replace('/');   
+        }, 500);
+      }
+    });
+  
 
   function showToast(message) {
     const toast = document.getElementById("auth-toast");

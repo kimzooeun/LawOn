@@ -19,7 +19,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,7 +34,11 @@ public class Member {
 	private Long userId;
 	
 	@Column(nullable=false, unique =true)
-	private String nickname;
+	private String nickname;     // 내부 unique 닉네임
+	
+	
+	@Column(nullable=false)
+	private String displayName; // 화면에서 보여줄 닉네임(중복 됨) 
 	
 	
 	@Column(nullable=false)
@@ -62,9 +65,10 @@ public class Member {
 	private List<CrisisAlert> crisisAlerts = new ArrayList<>();
 	
 	@Builder
-	public Member(String nickname, String password, UserRole role, String socialProvider, 
+	public Member(String nickname, String displayName, String password, UserRole role, String socialProvider, 
 			String socialId, String profileImageUrl) {
 		this.nickname = nickname;
+		this.displayName = displayName;
 		this.password = password;
 		this.role = role; 
 		this.socialProvider = (socialProvider != null) ? socialProvider : "local";
@@ -83,18 +87,12 @@ public class Member {
 	@Column
 	private String profileImageUrl;  // 프로필 이미지 url
 	
-//	@PrePersist
-//	public void prePersist() {
-//	    if (this.socialProvider == null) {
-//	        this.socialProvider = "LOCAL";
-//	    }
-//	}
 	
     // 소셜 로그인 시 기존 회원 정보 업데이트
     // 구글쪽 이미지랑 연관시키고 싶으면 필요한 업데이트 메소드 
-    public void updateSocialInfo(String newNickname, String newProfileImageUrl) {
-    	if (newNickname != null && !newNickname.isBlank()) {
-            this.nickname = newNickname; // optional (닉네임 동기화 원하면)
+    public void updateSocialInfo(String newDisplayName, String newProfileImageUrl) {
+    	if (newDisplayName != null && !newDisplayName.isBlank()) {
+            this.displayName = newDisplayName; 
         }
     	if (newProfileImageUrl != null && !newProfileImageUrl.isBlank()) {
             this.profileImageUrl = newProfileImageUrl;

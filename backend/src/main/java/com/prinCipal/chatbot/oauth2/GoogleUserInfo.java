@@ -11,21 +11,27 @@ public class GoogleUserInfo implements SocialUserInfo {
 
 	@Override
 	public String getId() {
+		// 구글 고유 ID
 		return (String) attributes.get("sub");
 	}
 
 	@Override
 	public String getName() {
-		return (String) attributes.get("sub");
+		// 사용자닉네임
+		String nickname = (String) attributes.get("name");
+		if(nickname ==null) {
+			nickname = (String) attributes.get("given_name");
+		}
+		return nickname;
 	}
 
 	@Override
 	public String getEmail() {
-		return (String) attributes.get("sub");
+		return (String) attributes.get("email");
 	}
 
 	@Override
 	public String getProfileImageUrl() {
-		return (String) attributes.get("sub");
+		return (String) attributes.get("picture");
 	}
 }

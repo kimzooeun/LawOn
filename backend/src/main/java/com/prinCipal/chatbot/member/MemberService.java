@@ -74,6 +74,7 @@ public class MemberService{
 		if(signUpRequest.getNickname().equals("admin")) {
 			Member member = Member.builder()
 			            .nickname(signUpRequest.getNickname())
+			            .displayName(signUpRequest.getNickname())
 			            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 			            .role(UserRole.ADMIN)
 			            .build();
@@ -82,6 +83,7 @@ public class MemberService{
 		else {
 			Member member = Member.builder()
 		            .nickname(signUpRequest.getNickname())
+		            .displayName(signUpRequest.getNickname())
 		            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 		            .socialProvider("local")
 		            .role(UserRole.USER)
@@ -92,29 +94,7 @@ public class MemberService{
 	}
 
 
-	public String loginUser(LoginRequest loginRequest, HttpServletResponse response) {
-		Member member = this.memberRepository.findByNickname(loginRequest.getNickname())
-						.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
-		
-		if(!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-			throw new LoginFailedException("비밀번호가 일치하지 않습니다.");
-		}
-		
-		Authentication authentication  = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(
-						loginRequest.getNickname(), loginRequest.getPassword()
-				)
-			);
-		
-		String accessToken = this.jwtTokenProvider.generateAccessToken(authentication);
-		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication);
-		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
-	
-		return accessToken;
-		
-	}
-	
-	
+
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
@@ -217,7 +197,8 @@ public class MemberService{
 		try {
 			switch(provider.toLowerCase()) {
 			case "kakao" : {
-				String kakaoAccessToken = socialTokenService.refreshKakaoAccessToken(auth);
+				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
+				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
 
 				WebClient.create("https://kapi.kakao.com/v1/user/logout")
 						 .post()

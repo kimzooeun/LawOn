@@ -66,7 +66,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // 🔹 Redirect URL 구성
         String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
-        String encodedNickname = URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
+        String encodedNickname = URLEncoder.encode(member.getDisplayName(), StandardCharsets.UTF_8);
         String encodedProvider = URLEncoder.encode(member.getSocialProvider(), StandardCharsets.UTF_8);
 
         String targetUrl = String.format(
@@ -76,9 +76,9 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 encodedNickname,
                 encodedProvider
         );
+
         
         
-        System.out.println("OAuth2 로그인 성공 후 리다이렉트 : " + targetUrl);
         response.sendRedirect(targetUrl);
 
 	}

@@ -9,10 +9,10 @@ const originalFetch = window.fetch;
 const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
 
 window.fetch = async(url, options = {}) => {
-	const isSkipAuth = skipAuth.some(path => url.includes(path));
+	const isSkipAuth = skipAuth.some((path) => url.includes(path));
 	let accessToken = TokenManager.getAccessToken();
 	options = { ...options };  // 기존 options 객체를 복사해서 새 객체를 만드는 부분
-	options.headers =  options.headers || {};    // 안전하게 헤더를 추가할 수 있도록 하는 준비 코드
+	options.headers = options.headers ? { ...options.headers } : {};    // 안전하게 헤더를 추가할 수 있도록 하는 준비 코드
 
 	// body가 존재하고, Content-Type이 명시되지 않았다면 자동으로 JSON 지정
 	if(options.body && !options.headers['Content-Type']){
@@ -26,7 +26,7 @@ window.fetch = async(url, options = {}) => {
 	options.credentials = "include";  // refreshToken 쿠키 자동 전송
 
 	let res = await originalFetch(url, options);
-	console.log('📡 첫 요청 결과:', res.status);
+
 
 
 	// 백엔드에서 새 AccessToken이 헤더에 왔는지 확인 
@@ -57,21 +57,22 @@ window.fetch = async(url, options = {}) => {
 		const newTokens = await refreshRes.json();
 		const newAccessToken = newTokens.accessToken || newTokens.data?.accessToken;
 
-		if (newAccessToken) {
-			TokenManager.updateAccessToken(newAccessToken);
-			// 새 토큰으로 재요청
-			options.headers = {
-				...options.headers,
-				Authorization:`Bearer ${newAccessToken}`,
-			};
-			res = await originalFetch(url, options);
-			console.log('🔁 새 토큰으로 재요청 결과:', res.status);
-		} else {
+		if(!newAccessToken){
 			TokenManager.clearTokens();
 			alert("세션이 만료되었습니다. 다시 로그인해주세요.");
 			window.location.href = "/";
 			throw new Error("새 AccessToken 발급 실패");
 		}
+		
+		TokenManager.updateAccessToken(newAccessToken);
+		// 새 토큰으로 재요청
+		options.headers = {
+			...options.headers,
+			Authorization:`Bearer ${newAccessToken}`,
+		};
+		res = await originalFetch(url, options);
+		console.log('🔁 새 토큰으로 재요청 결과:', res.status);
+		
 	}
 
 
