@@ -7,6 +7,8 @@ import com.prinCipal.chatbot.dto.ChatResponseDto;
 import com.prinCipal.chatbot.dto.SessionCreationRequestDto;
 import com.prinCipal.chatbot.member.Member;
 import com.prinCipal.chatbot.member.MemberRepository;
+import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Collections;
 
-import org.slf4j.Logger; // 👈 로그 Import 추가
-import org.slf4j.LoggerFactory; // 👈 로그 Import 추가
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api")
@@ -24,30 +25,31 @@ public class SessionController {
     
     private final SessionService sessionService;
     private final MemberRepository memberRepository;
-    
-    private static final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
     /**
      * 1. 초기 데이터 로드 (GET /api/chats)
      */
     @GetMapping("/chats")
-    public ResponseEntity<?> getInitialData() {
+    public ResponseEntity<?> getInitialData(@AuthenticationPrincipal CustomOAuth2User customUser) {
         
-        // 1. Spring Security 컨텍스트에서 현재 인증된 사용자의 닉네임(username)을 가져옵니다.
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String nickname = authentication.getName(); 
-        
-        // 2. 닉네임으로 Member 엔티티를 조회합니다.
-        Member member = memberRepository.findByNickname(nickname)
-                .orElseThrow(() -> new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다."));
+//        // 1. Spring Security 컨텍스트에서 현재 인증된 사용자의 닉네임(username)을 가져옵니다.
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String nickname = authentication.getName(); 
+//        
+//        // 2. 닉네임으로 Member 엔티티를 조회합니다.
+//        Member member = memberRepository.findByNickname(nickname)
+//                .orElseThrow(() -> new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다."));
+//
+//        // 3. [수정] SessionService의 새 메서드를 호출하여 실제 데이터를 가져옵니다.
+//        //    (SessionService에 이 메서드를 새로 추가해야 합니다.)
+//        Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
+    	
+    	Member member = customUser.getMember(); 
 
-        // 3. [수정] SessionService의 새 메서드를 호출하여 실제 데이터를 가져옵니다.
-        //    (SessionService에 이 메서드를 새로 추가해야 합니다.)
         Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
         
-        logger.info("✅ GET /api/chats: 사용자 '{}'에게 초기 데이터 반환", nickname);
-        
         return ResponseEntity.ok(initialData);
+       
     }
     
     /**

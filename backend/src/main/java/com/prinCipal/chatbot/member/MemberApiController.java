@@ -28,14 +28,6 @@ public class MemberApiController {
 
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
-	 
-	
-	@PostMapping("/login")
-	   public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,HttpServletResponse response){
-	      String accessToken = this.memberService.loginUser(loginRequest, response);
-	      return ResponseEntity.ok(new TokenResponse("success", "로그인 성공", accessToken));
-
-	   }
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
