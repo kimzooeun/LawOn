@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.prinCipal.chatbot.dto.UpdateProfileRequestDto;
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
@@ -281,6 +282,27 @@ public class MemberService{
 		this.cookieHeader.clearRefreshCookie(response);
 	}
 
+
+	/** 닉네임 변경!!!!!!!!!!!!!!!!!
+	 사용자의 프로필 표시 이름(displayName)을 변경.
+	 이 로직은 로컬/소셜 로그인 사용자 모두에게 동일하게 적용.
+	 @param customOAuth2User 현재 인증된 사용자 정보
+	 @param requestDto       변경할 이름이 담긴 DTO
+	 @return 변경된 프로필 정보
+	 */
+	@Transactional
+	public MemberProfileDto updateDisplayName(CustomOAuth2User customOAuth2User, UpdateProfileRequestDto requestDto) {
+		
+		//현재 인증된 사용자 정보에서 member 객체를 가져옴
+		Member member = customOAuth2User.getMember();
+		
+		//member 엔티티의 updateDisplayName 메소드를 호출하여 변경
+		member.updateDisplayName(requestDto.getNewDisplayName());
+
+		return new MemberProfileDto(member);
+		
+		
+	}
 	
 	public MemberProfileDto getUserProfile(String nickname) {
 	    Member member = this.memberRepository.findByNickname(nickname)
@@ -288,6 +310,8 @@ public class MemberService{
 	    return new MemberProfileDto(member);
 	}
 
+	
+	
 	
 
 }

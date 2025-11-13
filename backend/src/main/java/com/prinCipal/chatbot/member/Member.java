@@ -99,4 +99,21 @@ public class Member {
         }
     	this.updatedAt = LocalDateTime.now();
     }
+    
+    // displayName 변경
+    public void updateDisplayName(String newDisplayName) {
+    	if(newDisplayName != null && !newDisplayName.isBlank()) {
+    		this.displayName = newDisplayName;
+    		this.updatedAt = LocalDateTime.now();
+    	}
+    	
+    }
+    
+    
+    
+    
+    
+    
+    
+    
 }

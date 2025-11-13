@@ -3,6 +3,7 @@ package com.prinCipal.chatbot.member;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.prinCipal.chatbot.dto.UpdateProfileRequestDto;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
@@ -89,5 +91,38 @@ public class MemberApiController {
 		return ResponseEntity.ok(Map.of("status", "success", "message", "회원탈퇴가 완료되었습니다."));
 		
 	}
+	
+	//displayname 변경
+	@PostMapping("/profile/update-name")
+	public ResponseEntity<?> updateProfileName(
+			@AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+			@Valid @RequestBody UpdateProfileRequestDto requestDto){
+		
+		if(customOAuth2User == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		try {
+			MemberProfileDto updatedProfile = memberService.updateDisplayName(customOAuth2User, requestDto);
+			
+			return ResponseEntity.ok(Map.of(
+					"status","success",
+					"message","displayname이 성공적으로 변경되었습니다.",
+					"profile", updatedProfile
+					));
+			
+		}catch(Exception e) {
+			logger.error("닉네임 변경 중 오류 발생", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of("message", "이름 변경 중 서버 오류가 발생했습니다."));
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
 }
 
