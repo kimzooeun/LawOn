@@ -29,3 +29,5 @@ venv/
 
 # ---- Docker ---- Docker가 만드는 임시 pid 파일도 제외
 *.pid
+
+fastapi/models/
