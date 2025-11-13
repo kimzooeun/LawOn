@@ -13,8 +13,14 @@ SET FOREIGN_KEY_CHECKS=0;
 -- 사용자 정보 테이블
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    nickname VARCHAR(100) NOT NULL,
+    nickname VARCHAR(100) NOT NULL UNIQUE,
+    display_name VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
+
+    profile_image_url VARCHAR(500),
+    social_provider VARCHAR(50),
+    social_id VARCHAR(100) UNIQUE,
+    
     user_role ENUM('USER', 'ADMIN') DEFAULT 'USER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

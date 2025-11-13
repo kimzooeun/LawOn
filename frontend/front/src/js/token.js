@@ -23,14 +23,14 @@ export const TokenManager = (() => {
 
 	const clearTokens = () => {
 		localStorage.removeItem(ACCESS_KEY);
-	    sessionStorage.removeItem(ACCESS_KEY);
+	  sessionStorage.removeItem(ACCESS_KEY);
 	};
 	
 
 
 	document.addEventListener("DOMContentLoaded", () => {
-		updateButtonVisibility();    // 페이지 로드 시 버튼 상태 초기화 
-		
+		updateButtonVisibility();    // 페이지 로드 시 버튼 상태 초기화
+	
 		const logoutBtn = document.getElementById("logoutBtn");
 		if(logoutBtn){
 			logoutBtn.addEventListener("click", async() =>{
@@ -86,6 +86,5 @@ export const TokenManager = (() => {
 			toast.classList.remove("show");
 		}, 1000);
 	}
-
 	return {getAccessToken, setTokens, updateAccessToken, clearTokens};
 }) ();

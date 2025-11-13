@@ -18,6 +18,7 @@ public class CustomOAuth2User implements OAuth2User, UserDetails{
 	private final Map<String, Object> attributes;
 	private final String nameAttributeKey;
 	private final Collection<? extends GrantedAuthority> authorities;
+	private String social_accessToken;   // 소셜 로그인용 토큰 (일반 로그인은 null)
 	
 	@Override
 	public Map<String, Object> getAttributes() {
@@ -56,6 +57,9 @@ public class CustomOAuth2User implements OAuth2User, UserDetails{
 	public String getUsername() {
 		return member.getNickname();
 	}
-
+	
+	public String getSocial_accessToken() {
+		return social_accessToken;
+	}
 
 }

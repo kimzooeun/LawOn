@@ -1,6 +1,5 @@
 package com.prinCipal.chatbot.oauth2;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,20 +34,20 @@ public class SocialUserService {
 		Optional<Member> existingUserOpt = this.memberRepository.findBySocialId(socialId);
 		
 		if(existingUserOpt.isPresent()) {
-			// 기존 회원 정보 업데이트 (닉네임은 유지)
+			// 기존 회원 정보 업데이트
 			Member existingUser = existingUserOpt.get();
 			existingUser.updateSocialInfo(
-	            socialUserInfo.getName(),             // 새 닉네임 (optional)
+	            socialUserInfo.getName(),
 	            socialUserInfo.getProfileImageUrl()   // 새 프로필 이미지
 	        );
 	        return this.memberRepository.save(existingUser);
 		} else {
 			Member newMember = Member.builder()
-				// 카카오 닉네임이 중복될 수 있기 때문에, 이메일 기반으로 유니크한 닉네임을 자동 생성하기 위한 설계
+				// 닉네임이 중복될 수 있기 때문에, 이메일 기반으로 유니크한 닉네임을 자동 생성하기 위한 설계
                 .nickname(generateUniqueNickname(socialUserInfo.getEmail()))
+                .displayName(socialUserInfo.getName())
                 // 실제로 후에 , 이메일을 받게된다면 
                 // email(socialUserInfo.getEmail() != null ? socialUserInfo.getEmail() : generateTempEmail(socialUserInfo.getName()));
-                // .nickname(socialUserInfo.getName())
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .role(UserRole.USER)
                 .socialProvider(provider)

@@ -17,7 +17,7 @@
     }
     .loader {
       border: 6px solid #f3f3f3;
-      border-top: 6px solid #ffd600; /* 카카오 컬러 느낌 */
+      border-top: 6px solid #ffd600; 
       border-radius: 50%;
       width: 60px;
       height: 60px;
@@ -40,43 +40,47 @@
 </head>
 <body>
   <div class="loader"></div>
-  <h2>카카오 로그인 처리 중...</h2>
+  <h2>로그인 처리 중...</h2>
   <p>잠시만 기다려주세요 😊</p>
+  <div class="auth-toast" id="auth-toast"></div>
 
+  <script type="module" src="/src/js/tokenApi.js"></script>
   <script type="module">
-	import { TokenManager } from '/src/js/token.js';
+    import { TokenManager } from '/src/js/token.js';
+    window.addEventListener('DOMContentLoaded',() =>{
+      const params = new URLSearchParams(window.location.search)
+      const accessToken = params.get("token");
+      const nickname = params.get("nickname");
+      const provider = params.get("provider");
+
+      if(accessToken){
+      console.log("✅ OAuth2 로그인 완료:", { nickname, provider });
+      TokenManager.setTokens(accessToken, false);
+      showToast(`${nickname}님 환영합니다! (${provider} 로그인)`);
   
-  async function handleOAuth2Login() {
-  try {
-    // URL 파라미터에서 accessToken 직접 가져오기
-    const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get("token");
-    const nickname = params.get("nickname");
-    const provider = params.get("provider");
-
-    if (!accessToken) {
-      console.error("토큰이 전달되지 않았습니다.");
-      window.location.replace('/main'); // 로그인 페이지로 복귀
-      return;
-    }
-
+      setTimeout(() => {
+        window.location.replace('chat.html'); // 히스토리에서 제거하고 이동
+      }, 700);
+      } else{
+        console.error("로그인 토큰이 전달되지 않았습니다.");
+        showToast("로그인 중 오류가 발생했습니다.");
     
-    TokenManager.setTokens(accessToken,false);
-    console.log("OAuth2 로그인 성공, 토큰 저장 완료!");
+        setTimeout(() => {
+          window.location.replace('/');   
+        }, 500);
+      }
+    });
+  
 
-    const homeUrl = `/home.html?nickname=${encodeURIComponent(nickname)}`;
-    window.location.replace(homeUrl);
+  function showToast(message) {
+    const toast = document.getElementById("auth-toast");
+    toast.innerHTML = message;
+    toast.classList.add("show");
 
-  } catch (err) {
-    console.error('OAuth2 처리 중 오류 발생:', err);
-    window.location.replace('/main');
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 1000);
   }
-}
-
-// 실행
-handleOAuth2Login();
-</script>
-
-
+  </script>
 </body>
 </html>

@@ -33,7 +33,7 @@ public class MemberDetailService implements UserDetailsService{
 	
 		Collection<GrantedAuthority> authorities = getAuthorities(member);
 
-		return new CustomOAuth2User(member,Map.of("name",member.getNickname()),"name", authorities);		
+		return new CustomOAuth2User(member,Map.of("name",member.getNickname()),"name", authorities, null);		
 	}
 
 	// 사용자 권한 목록 생성

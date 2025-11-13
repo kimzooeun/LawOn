@@ -2,19 +2,12 @@ package com.prinCipal.chatbot.oauth2;
 
 import java.util.Map;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class KaKaoUserInfo implements SocialUserInfo {
 
 	private final Map<String, Object> attributes;
-	private final String accessToken;
 	
 	
 	@Override
