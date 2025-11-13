@@ -54,6 +54,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	
 	
 		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+		Long encodedUserid = member.getUserId();
 		String encodedNickname = URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
 		String encodedProvider = URLEncoder.encode(member.getSocialProvider(), StandardCharsets.UTF_8);
 		
@@ -62,6 +63,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            "%s/oauth2_success.html?token=%s&nickname=%s&provider=%s",
 	            frontendUrl,  // http://localhost:3000
 	            encodedAccessToken, 
+	            encodedUserid,
 	            encodedNickname, 
 	            encodedProvider
 	        );

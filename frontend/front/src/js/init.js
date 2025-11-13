@@ -17,12 +17,7 @@ import {
   loadInitialData,
 } from "./utils.js";
 
-import {
-  archiveCurrent,
-  createNewSession,
-  handleSend,
-  renderChat,
-} from "./chat.js";
+import { archiveCurrent, handleSend, renderChat } from "./chat.js";
 
 import { initMypageListeners } from "./mypage.js";
 import { bindMic } from "./stt.js";
@@ -195,7 +190,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {
       archiveCurrent();
-      createNewSession();
+
+      state.currentId = null; // 1. 현재 ID를 null로 설정
+      renderChat(); // 2. 빈 채팅 화면을 그림 (DB 호출 없음)
+
       showPage(chatArea);
     });
 

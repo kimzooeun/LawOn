@@ -4,7 +4,7 @@
 // ===================================
 
 import { getInitialData } from "./api.js";
-import { createNewSession, renderChat } from "./chat.js";
+import { renderChat } from "./chat.js";
 
 export const STORE_KEY = "todak_chats_v1";
 export const STT_ENDPOINT = "/stt";
@@ -48,8 +48,6 @@ export async function loadInitialData() {
     // 3. 데이터 로드가 완료된 후 채팅방 렌더링
     if (!state.currentId && state.recents.length > 0) {
       state.currentId = state.recents[0].id;
-    } else if (!state.currentId) {
-      createNewSession(); // loadStore가 아닌 createNewSession이 state.currentId를 만듦
     }
     renderChat(); // init.js에서 호출하던 것을 여기로 이동
   }
