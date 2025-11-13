@@ -105,7 +105,7 @@ public class CounsellingSession {
 	 private List<CrisisAlert> crisisAlerts = new ArrayList<>();
 	 
 	 @Builder
-	 public CounsellingSession(Member member, LocalDateTime startTime, CompletionStatus completionStatus,String summary,String resumeToken,String contextSnapshot) {
+	 public CounsellingSession(Member member, LocalDateTime startTime, CompletionStatus completionStatus, String summary,String resumeToken,String contextSnapshot) {
 		 this.member = member;
 		 this.startTime = startTime;
 		 this.completionStatus = completionStatus;

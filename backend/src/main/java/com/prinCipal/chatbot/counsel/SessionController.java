@@ -1,7 +1,18 @@
 package com.prinCipal.chatbot.counsel;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.prinCipal.chatbot.dto.ChatRequestDto;
 import com.prinCipal.chatbot.dto.ChatResponseDto;
 import com.prinCipal.chatbot.dto.SessionCreationRequestDto;
@@ -10,13 +21,6 @@ import com.prinCipal.chatbot.member.MemberRepository;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-import java.util.Collections;
-
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequestMapping("/api")
@@ -31,18 +35,14 @@ public class SessionController {
      */
     @GetMapping("/chats")
     public ResponseEntity<?> getInitialData(@AuthenticationPrincipal CustomOAuth2User customUser) {
-        
-//        // 1. Spring Security 컨텍스트에서 현재 인증된 사용자의 닉네임(username)을 가져옵니다.
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String nickname = authentication.getName(); 
-//        
-//        // 2. 닉네임으로 Member 엔티티를 조회합니다.
-//        Member member = memberRepository.findByNickname(nickname)
-//                .orElseThrow(() -> new RuntimeException("인증된 사용자 정보를 찾을 수 없습니다."));
-//
-//        // 3. [수정] SessionService의 새 메서드를 호출하여 실제 데이터를 가져옵니다.
-//        //    (SessionService에 이 메서드를 새로 추가해야 합니다.)
-//        Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
+
+    	if (customUser == null) {
+            Map<String, Object> initialData = new HashMap<>();
+            initialData.put("recents", Collections.emptyList());
+            initialData.put("sessions", Collections.emptyMap());
+            initialData.put("userId", null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(initialData);
+        }
     	
     	Member member = customUser.getMember(); 
 

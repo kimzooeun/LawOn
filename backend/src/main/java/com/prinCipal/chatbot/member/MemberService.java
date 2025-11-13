@@ -188,13 +188,37 @@ public class MemberService{
 	}
 
 	
-	public MemberProfileDto getUserProfile(String nickname) {
-	    Member member = this.memberRepository.findByNickname(nickname)
-	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
-	    return new MemberProfileDto(member);
+	//닉네임 변경
+	@Transactional
+	public void updateNickname(Long userId, String newNickname) {
+		//닉네임 중복 검사
+		if(memberRepository.existsByNickname(newNickname)) {
+			throw new SignupValidationException(Map.of("nickname","이미 사용 중인 닉네임입니다."));
+			
+		}
+		//사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		//member엔티티에 updateNickname 메소드 호출
+		member.updateNickname(newNickname);
+		memberRepository.save(member);
 	}
-
 	
+	//비밀번호 변경
+	@Transactional
+	public void updatePassword(Long userId, String currentPassword, String newPassword) {
+		
+		//사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		//현재 비밀번호 검증
+		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
+			throw new LoginFailedException("현재 비밀번호가 일치하지 않습니다.");
+		}
+		//새 비밀번호 인코딩 및 member 엔티티 업데이트
+		member.updatePassword(passwordEncoder.encode(newPassword));
+
+	}
 
 }
 

@@ -11,7 +11,7 @@ import com.prinCipal.chatbot.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional; // 👈 @Transactional 임포트 확인
 
 import java.time.LocalDateTime;
 
@@ -20,12 +20,11 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger; // 👈 Import 추가
-import org.slf4j.LoggerFactory; // 👈 Import 추가
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class SessionService {
 
     private final SessionRepository sessionRepository;
@@ -38,15 +37,20 @@ public class SessionService {
     /**
      * 새 상담 세션 생성
      */
+    @Transactional // 👈 [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
     public CounsellingSession createSession(Member member) {
         CounsellingSession session = CounsellingSession.builder()
                 .member(member)
-                .startTime(LocalDateTime.now()) // CounsellingSession 빌더 수정 필요
+                .startTime(LocalDateTime.now()) 
                 .completionStatus(CompletionStatus.ONGOING)
                 .summary(null)
                 .resumeToken(null)
                 .contextSnapshot(null)
                 .build();
+        
+        // 👈 [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
+        session.updateSummaryTitle("새 대화");
+        session.updateLastMessageTime(LocalDateTime.now());
         
         return sessionRepository.save(session);
     }
@@ -54,6 +58,7 @@ public class SessionService {
     /**
      * 세션 삭제 (소유권 확인)
      */
+    @Transactional // 👈 [수정] 삭제도 트랜잭션으로 관리
     public void deleteSession(Long sessionId, Member member) {
         CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
                 .orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
@@ -63,48 +68,40 @@ public class SessionService {
 
     /**
      * [추가] 사용자의 전체 채팅방/최근 목록 조회
-     * (SessionController의 getInitialData에서 호출)
      */
-    @Transactional(readOnly = true) // 읽기 전용 트랜잭션
+    @Transactional(readOnly = true) 
     public Map<String, Object> getInitialDataForUser(Member member) {
         Map<String, Object> initialData = new HashMap<>();
 
-        // 1. 'recents' (최근 대화 목록)
-        // DB에서 최근 수정 순으로 세션 '요약' 정보를 가져옵니다.
-        // (SessionRepository에 findByMemberOrderByLastMessageTimeDesc가 이미 있습니다)
+        // (findByMemberOrderByLastMessageTimeDesc가 fetch join을 사용한다고 가정)
         List<CounsellingSession> recentSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
         
         List<Map<String, Object>> recentsList = recentSessions.stream()
             .map(session -> {
                 Map<String, Object> recent = new HashMap<>();
-                recent.put("id", session.getSessionId()); // CounsellingSession에 getSessionId() 필요
-                recent.put("title", session.getSummaryTitle()); // CounsellingSession에 getSummaryTitle() 필요
-                recent.put("updatedAt", session.getLastMessageTime()); // CounsellingSession에 getLastMessageTime() 필요
+                recent.put("id", session.getSessionId()); 
+                recent.put("title", session.getSummaryTitle()); 
+                recent.put("updatedAt", session.getLastMessageTime()); 
                 return recent;
             })
             .collect(Collectors.toList());
         
         initialData.put("recents", recentsList);
 
-        // 2. 'sessions' (전체 세션 상세 맵)
-        // (프론트엔드 최적화: 'recents'와 동일한 세션 목록을 사용)
         Map<Long, Object> sessionsMap = recentSessions.stream()
             .collect(Collectors.toMap(
-                CounsellingSession::getSessionId, // CounsellingSession::getSessionId 가정
+                CounsellingSession::getSessionId, 
                 session -> {
                     Map<String, Object> sessionDetail = new HashMap<>();
                     sessionDetail.put("id", session.getSessionId());
                     sessionDetail.put("title", session.getSummaryTitle());
                     
-                    // [중요] 세션의 '모든' 메시지를 가져옵니다.
-                    // (CounsellingSession에 @OneToMany List<CounsellingContent> contents; 매핑이 있다고 가정)
                     List<Map<String, Object>> messages = session.getContents().stream() 
                         .map(content -> {
                             Map<String, Object> msg = new HashMap<>();
-                            // Sender Enum을 프론트엔드 'role'로 변환
                             msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
                             msg.put("text", content.getContent());
-                            msg.put("at", content.getCreatedAt()); // CounsellingContent에 getCreatedAt() (Timestamp) 필요
+                            msg.put("at", content.getCreatedAt()); 
                             return msg;
                         })
                         .collect(Collectors.toList());
@@ -112,52 +109,116 @@ public class SessionService {
                     sessionDetail.put("messages", messages);
                     return sessionDetail;
                 },
-                (existing, replacement) -> existing // (혹시 모를 중복 키 충돌 방지)
+                (existing, replacement) -> existing 
             ));
 
         initialData.put("sessions", sessionsMap);
 
-        // 3. 'currentId' (가장 최근 세션 ID)
         Long currentId = recentsList.isEmpty() ? null : (Long) recentsList.get(0).get("id");
         initialData.put("currentId", currentId);
         
+        initialData.put("userId", member.getUserId());
+        
         logger.info("📦 DB에서 생성된 초기 데이터 (사용자: {}): recents 개수 = {}, sessions 개수 = {}",
-                member.getNickname(), // 👈 Member 엔티티에 getNickname()이 있다고 가정
+                member.getNickname(), 
                 recentsList.size(),
-                sessionsMap.size());
-
+                sessionsMap.size(),
+        		member.getUserId());
         return initialData;
     }
     
+    // -----------------------------------------------------------------
+    // ▼▼▼▼▼▼▼▼▼▼▼ [수정된 핵심 로직] ▼▼▼▼▼▼▼▼▼▼▼
+    // -----------------------------------------------------------------
+
     /**
-     * 메시지 저장 및 봇 응답 처리 (ChatRequestDto를 직접 사용)
+     * [수정] 메시지 저장 및 봇 응답 처리 (트랜잭션 분리)
+     * - 이 메서드 자체에는 @Transactional이 없습니다.
      */
     public ChatResponseDto addMessage(ChatRequestDto requestDto) {
         
-        // 1. DTO에서 ID 추출
+        CounsellingSession session;
+        Long sessionId;
+
+        try {
+            // 1. 사용자 메시지 저장 (트랜잭션 1)
+            //    이 작업은 즉시 커밋됩니다.
+            session = saveUserMessageAndUpdateSession(requestDto);
+            sessionId = session.getSessionId();
+        } catch (RuntimeException e) {
+            // (예: 사용자를 못 찾음, 세션 권한 없음)
+            logger.error("사용자 메시지 저장 실패 (DB 조회 오류): {}", e.getMessage());
+            return new ChatResponseDto("메시지 전송에 실패했습니다. (세션 오류)", requestDto.getSessionId().toString());
+        }
+
+        ChatResponseDto botResponse;
+        
+        try {
+            // 2. (중요) 외부 API 호출
+            //    이 호출은 DB 트랜잭션 *밖에서* 수행됩니다.
+            botResponse = chatService.getFastApiResponse(requestDto); 
+            
+            // 3. 봇 메시지 저장 (트랜잭션 2)
+            //    이 작업은 즉시 커밋됩니다.
+            saveBotMessage(session, botResponse.getText());
+
+            // 4. 프론트엔드로 봇 응답 반환
+            return botResponse;
+
+        } catch (Exception e) {
+            // 5. (중요) API 호출 실패 시
+            logger.error("FastAPI 챗봇 응답 실패 (세션 ID: {}): {}", sessionId, e.getMessage());
+            
+            // 사용자 메시지는 이미 1번에서 커밋되었으므로 안전합니다.
+            // 프론트엔드에는 에러 응답을 보냅니다.
+            return new ChatResponseDto("죄송합니다. 봇 응답에 실패했습니다.", sessionId.toString()); 
+        }
+    }
+
+    /**
+     * [헬퍼 1] 사용자 메시지 저장 및 세션 1차 업데이트
+     * (이 메서드만 별도의 트랜잭션으로 실행됩니다)
+     */
+    @Transactional
+    public CounsellingSession saveUserMessageAndUpdateSession(ChatRequestDto requestDto) {
         Long sessionId = requestDto.getSessionId().longValue();
         Long memberId = requestDto.getUserId().longValue();
 
-        // 2. 세션 및 사용자 엔티티 조회 (소유권 확인)
+        // 1. 세션 및 사용자 엔티티 조회 (소유권 확인)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
         CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
                 .orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
 
-        // 3. 프론트에서 받은 사용자 메시지(PERSON) DB에 저장
+        // 2. 사용자 메시지(PERSON) DB에 저장
         CounsellingContent userMessage = CounsellingContent.builder()
                 .session(session)
                 .sender(Sender.PERSON)
                 .content(requestDto.getUserMessage())
                 .build();
         contentRepository.save(userMessage);
-
-        // 4. (중요) 기존 ChatService 호출
-        ChatResponseDto botResponse = chatService.getFastApiResponse(requestDto); //
-        String botReplyText = botResponse.getText();
-
-        // 5. 봇 메시지(CHATBOT) DB에 저장
+        
+        // 3. 세션 1차 업데이트 (봇 응답 전)
+        session.updateLastMessageTime(LocalDateTime.now());
+        if (session.getSummaryTitle() == null || session.getSummaryTitle().isEmpty() || session.getSummaryTitle().equals("새 대화")) {
+            String title = requestDto.getUserMessage().length() > 30
+                    ? requestDto.getUserMessage().substring(0, 30) + "..."
+                    : requestDto.getUserMessage();
+            session.updateSummaryTitle(title);
+        }
+        
+        // 4. (필수) 세션 변경 사항을 즉시 DB에 반영 (커밋)
+        return sessionRepository.save(session);
+    }
+    
+    /**
+     * [헬퍼 2] 봇 메시지 저장 및 세션 2차 업데이트
+     * (이 메서드도 별도의 트랜잭션으로 실행됩니다)
+     */
+    @Transactional
+    public void saveBotMessage(CounsellingSession session, String botReplyText) {
+        // 1. 봇 메시지(CHATBOT) DB에 저장
         CounsellingContent botMessage = CounsellingContent.builder()
                 .session(session)
                 .sender(Sender.CHATBOT)
@@ -165,27 +226,10 @@ public class SessionService {
                 .build();
         contentRepository.save(botMessage);
 
-        // 최근 메시지 시간 업데이트 (DB 설계의 last_message_time)
+        // 2. 최근 메시지 시간 갱신
         session.updateLastMessageTime(LocalDateTime.now());
-
-        // (임시) 첫 대화인 경우, 사용자 메시지를 기반으로 제목 생성
-        // (DB 설계에 따르면 LLM이 생성하지만, 우선 임시로 만듭니다)
-        if (session.getSummaryTitle() == null || session.getSummaryTitle().isEmpty()) {
-            String title = requestDto.getUserMessage().length() > 30
-                    ? requestDto.getUserMessage().substring(0, 30) + "..."
-                    : requestDto.getUserMessage();
-            session.updateSummaryTitle(title);
-        }
         
-        // (향후) OpenAI 요약본이 준비되면 이 부분에서 업데이트
-        // String contextSummary = ... (OpenAI 요약 결과) ...
-        // session.updateContextSnapshot(contextSummary);
-
-        // ★★★ (필수) 업데이트된 세션 정보를 DB에 최종 저장 ★★★
+        // 3. (필수) 세션 변경 사항을 즉시 DB에 반영 (커밋)
         sessionRepository.save(session);
-
-        // 7. 프론트엔드로 봇 응답 반환
-        return botResponse;
     }
-    
 }

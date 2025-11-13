@@ -9,4 +9,5 @@ import lombok.Getter;
 @NoArgsConstructor
 public class ChatResponseDto {
     private String text; // FastAPI가 준 답변
+    private String sessionId;
 }

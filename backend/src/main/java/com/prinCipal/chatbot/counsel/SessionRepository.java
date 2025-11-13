@@ -17,8 +17,8 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
 	// 사용자가 소유한 세션인지 확인하기 위해 Member로 찾는 기능
     Optional<CounsellingSession> findBySessionIdAndMember(Long sessionId, Member member);
     
-    // (선택적) 나중에 '최근 대화' 목록을 가져오기 위함
-    List<CounsellingSession> findByMemberOrderByLastMessageTimeDesc(Member member);
+    @Query("SELECT DISTINCT s FROM CounsellingSession s LEFT JOIN FETCH s.contents WHERE s.member = :member ORDER BY s.lastMessageTime DESC")
+    List<CounsellingSession> findByMemberOrderByLastMessageTimeDesc(@Param("member") Member member);
     
     @Query("SELECT DISTINCT s FROM CounsellingSession s LEFT JOIN FETCH s.contents WHERE s.member = :member ORDER BY s.lastMessageTime DESC")
     List<CounsellingSession> findByMemberOrderByLastMessageTimeDescWithContents(@Param("member") Member member);

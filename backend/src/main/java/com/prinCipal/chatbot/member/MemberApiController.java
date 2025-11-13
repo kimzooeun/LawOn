@@ -7,10 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.security.access.AccessDeniedException;
 
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
@@ -82,5 +86,49 @@ public class MemberApiController {
 		return ResponseEntity.ok(Map.of("status", "success", "message", "회원탈퇴가 완료되었습니다."));
 		
 	}
+	
+	//닉네임 변경
+	@PutMapping("/user/{id}/nickname")
+	public ResponseEntity<?> updateNickname(
+			@PathVariable Long id,
+			@RequestBody Map<String, String> body,
+			@AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+		
+		//URL의 ID와 실제 로그인한 사용자의 ID가 일치하는지 확인
+		if(!customOAuth2User.getMember().getUserId().equals(id)) {
+			throw new AccessDeniedException("권한이 없습니다.");
+		}
+		String newNickname = body.get("nickname");
+		if(newNickname == null || newNickname.trim().isEmpty()) {
+			return ResponseEntity.badRequest().body("닉네임이 필요합니다.");
+		}
+		
+		memberService.updateNickname(id, newNickname.trim());
+		return ResponseEntity.ok(Map.of("status","success","message","닉네임이 변경되었습니다."));
+		
+	}
+	
+	//비밀번호 변경
+	@PutMapping("/user/{id}/password")
+	public ResponseEntity<?> updatePassword(
+			@PathVariable Long id,
+			@RequestBody Map<String, String> body,
+			@AuthenticationPrincipal CustomOAuth2User customOAuth2User ){
+		
+		//URL의 ID와 실제 로그인한 사용자의 ID가 일치하는지 확인
+		if(!customOAuth2User.getMember().getUserId().equals(id)) {
+			throw new AccessDeniedException("권한이 없습니다.");
+			
+		}
+		String currentPassword = body.get("currenPassword");
+		String newPassword = body.get("newPassword");
+		
+		if(currentPassword == null || newPassword == null) {
+			return ResponseEntity.badRequest().body("모든 필드가 필요합니다.");
+		}
+		memberService.updatePassword(id, currentPassword ,newPassword);
+		return ResponseEntity.ok(Map.of("status","success","message","비밀번호가 변경되었습니다."));
+	}
+		
 }
 

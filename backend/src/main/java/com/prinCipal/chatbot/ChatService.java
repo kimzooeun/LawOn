@@ -51,6 +51,6 @@ public class ChatService {
         }
 
         // 6. 프론트엔드(chat.js)가 요구하는 DTO("text" 필드)로 변환하여 반환
-        return new ChatResponseDto(botAnswer);
-        }
+        return new ChatResponseDto(botAnswer, requestDto.getSessionId().toString());
+    	}
 }

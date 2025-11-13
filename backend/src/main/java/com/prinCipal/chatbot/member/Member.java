@@ -94,9 +94,17 @@ public class Member {
     	this.updatedAt = LocalDateTime.now();
     }
 
+    //닉네임 변경 
+    public void updateNickname(String newNickname) {
+    	this.nickname = newNickname;
+    	this.updatedAt = LocalDateTime.now();
+    }
 
+    //비밀번호 변경 메소드 추가
+    public void updatePassword(String newPassword) {
+    	this.password = newPassword;
+    	this.updatedAt = LocalDateTime.now();
+    	
+    }
 
-
-	
-	
 }
