@@ -34,20 +34,13 @@ async function saveMessage(sessionId, messageData) {
  * @param {string} newNickname
  */
 async function updateNickname(newNickname) {
-  const token = localStorage.getItem("accessToken"); // 예시: 로컬 스토리지에서 토큰 가져오기
-  if (!token) {
-    throw new Error("인증 토큰이 없습니다. 로그인이 필요합니다.");
-  }
-  // 2. headers 객체에 Authorization 추가
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`, // JwtAuthenticationFilter
-  };
-
   const response = await fetch(`${API_BASE_URL}/profile/update-name`, {
     method: "POST", // 또는 'PATCH'
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nickname: newNickname }),
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ newDisplayName: newNickname }),
   });
   if (!response.ok) {
     if (response.status === 401) {

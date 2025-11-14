@@ -141,6 +141,8 @@ function initMypageListeners() {
           if (newPassword !== confirmPassword) {
             showToast("새 비밀번호가 일치하지 않습니다.", "error");
             return false;
+
+            
           }
 
           // --- (경고) 실제 서버 API 호출 필요 ---

@@ -145,6 +145,9 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     if(response.ok){
       //200 OK 성공 처리 JWT 저장 
       TokenManager.setTokens(resData.accessToken, false);
+      // 2. (추가!!) UI가 읽을 수 있도록 닉네임 저장
+      //    utils.js와 mypage.js가 "todak_nickname" 키를 사용합니다.
+      localStorage.setItem("todak_nickname", resData.nickname);
       showToast("로그인 완료!<br>맞춤형 상담 페이지로 이동"); 
       resetAuthForms(); 
       console.log(resData);
