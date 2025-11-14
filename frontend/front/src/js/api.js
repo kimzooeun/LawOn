@@ -34,20 +34,22 @@ async function saveMessage(sessionId, messageData) {
  * @param {string} newNickname
  */
 async function updateNickname(newNickname) {
+  const accessToken = localStorage.getItem("accessToken");
+
   const response = await fetch(`${API_BASE_URL}/profile/update-name`, {
-    method: "POST", // 또는 'PATCH'
+    method: "POST",
     credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json", // 🔥 JWT 추가!
     },
     body: JSON.stringify({ newDisplayName: newNickname }),
   });
+
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.");
-    }
-    throw new Error("닉네임 변경 실패");
+    alert("닉네임 변경에 실패했습니다.");
+    throw new Error(`닉네임 변경 실패: ${response.status}`);
   }
+  alert("닉네임이 성공적으로 변경되었습니다.");
   return response.ok;
 }
 

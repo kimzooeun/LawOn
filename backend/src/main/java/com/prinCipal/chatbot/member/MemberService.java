@@ -283,23 +283,36 @@ public class MemberService{
 	}
 
 
-	/** 닉네임 변경!
-	 사용자의 프로필 표시 이름(displayName)을 변경.
-	 이 로직은 로컬/소셜 로그인 사용자 모두에게 동일하게 적용.
-	 @param customOAuth2User 현재 인증된 사용자 정보
-	 @param requestDto       변경할 이름이 담긴 DTO
-	 @return 변경된 프로필 정보
-	 */
-	@Transactional
-	public MemberProfileDto updateDisplayName(Member member, UpdateProfileRequestDto requestDto) {
-		
-		// member 엔티티의 updateDisplayName 메소드를 호출하여 변경
-		member.updateDisplayName(requestDto.getNewDisplayName());
-		// 변경된 정보로 DTO 반환
-		return new MemberProfileDto(member);
-		
-		
-	}
+	// MemberService.java
+
+		/** 닉네임 변경!
+		 사용자의 프로필 표시 이름(displayName)을 변경.
+		 이 로직은 로컬/소셜 로그인 사용자 모두에게 동일하게 적용.
+		 @param customOAuth2User 현재 인증된 사용자 정보 (Detached 상태일 수 있음)
+		 @param requestDto       변경할 이름이 담긴 DTO
+		 @return 변경된 프로필 정보
+		 */
+		@Transactional
+		public MemberProfileDto updateDisplayName(CustomOAuth2User customOAuth2User, UpdateProfileRequestDto requestDto) {
+			
+	        // --- ( 1. 수정: Detached 엔티티 사용 금지 ) ---
+			// Member member = customOAuth2User.getMember(); (X)
+	        
+	        // --- ( 2. 수정: DB에서 닉네임으로 다시 조회 ) ---
+	        // customOAuth2User에서 닉네임(PK대체)을 가져옵니다.
+	        String nickname = customOAuth2User.getMember().getNickname();
+	        
+	        // Repository로 현재 트랜잭션(@Transactional) 내에서
+	        // 'Managed(영속)' 상태의 엔티티를 다시 조회합니다.
+	        Member managedMember = memberRepository.findByNickname(nickname)
+	                .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다. (Service)"));
+			
+			// --- ( 3. 수정: 'Managed' 엔티티 변경 ) ---
+	        // 'Managed' 상태의 엔티티를 변경해야 DB에 반영(Dirty Checking)됩니다.
+			managedMember.updateDisplayName(requestDto.getNewDisplayName());
+
+			return new MemberProfileDto(managedMember);
+		}
 	
 	public MemberProfileDto getUserProfile(String nickname) {
 	    Member member = this.memberRepository.findByNickname(nickname)
