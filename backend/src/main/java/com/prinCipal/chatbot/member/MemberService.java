@@ -291,14 +291,11 @@ public class MemberService{
 	 @return 변경된 프로필 정보
 	 */
 	@Transactional
-	public MemberProfileDto updateDisplayName(CustomOAuth2User customOAuth2User, UpdateProfileRequestDto requestDto) {
+	public MemberProfileDto updateDisplayName(Member member, UpdateProfileRequestDto requestDto) {
 		
-		//현재 인증된 사용자 정보에서 member 객체를 가져옴
-		Member member = customOAuth2User.getMember();
-		
-		//member 엔티티의 updateDisplayName 메소드를 호출하여 변경
+		// member 엔티티의 updateDisplayName 메소드를 호출하여 변경
 		member.updateDisplayName(requestDto.getNewDisplayName());
-
+		// 변경된 정보로 DTO 반환
 		return new MemberProfileDto(member);
 		
 		
