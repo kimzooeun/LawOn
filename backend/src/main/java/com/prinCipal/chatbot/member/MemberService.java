@@ -283,7 +283,7 @@ public class MemberService{
 	}
 
 
-	/** 닉네임 변경!!!!!!!!!!!!!!!!!
+	/** 닉네임 변경!
 	 사용자의 프로필 표시 이름(displayName)을 변경.
 	 이 로직은 로컬/소셜 로그인 사용자 모두에게 동일하게 적용.
 	 @param customOAuth2User 현재 인증된 사용자 정보

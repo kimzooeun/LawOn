@@ -61,13 +61,44 @@ function initMypageListeners() {
         title: "닉네임 변경",
         okText: "저장",
         formHtml: `
-          <div class="form-group">
+        <div class="form-group">
             <input type="text" id="nickname" name="nickname" class="input"
-              value="" placeholder="${currentNick}">
+              value="${currentNick}" placeholder="새 닉네임을 입력하세요">
           </div>
         `,
-        onConfirm: (data) => {
+        onConfirm: async (data) => {
           const newNick = (data.nickname || "").trim();
+          // 유효성 검사
+          if (!newNick) {
+            showToast("닉네임을 입력해주세요.", "error");
+            return false;
+          }
+          if (newNick === currentNick) {
+            showToast("변경된 닉네임이 없습니다.", "info");
+            return false;
+          }
+
+          try {
+            await updateNickname(newNick); // 서버 API 호출
+            localStorage.setItem(NICK_KEY, newNick);
+
+            if (typeof updateNicknameDisplay === "function") {
+              updateNicknameDisplay(); // 헤더, 마이페이지, 빈 채팅방 닉네임 동시 업데이트
+            }
+            showToast("닉네임이 성공적으로 변경되었습니다", "success");
+          } catch (error) {
+            console.error("닉네임 변경 오류:", error);
+            showToast(
+              error.message || "닉네임 변경 중 오류가 발생했습니다.",
+              "error"
+            );
+            return false;
+          }
+        },
+      });
+      /*onConfirm: async (data) => {
+          const newNick = (data.nickname || "").trim();
+          // 유효성 검사
           if (newNick) {
             localStorage.setItem(NICK_KEY, newNick);
             if (typeof updateNicknameDisplay === "function") {
@@ -80,6 +111,7 @@ function initMypageListeners() {
           }
         },
       });
+    */
     } else if (action === "open-security") {
       FormModal.open({
         title: "비밀번호 변경",
