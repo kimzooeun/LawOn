@@ -151,18 +151,57 @@ document.addEventListener("DOMContentLoaded", () => {
       message: "로그아웃하시겠습니까?",
       okText: "로그아웃",
       cancelText: "취소",
-      onConfirm: () => {
-        // 로컬 스토리지 데이터 삭제
-        localStorage.removeItem(STORE_KEY);
-        localStorage.removeItem("todak_nickname");
-        localStorage.removeItem("hard_theme");
-        localStorage.removeItem(SIDEBAR_COLLAPSED_KEY);
+      onConfirm: async () => {
+        let apiFailed = false;
+        try {
+          // 1. API 호출 시도
+          const response = await fetch("/api/logout", {
+            method: "POST",
+            credentials: "include",
+          });
 
-        // 피드백 및 새로고침
-        showToast("로그아웃되었습니다.", "info", 1500);
-        setTimeout(() => location.reload(), 1600);
+          if (!response.ok) {
+            apiFailed = true; // API가 200 OK가 아니어도 실패로 간주
+          }
+        } catch (err) {
+          apiFailed = true; // 네트워크 오류 등 API 호출 실패
+          console.error("서버 로그아웃 API 호출 실패:", err);
+        } finally {
+          // 2. API 성공/실패와 관계없이 *항상* 모든 로컬 데이터 삭제
+
+          // utils.js에서 가져온 변수 사용
+          localStorage.removeItem(STORE_KEY); // "todak_chats_v1"
+          localStorage.removeItem(SIDEBAR_COLLAPSED_KEY); // "todak_sidebar_collapsed"
+
+          // 직접 관리하는 키 삭제
+          localStorage.removeItem("todak_nickname");
+          localStorage.removeItem("todak_user_id");
+          localStorage.removeItem("hard_theme");
+          localStorage.removeItem("accessToken");
+          sessionStorage.removeItem("accessToken");
+
+          // mypage.js에서 사용하는 키 삭제
+          localStorage.removeItem("todak_recents"); //
+          localStorage.removeItem("todak_push_enabled"); //
+
+          // 3. 피드백 및 리디렉션
+          const toastMsg = apiFailed
+            ? "로그아웃. 로컬 데이터만 삭제합니다."
+            : "로그아웃 되었습니다.";
+          showToast(toastMsg, apiFailed ? "error" : "info", 1500);
+
+          setTimeout(() => {
+            window.location.href = "/"; // index.html로 이동
+          }, 1600);
+        }
       },
     });
+  });
+
+  // [추가] ===== 2. 로고 버튼 (Index로 이동) =====
+  const logoBtn = document.getElementById("logoBtn");
+  logoBtn?.addEventListener("click", () => {
+    window.location.href = "/"; // 메인 페이지로 이동 (로그인 상태 유지)
   });
 
   // 접힘 상태 복원
