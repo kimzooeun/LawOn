@@ -19,14 +19,14 @@ if (customBtn) {
   customBtn.addEventListener("click", (e) => {
     e.preventDefault();
     const accessToken = TokenManager.getAccessToken();
-    if(accessToken){
+    if (accessToken) {
       document.body.classList.add("fade-out");
       setTimeout(() => {
-      window.location.href = "/chat.html";
+        window.location.href = "/chat.html";
       }, 500);
       return;
     }
-    // 비로그인 상태 
+    // 비로그인 상태
     openAuthModal();
   });
 }
@@ -150,15 +150,15 @@ document
         //200 OK 성공 처리 JWT 저장
         TokenManager.setTokens(resData.accessToken, false);
 
-        if (resData.userId && resData.nickname) {
+        if (resData.userId && resData.display_name) {
           localStorage.setItem(USER_ID_KEY, resData.userId);
-          localStorage.setItem(NICK_KEY, resData.nickname);
-          console.log("로그인 성공: ", resData.nickname);
+          localStorage.setItem(NICK_KEY, resData.display_name);
+          console.log("로그인 성공: ", resData.display_name);
           console.log("userId:", resData.userId);
         } else {
-          // 백엔드 응답에 userId나 nickname이 없는 경우 경고
+          // 백엔드 응답에 userId나 display_name이 없는 경우 경고
           console.warn(
-            "로그인 응답 데이터에 userId 또는 nickname이 없습니다.",
+            "로그인 응답 데이터에 userId 또는 display_name이 없습니다.",
             resData
           );
         }

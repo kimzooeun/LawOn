@@ -55,7 +55,7 @@ export async function updateNickname(userId, newNickname) {
   const response = await fetch(`${API_BASE_URL}/user/${userId}/nickname`, {
     method: "PUT",
     headers: getAuthHeaders(),
-    body: JSON.stringify({ nickname: newNickname }),
+    body: JSON.stringify({ display_name: newNickname }),
   });
   if (!response.ok) {
     throw new Error("닉네임 변경 실패");

@@ -99,8 +99,8 @@ public class Member {
   }
 
   // 닉네임 변경 
-  public void updateNickname(String newNickname) {
-    this.nickname = newNickname;
+  public void updatedisplayName(String displayName) {
+    this.displayName = displayName;
     this.updatedAt = LocalDateTime.now();
   }
 

@@ -13,8 +13,11 @@ sentence-transformers
 # ML/Torch (모델 A, B, C)
 torch
 transformers
-scikit-learn 
+scikit-learn==1.6.1
 
 # Data & Utils
 pandas
 konlpy
+
+# Database
+redis==5.0.1

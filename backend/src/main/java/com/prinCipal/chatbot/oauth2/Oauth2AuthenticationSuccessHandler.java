@@ -62,41 +62,28 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	
 
 		// redis에 refreshToken 저장 
-    String redisKey = "RT:" + member.getUserId();
-    this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
+	    String redisKey = "RT:" + member.getUserId();
+	    this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
 
 	
 		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
 		Long encodedUserid = member.getUserId();
 		String encodedNickname = URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
+		String encodedDisplayName = URLEncoder.encode(member.getDisplayName(), StandardCharsets.UTF_8);
 		String encodedProvider = URLEncoder.encode(member.getSocialProvider(), StandardCharsets.UTF_8);
 		
-    // 프론트로 redirect 
+		// 프론트로 redirect 
 		String targetUrl = String.format(
 	            "%s/oauth2_success.html?token=%s&nickname=%s&provider=%s",
 	            frontendUrl,  // http://localhost:3000
 	            encodedAccessToken, 
 	            encodedUserid,
-	            encodedNickname, 
+	            encodedNickname,
+	            encodedDisplayName,
 	            encodedProvider
 	        );
 	        
-	        System.out.println("🚀 Redirecting to: " + targetUrl);  // 👈 디버깅용
-        
-        // 🔹 Redirect URL 구성
-        String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
-        String encodedNickname = URLEncoder.encode(member.getDisplayName(), StandardCharsets.UTF_8);
-        String encodedProvider = URLEncoder.encode(member.getSocialProvider(), StandardCharsets.UTF_8);
-
-        String targetUrl = String.format(
-                "%s/oauth2_success.html?token=%s&nickname=%s&provider=%s",
-                frontendUrl,
-                encodedAccessToken,
-                encodedNickname,
-                encodedProvider
-        );
-
-        
+	    System.out.println("🚀 Redirecting to: " + targetUrl);  // 👈 디버깅용
         
         response.sendRedirect(targetUrl);
 

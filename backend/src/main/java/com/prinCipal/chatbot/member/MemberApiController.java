@@ -84,7 +84,7 @@ public class MemberApiController {
 	
 	// 닉네임 변경
 	@PutMapping("/user/{id}/nickname")
-	public ResponseEntity<?> updateNickname(
+	public ResponseEntity<?> updateDisplayName(
 			@PathVariable Long id,
 			@RequestBody Map<String, String> body,
 			@AuthenticationPrincipal CustomOAuth2User customOAuth2User){
@@ -93,12 +93,13 @@ public class MemberApiController {
 		if(!customOAuth2User.getMember().getUserId().equals(id)) {
 			throw new AccessDeniedException("권한이 없습니다.");
 		}
-		String newNickname = body.get("nickname");
-		if(newNickname == null || newNickname.trim().isEmpty()) {
+		
+		String displayName = body.get("display_name");
+		if(displayName == null || displayName.trim().isEmpty()) {
 			return ResponseEntity.badRequest().body("닉네임이 필요합니다.");
 		}
 		
-		memberService.updateNickname(id, newNickname.trim());
+		memberService.updatedisplayName(id, displayName.trim());
 		return ResponseEntity.ok(Map.of("status","success","message","닉네임이 변경되었습니다."));
 		
 	}
@@ -115,7 +116,7 @@ public class MemberApiController {
 			throw new AccessDeniedException("권한이 없습니다.");
 			
 		}
-		String currentPassword = body.get("currenPassword");
+		String currentPassword = body.get("currentPassword");
 		String newPassword = body.get("newPassword");
 		
 		if(currentPassword == null || newPassword == null) {

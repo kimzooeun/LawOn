@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class RecentDto { // 3. 'static' 제거
+public class RecentDto { 
     private Long id;
     private String title;
     private LocalDateTime lastMessageTime;

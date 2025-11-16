@@ -283,17 +283,13 @@ public class MemberService{
 	
 	// 닉네임 변경
 	@Transactional
-	public void updateNickname(Long userId, String newNickname) {
-		// 닉네임 중복 검사
-		if(memberRepository.existsByNickname(newNickname)) {
-			throw new SignupValidationException(Map.of("nickname","이미 사용 중인 닉네임입니다."));
-			
-		}
+	public void updatedisplayName(Long userId, String dispalyName) {
 		// 사용자 조회
 		Member member = memberRepository.findById(userId)
 				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		
 		// member엔티티에 updateNickname 메소드 호출
-		member.updateNickname(newNickname);
+		member.updatedisplayName(dispalyName);
 		memberRepository.save(member);
 	}
 	
