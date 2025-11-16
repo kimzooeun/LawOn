@@ -56,7 +56,7 @@ CREATE TABLE counselling_session (
 CREATE TABLE counselling_content (
     content_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_id BIGINT DEFAULT NULL,
-    sender ENUM('USER', 'BOT') NOT NULL,
+    sender ENUM('PERSON', 'CHATBOT') NOT NULL,
     content TEXT NOT NULL,
     is_divorce BOOLEAN DEFAULT NULL,
     divorce_category VARCHAR(100) DEFAULT NULL,

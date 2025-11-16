@@ -126,53 +126,36 @@ public class SessionService {
         		member.getUserId());
         return initialData;
     }
-    
-    // -----------------------------------------------------------------
-    // ▼▼▼▼▼▼▼▼▼▼▼ [수정된 핵심 로직] ▼▼▼▼▼▼▼▼▼▼▼
-    // -----------------------------------------------------------------
 
     /**
      * [수정] 메시지 저장 및 봇 응답 처리 (트랜잭션 분리)
      * - 이 메서드 자체에는 @Transactional이 없습니다.
      */
-    public ChatResponseDto addMessage(ChatRequestDto requestDto) {
+    public ChatResponseDto addMessage(ChatRequestDto requestDto, Member member) {
         
         CounsellingSession session;
         Long sessionId;
 
         try {
-            // 1. 사용자 메시지 저장 (트랜잭션 1)
-            //    이 작업은 즉시 커밋됩니다.
-            session = saveUserMessageAndUpdateSession(requestDto);
+            // 👈 2. member 객체를 헬퍼 메서드로 전달
+            session = saveUserMessageAndUpdateSession(requestDto, member);
             sessionId = session.getSessionId();
         } catch (RuntimeException e) {
-            // (예: 사용자를 못 찾음, 세션 권한 없음)
+            // ... (이하 동일)
             logger.error("사용자 메시지 저장 실패 (DB 조회 오류): {}", e.getMessage());
             return new ChatResponseDto("메시지 전송에 실패했습니다. (세션 오류)", requestDto.getSessionId().toString());
         }
 
         ChatResponseDto botResponse;
-        
         try {
-            // 2. (중요) 외부 API 호출
-            //    이 호출은 DB 트랜잭션 *밖에서* 수행됩니다.
             botResponse = chatService.getFastApiResponse(requestDto); 
-            
-            // 3. 봇 메시지 저장 (트랜잭션 2)
-            //    이 작업은 즉시 커밋됩니다.
             saveBotMessage(session, botResponse.getText());
-
-            // 4. 프론트엔드로 봇 응답 반환
             return botResponse;
-
         } catch (Exception e) {
-            // 5. (중요) API 호출 실패 시
             logger.error("FastAPI 챗봇 응답 실패 (세션 ID: {}): {}", sessionId, e.getMessage());
-            
-            // 사용자 메시지는 이미 1번에서 커밋되었으므로 안전합니다.
-            // 프론트엔드에는 에러 응답을 보냅니다.
             return new ChatResponseDto("죄송합니다. 봇 응답에 실패했습니다.", sessionId.toString()); 
         }
+        
     }
 
     /**
@@ -180,13 +163,9 @@ public class SessionService {
      * (이 메서드만 별도의 트랜잭션으로 실행됩니다)
      */
     @Transactional
-    public CounsellingSession saveUserMessageAndUpdateSession(ChatRequestDto requestDto) {
+    public CounsellingSession saveUserMessageAndUpdateSession(ChatRequestDto requestDto, Member member) {
         Long sessionId = requestDto.getSessionId().longValue();
-        Long memberId = requestDto.getUserId().longValue();
-
-        // 1. 세션 및 사용자 엔티티 조회 (소유권 확인)
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
         
         CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
                 .orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));

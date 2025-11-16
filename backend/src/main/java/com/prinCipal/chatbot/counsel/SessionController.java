@@ -57,14 +57,21 @@ public class SessionController {
      * (DB에 실제 세션을 생성하도록 수정)
      */
     @PostMapping("/sessions")
-    public ResponseEntity<?> createSession(@RequestBody SessionCreationRequestDto requestDto) { // 👈 1. DTO 받기
+    public ResponseEntity<?> createSession(@RequestBody SessionCreationRequestDto requestDto,
+            @AuthenticationPrincipal CustomOAuth2User customUser) { // 👈 1. DTO 받기
         
-        Long userId = requestDto.getUserId(); // 👈 2. DTO에서 userId 꺼내기
-        
-        // 3. 하드코딩 대신 전달받은 ID로 사용자를 찾음
-        Member tempMember = memberRepository.findById(userId) 
-                .orElseThrow(() -> new RuntimeException(userId + "번 사용자를 찾을 수 없습니다. (DB 확인 필요)"));
+//        Long userId = requestDto.getUserId(); // 👈 2. DTO에서 userId 꺼내기
+//        
+//        // 3. 하드코딩 대신 전달받은 ID로 사용자를 찾음
+//        Member tempMember = memberRepository.findById(userId) 
+//                .orElseThrow(() -> new RuntimeException(userId + "번 사용자를 찾을 수 없습니다. (DB 확인 필요)"));
 
+    	if (customUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+    	
+    	Member tempMember = customUser.getMember();
+    	
         // '똑똑한' 서비스를 호출해 DB에 실제 세션 생성
         CounsellingSession newSession = sessionService.createSession(tempMember);
 
@@ -79,10 +86,15 @@ public class SessionController {
     }
     
     @PostMapping("/chat")
-    public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto) {
+    public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto, 
+            @AuthenticationPrincipal CustomOAuth2User customUser) {
         
-        // DB 저장, FastAPI 호출, 세션 업데이트가 모두 포함된 'addMessage' 호출
-        ChatResponseDto response = sessionService.addMessage(requestDto);
+    	if (customUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null));
+        }
+
+        // 👈 11. Service로 Member 객체를 함께 넘깁니다.
+        ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
 
         return ResponseEntity.ok(response);
     }
