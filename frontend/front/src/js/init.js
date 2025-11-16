@@ -3,11 +3,31 @@
 // (DOM 로드 후 이벤트 바인딩 및 앱 실행)
 // ===================================
 
+import {
+  Modal,
+  FormModal,
+  updateNicknameDisplay,
+  showToast,
+  applySidebarCollapsed,
+  SIDEBAR_COLLAPSED_KEY,
+  STORE_KEY,
+  qs,
+  state,
+  AUTO_SEND_STT,
+  loadInitialData,
+} from "./utils.js";
+
+import { archiveCurrent, handleSend, renderChat } from "./chat.js";
+
+import { initMypageListeners } from "./mypage.js";
+import { bindMic } from "./stt.js";
+import { render, initLawyerPageListeners } from "./lawyer.js";
+
 // 페이지 전환 함수
 let isLawyerPageInitialized = false;
 
 // showPage 함수를 동기식으로 변경
-function showPage(pageToShow) {
+export function showPage(pageToShow) {
   const chatArea = document.getElementById("chatArea");
   const mypageExplore = document.getElementById("mypageExplore");
   const lawyerPage = document.getElementById("lawyerPage");
@@ -36,7 +56,7 @@ function showPage(pageToShow) {
  * @param {string|Node} content - 모달 내용
  * @param {'lg' | 'default'} [size='lg'] - 모달 크기
  */
-function openDocModal(title, content, size = "lg") {
+export function openDocModal(title, content, size = "lg") {
   let modal = document.getElementById("docModal");
   if (!modal) {
     console.warn("#docModal이 없어 동적으로 생성합니다.");
@@ -170,7 +190,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {
       archiveCurrent();
-      createNewSession();
+
+      state.currentId = null; // 1. 현재 ID를 null로 설정
+      renderChat(); // 2. 빈 채팅 화면을 그림 (DB 호출 없음)
+
       showPage(chatArea);
     });
 
@@ -213,11 +236,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 채팅 초기 바인딩
-  if (!state.currentId) createNewSession();
-  qs("#chatForm").addEventListener("submit", handleSend);
+  // if (!state.currentId) createNewSession();
+  // qs("#chatForm").addEventListener("submit", handleSend);
 
   // 기존 채팅 렌더링
-  renderChat();
+  // renderChat();
+
+  qs("#chatForm").addEventListener("submit", handleSend);
 
   // STT 바인딩: 채팅 화면 마이크
   const chatMicBtn = document.getElementById("micBtn");
@@ -225,4 +250,5 @@ document.addEventListener("DOMContentLoaded", () => {
   if (chatMicBtn && chatInput) {
     bindMic(chatMicBtn, chatInput, AUTO_SEND_STT);
   }
+  loadInitialData();
 });
