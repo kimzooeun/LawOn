@@ -1,4 +1,4 @@
-package com.prinCipal.chatbot.counsel;
+package com.prinCipal.chatbot.content;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.prinCipal.chatbot.counsel.CounsellingSession;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,12 +23,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="CounsellingContent")
 @Getter
 @NoArgsConstructor
+@Table(name="counselling_content")
 public class CounsellingContent {
 
 	 @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	 @Column(name = "content_id")
 	 private Long contentId;
 	 
 	 @ManyToOne(fetch = FetchType.LAZY)
@@ -40,15 +43,24 @@ public class CounsellingContent {
 	 @Column(columnDefinition = "TEXT", nullable = false)
 	 private String content;
 	 
+	 @Column(name = "is_divorce")
 	 private Boolean isDivorce;
+	 
+	 @Column(name = "divorce_category")
      private String divorceCategory;
+	 
+	 @Column(name = "emotion_label")
      private String emotionLabel;
+	 
+	 @Column(name = "alert_triggered")
      private Boolean alertTriggered = false;
 
      @CreationTimestamp
+     @Column(name = "created_at")
      private LocalDateTime createdAt;
 
      @UpdateTimestamp
+     @Column(name = "updated_at")
      private LocalDateTime updatedAt;
      
      @Builder

@@ -3,6 +3,7 @@ package com.prinCipal.chatbot.member;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,13 +12,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
+import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
+import com.prinCipal.chatbot.oauth2.SocialTokenService;
 import com.prinCipal.chatbot.security.BlackTokenRepository;
 import com.prinCipal.chatbot.security.CookieHeader;
 import com.prinCipal.chatbot.security.JwtAuthenticationFilter;
@@ -35,6 +40,12 @@ public class MemberService{
 	@Value("${jwt.refresh-token-days:2}")
 	private int refreshDays;
 	
+	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+	
+	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+	
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -42,6 +53,7 @@ public class MemberService{
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final BlackTokenRepository blackTokenRepository;
+	private SocialTokenService socialTokenService;
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
 	// 회원가입 시, 유효성 검사 
@@ -67,6 +79,7 @@ public class MemberService{
 		if(signUpRequest.getNickname().equals("admin")) {
 			Member member = Member.builder()
 			            .nickname(signUpRequest.getNickname())
+			            .displayName(signUpRequest.getNickname())
 			            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 			            .role(UserRole.ADMIN)
 			            .build();
@@ -75,20 +88,24 @@ public class MemberService{
 		else {
 			Member member = Member.builder()
 		            .nickname(signUpRequest.getNickname())
+		            .displayName(signUpRequest.getNickname())
 		            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 		            .socialProvider("local")
 		            .role(UserRole.USER)
 		            .build();
-			System.out.println(">>>> socialProvider: " + member.getSocialProvider());
 			this.memberRepository.save(member);
 		}
 		 
 	}
 
+<<<<<<< HEAD
 
 
 	
 	
+=======
+  // 새 큰토큰
+>>>>>>> bf6cd7265bef947e814395279a0355dbf6e99ca3
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
@@ -129,17 +146,44 @@ public class MemberService{
 	}
 
 	
-	
+	@Transactional
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		// 기존 jwt 로그아웃 (Redis에서 RefreshToken 제거 + AccessToken 블랙리스트_
+		this.jwtLogout(request, response);
+		
+		// 소셜 로그인 여부 확인 후 소셜 로그아웃 추가 수행
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(auth != null && auth.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
+			Member member = oAuth2User.getMember();
+			
+			if(member.getSocialProvider() != null && !"local".equalsIgnoreCase(member.getSocialProvider())) {
+				this.socialLogout(member,oAuth2User, auth);
+			}
+		}
+		
+		// 쿠키도 정리 
+		this.cookieHeader.clearRefreshCookie(response);		
+	}
+
+	
+	private void jwtLogout(HttpServletRequest request, HttpServletResponse response) {
 		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
 		
 		if(accessToken != null && this.jwtTokenProvider.validateToken(accessToken)) {
 			// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
 			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
 			String jti = claims.getId();     // 토큰의 고유ID
-			// claims.getSubject() => 사용자의 닉네임 반환 가능 
-			Member member = this.memberRepository.findByNickname(claims.getSubject())
-					.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+			String identifier = claims.getSubject();  // 소셜쪽은, social_id로 토큰을 만들었어서. 아래와 같이 비교 해야함
+			Optional<Member> optionalMember;
+			
+			if (identifier.startsWith("kakao_") || identifier.startsWith("google_") || identifier.startsWith("naver_")) {
+			    optionalMember = this.memberRepository.findBySocialId(identifier);
+			} else {
+			    optionalMember = this.memberRepository.findByNickname(identifier);
+			}
+
+			Member member = optionalMember
+			        .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 			
 			// RefreshToken을 redis에서 삭제
 			this.refreshTokenRepository.delete("RT:" + member.getUserId());
@@ -150,12 +194,80 @@ public class MemberService{
 				this.blackTokenRepository.block(jti, ttlSeconds);
 			}
 		}
-		
-		// 쿠키도 정리 
-		this.cookieHeader.clearRefreshCookie(response);		
 	}
 
+	private void socialLogout(Member member, CustomOAuth2User oAuth2User, Authentication auth) {
+		String provider = member.getSocialProvider();
+		String socialToken = oAuth2User.getSocial_accessToken();
+		
+		System.out.println("여기는 들어옴???????");
+		if(socialToken == null) {
+			System.out.println("소셜 액세스토큰 없음 !!! 로그아웃 스킵!!!");
+			return;
+		}
+		
+		try {
+			switch(provider.toLowerCase()) {
+			case "kakao" : {
+				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
+				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
+
+				WebClient.create("https://kapi.kakao.com/v1/user/unlink")
+				        .post()
+				        .header("Authorization", "Bearer " + kakaoAccessToken)
+				        .retrieve()
+				        .bodyToMono(String.class)
+				        .block(); 
+				WebClient.create("https://kapi.kakao.com/v1/user/logout")
+						 .post()
+						 .headers(h -> h.setBearerAuth(kakaoAccessToken))
+						 .retrieve()
+						 .bodyToMono(String.class)
+						 .block();
+				System.out.println("카카오 로그아웃 완료 !!!!!!!");
+				break;
+			}
+			case "google" :{
+				 WebClient.create("https://oauth2.googleapis.com/revoke")
+				 		  .post()
+				 		  .bodyValue(Map.of("token",socialToken))
+				 		  .retrieve()
+				 		  .bodyToMono(String.class)
+				 		  .block();
+				 System.out.println("구글 로그아웃(토큰 해제) 완료 !!!!");
+				 break;
+			}
+			// 네이버는 AccessToken 삭제 API를 줘야함 
+			case "naver": {
+				System.out.println("여기는 네이버까지는 ????????");
+				// naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
+				String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
+				 WebClient.create("https://nid.naver.com/oauth2.0/token")
+				 		  .post()
+				 		  .uri(uriBuilder ->uriBuilder
+				 				  .queryParam("grant_type", "delete")
+				 				  .queryParam("client_id",  naverClientId)
+	                              .queryParam("client_secret", naverClientSecret)
+	                              .queryParam("access_token", naverAccessToken)
+	                              .queryParam("service_provider", "NAVER")
+				 				  .build())
+				 		  .retrieve()
+				 		  .bodyToMono(String.class)
+				 		  .block();
+				 System.out.println("네이버 로그아웃 완료!!");
+				 break;
+			}
+			
+			default : 
+				throw new IllegalArgumentException("예상치 못한 소셜 : " + provider);
+			}
+		} 
+		catch (Exception e) {
+			System.err.println("⚠️ 소셜 로그아웃 실패 (" + provider + "): " + e.getMessage());
+		}
+	}
 	
+
 	// 회원탈퇴
 	@Transactional
 	public void withdraw(HttpServletRequest request, HttpServletResponse response) {
@@ -191,15 +303,30 @@ public class MemberService{
 	}
 
 	
-	public MemberProfileDto getUserProfile(String nickname) {
-	    Member member = this.memberRepository.findByNickname(nickname)
-	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
-	    return new MemberProfileDto(member);
+	// 닉네임 변경
+	@Transactional
+	public void updatedisplayName(Long userId, String dispalyName) {
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		
+		// member엔티티에 updateNickname 메소드 호출
+		member.updatedisplayName(dispalyName);
+		memberRepository.save(member);
 	}
-
 	
-
+	// 비밀번호 변경
+	@Transactional
+	public void updatePassword(Long userId, String currentPassword, String newPassword) {
+		
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		// 현재 비밀번호 검증
+		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
+			throw new LoginFailedException("현재 비밀번호가 일치하지 않습니다.");
+		}
+		// 새 비밀번호 인코딩 및 member 엔티티 업데이트
+		member.updatePassword(passwordEncoder.encode(newPassword));
+	}
 }
-
-
-	

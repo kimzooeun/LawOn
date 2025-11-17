@@ -53,8 +53,6 @@ public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSucce
         String redisKey = "RT:" + customUser.getMember().getUserId();
         this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
         
-
-        
         // JSON 응답 설정 (200 OK)
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -63,7 +61,9 @@ public class LocalJwtAuthenticationSuccessHandler implements AuthenticationSucce
         // 토큰과 사용자 정보를 JSON Body에 담아 전송
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("accessToken", accessToken);
+        responseBody.put("userId", customUser.getMember().getUserId());
         responseBody.put("nickname", customUser.getMember().getNickname());
+        responseBody.put("display_name", customUser.getMember().getDisplayName());
         responseBody.put("provider", customUser.getMember().getSocialProvider()); // local인지 kakao인지 등
         
         response.getWriter().write(objectMapper.writeValueAsString(responseBody));

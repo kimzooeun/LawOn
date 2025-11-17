@@ -3,16 +3,24 @@ package com.prinCipal.chatbot.oauth2;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prinCipal.chatbot.member.Member;
 import com.prinCipal.chatbot.security.CookieHeader;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
+import com.prinCipal.chatbot.security.RefreshTokenRepository;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,10 +33,15 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 	private final JwtTokenProvider jwtTokenProvider;
 	private final CookieHeader cookieHeader;
+	private final RefreshTokenRepository refreshTokenRepository;
 	
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
 	
+	@Value("${jwt.refresh-token-days}")
+	private int refreshDays;
+	
+	private final OAuth2AuthorizedClientService authorizedClientService;
 	
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
@@ -45,39 +58,38 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            null,
 	            authentication.getAuthorities()
 	    );
-	    
-		
+	 
 		// 로그인 성공(인증 성공) 시 , 처리되는 영역
 		String accessToken = this.jwtTokenProvider.generateAccessToken(newAuthentication);
 		String refreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication);
 		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
 	
+
+		// redis에 refreshToken 저장 
+	    String redisKey = "RT:" + member.getUserId();
+	    this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
+
 	
 		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+		Long encodedUserid = member.getUserId();
 		String encodedNickname = URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
+		String encodedDisplayName = URLEncoder.encode(member.getDisplayName(), StandardCharsets.UTF_8);
 		String encodedProvider = URLEncoder.encode(member.getSocialProvider(), StandardCharsets.UTF_8);
 		
-        // 프론트로 redirect 
+		// 프론트로 redirect 
 		String targetUrl = String.format(
 	            "%s/oauth2_success.html?token=%s&nickname=%s&provider=%s",
 	            frontendUrl,  // http://localhost:3000
 	            encodedAccessToken, 
-	            encodedNickname, 
+	            encodedUserid,
+	            encodedNickname,
+	            encodedDisplayName,
 	            encodedProvider
 	        );
 	        
-	        System.out.println("🚀 Redirecting to: " + targetUrl);  // 👈 디버깅용
+	    System.out.println("🚀 Redirecting to: " + targetUrl);  // 👈 디버깅용
         
-        // 리다이렉트 실행
         response.sendRedirect(targetUrl);
-        
-//	   String targetUrl = UriComponentsBuilder.fromUriString("/oauth2-success")
-//                .build().toUriString();
-//        getRedirectStrategy().sendRedirect(request, response, targetUrl);
-		
-        // 중간 페이지 없이 바로 최종 목적지로 리다이렉트
-        // String targetUrl = "/home"; // Thymeleaf 페이지를 보여줄 컨트롤러 URL
-        // getRedirectStrategy().sendRedirect(request, response, targetUrl);
-		
+
 	}
 }

@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.prinCipal.chatbot.security.MemberDetailService;
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
 import com.prinCipal.chatbot.member.Member;
@@ -39,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+	
+	private final MemberDetailService memberDetailService;
 
 	@Value("${jwt.secret-key}")
 	private String SECRET_KEY;
@@ -52,6 +55,8 @@ public class JwtTokenProvider {
     private SecretKey getSigningKey() {
     	return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
+    
+    private final MemberDetailService memberDetailService;
     
 	// Access Token 생성
     public String generateAccessToken(Authentication authentication) {
@@ -147,8 +152,14 @@ public class JwtTokenProvider {
     					.map(SimpleGrantedAuthority::new)
     					.collect(Collectors.toList());
     	
-    	UserDetails principal = new User(claims.getSubject(),"", authorities);
-    	return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+//    	UserDetails principal = new User(claims.getSubject(),"", authorities);
+//    	return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    	
+    	// ✅ [수정 3] - 닉네임(subject)으로 MemberDetailService에서 실제 사용자 정보(알맹이)를 로드합니다.
+        UserDetails principal = this.memberDetailService.loadUserByUsername(claims.getSubject());
+
+        // ✅ [수정 4] - 'principal.getAuthorities()'를 사용하도록 변경합니다.
+       return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
     }
     
     

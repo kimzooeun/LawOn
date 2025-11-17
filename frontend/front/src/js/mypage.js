@@ -3,8 +3,27 @@
 // (탐색형 마이페이지 전환, 검색/필터, 액션)
 // ===================================
 
+import {
+  Modal,
+  FormModal,
+  showToast,
+  updateNicknameDisplay,
+  state,
+  createEmptyStore,
+} from "./utils.js";
+
+import {
+  updateNickname,
+  updatePassword,
+  clearAllSessions,
+  deleteUser,
+} from "./api.js";
+
+import { createNewSession } from "./chat.js";
+import { openDocModal } from "./init.js";
+
 // === 탐색형 마이페이지 전환 & 검색/필터 ===
-function initMypageListeners() {
+export function initMypageListeners() {
   const exploreBtn = document.getElementById("exploreBtn");
   const explore = document.getElementById("mypageExplore");
 
@@ -15,6 +34,7 @@ function initMypageListeners() {
   if (txt) txt.textContent = "마이페이지";
 
   // 액션: 프로젝트 로컬 키
+  const USER_ID_KEY = "todak_user_id";
   const NICK_KEY = "todak_nickname";
   const PUSH_KEY = "todak_push_enabled";
   const RECENTS_KEY = "todak_recents";
@@ -43,6 +63,8 @@ function initMypageListeners() {
     if (!btn) return;
     const action = btn.dataset.action;
 
+    const currentUserId = localStorage.getItem(USER_ID_KEY);
+
     // 공통 확인창
     const ask = (msg) => {
       return new Promise((resolve) => {
@@ -66,18 +88,35 @@ function initMypageListeners() {
               value="" placeholder="${currentNick}">
           </div>
         `,
-        onConfirm: (data) => {
+        onConfirm: async (data) => {
           const newNick = (data.nickname || "").trim();
+
           if (newNick) {
-            localStorage.setItem(NICK_KEY, newNick);
-            if (typeof updateNicknameDisplay === "function") {
-              updateNicknameDisplay(); // 헤더, 마이페이지, 빈 채팅방 닉네임 동시 업데이트
+            try {
+              // 2. ID가 있는지 확인 (로그인이 안됐거나 세션이 만료된 경우)
+              if (!currentUserId) {
+                showToast(
+                  "사용자 정보가 없습니다. 다시 로그인해주세요.",
+                  "error"
+                );
+                return false; // ID가 없으면 함수를 중단합니다.
+              }
+
+              // 3. [수정] 동적으로 가져온 ID로 API 함수 호출
+              await updateNickname(currentUserId, newNick);
+
+              // 닉네임 변경 성공 시 로직
+              localStorage.setItem(NICK_KEY, newNick);
+              if (typeof updateNicknameDisplay === "function") {
+                updateNicknameDisplay();
+              }
+              showToast("닉네임 저장 완료", "success");
+            } catch (error) {
+              showToast("닉네임 변경 실패", "error");
+              return false;
             }
-            showToast("닉네임 저장 완료", "success");
-          } else {
-            showToast("닉네임을 입력해주세요.", "error");
-            return false;
           }
+          // ... (이하 생략)
         },
       });
     } else if (action === "open-security") {
@@ -98,7 +137,7 @@ function initMypageListeners() {
             <input type="password" id="confirmPassword" name="confirmPassword" class="input">
           </div>
         `,
-        onConfirm: (data) => {
+        onConfirm: async (data) => {
           const { currentPassword, newPassword, confirmPassword } = data;
 
           if (!currentPassword || !newPassword || !confirmPassword) {
@@ -111,9 +150,25 @@ function initMypageListeners() {
             return false;
           }
 
-          // --- (경고) 실제 서버 API 호출 필요 ---
-          console.log("서버 전송 시도:", data);
-          showToast("비밀번호 변경 완료", "success");
+          if (currentPassword === newPassword) {
+            showToast("새 비밀번호가 현재 비밀번호와 동일합니다.", "error");
+            return false;
+          }
+
+          try {
+            if (!currentUserId) {
+              showToast(
+                "사용자 정보가 없습니다. 다시 로그인해주세요.",
+                "error"
+              );
+              return false;
+            }
+            await updatePassword(currentUserId, currentPassword, newPassword);
+            showToast("비밀번호 변경 완료", "success");
+          } catch (error) {
+            showToast("비밀번호 변경 실패 (현재 비밀번호 확인)", "error");
+            return false;
+          }
         },
       });
     } else if (action === "open-report") {
@@ -161,18 +216,24 @@ function initMypageListeners() {
       Modal.open({
         message: "⚠ 삭제 시 되돌릴 수 없습니다. 전체 삭제할까요?",
         okText: "삭제",
-        onConfirm: () => {
-          // 1. 로컬 스토리지 삭제
-          localStorage.removeItem(STORE_KEY);
+        // onConfirm을 async 함수로 변경
+        onConfirm: async () => {
+          try {
+            // 1. 서버에 전체 삭제 요청 (api.js 함수 호출)
+            await clearAllSessions();
 
-          // 2. 메모리에 있는 전역 state 변수 초기화
-          Object.assign(state, createEmptyStore());
+            // 2. (API 성공 시) 로컬 state 초기화
+            Object.assign(state, createEmptyStore());
 
-          // 3. 새 채팅 세션 생성
-          createNewSession();
+            // 3. 서버에 새 채팅 세션 생성 요청
+            await createNewSession(); // (내부적으로 renderChat() 호출됨)
 
-          // 4. 토스트 표시 (새로고침 제거)
-          showToast("대화 전체 비우기 완료", "success");
+            // 4. 토스트 표시
+            showToast("대화 전체 비우기 완료", "success");
+          } catch (err) {
+            console.error("대화 전체 삭제 실패:", err);
+            showToast("대화 삭제에 실패했습니다.", "error");
+          }
         },
       });
     } else if (action === "wipe-local") {
@@ -197,14 +258,28 @@ function initMypageListeners() {
         message:
           "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없으며 모든 데이터가 영구적으로 삭제됩니다.",
         okText: "탈퇴", // 버튼 텍스트
-        onConfirm: () => {
-          // (데모) 토스트 메시지만 표시
-          showToast("회원 탈퇴가 처리되었습니다.", "info");
+        onConfirm: async () => {
+          try {
+            if (!currentUserId) {
+              showToast(
+                "사용자 정보가 없습니다. 다시 로그인해주세요.",
+                "error"
+              );
+              return false;
+            }
 
-          // (예시) 1초 후 페이지 새로고침 (로그아웃 효과)
-          setTimeout(() => {
-            location.reload();
-          }, 1000);
+            await deleteUser(currentUserId);
+            showToast("회원 탈퇴가 완료되었습니다.", "info");
+
+            localStorage.removeItem(USER_ID_KEY);
+            localStorage.removeItem(NICK_KEY);
+
+            setTimeout(() => {
+              location.reload();
+            }, 1000);
+          } catch (error) {
+            showToast("회원 탈퇴 실패", "error");
+          }
         },
       });
     } else if (action === "open-emergency") {

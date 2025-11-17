@@ -2,6 +2,7 @@ package com.prinCipal.chatbot.security;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,7 +28,8 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	private final Oauth2AuthenticationSuccessHandler oauth2SuccessHandler;
+	@Autowired
+	private Oauth2AuthenticationSuccessHandler oauth2SuccessHandler;
 	private final Oauth2AuthenticationFailureHandler oauth2FailureHandler;
 	private final MemberDetailService memberdetailService;
 	

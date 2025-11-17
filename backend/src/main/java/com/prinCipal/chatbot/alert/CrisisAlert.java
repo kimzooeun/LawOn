@@ -26,12 +26,13 @@ import lombok.NoArgsConstructor;
 
 
 @Entity
-@Table(name="CrisisAlert")
 @Getter
 @NoArgsConstructor
+@Table(name="crisis_alert")
 public class CrisisAlert {
 	
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "alert_id")
 	private Long alertId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -45,40 +46,55 @@ public class CrisisAlert {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id")
     private EmotionAnalysis analysis;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    private CrisisTypeCode crisisTypeCode;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AlertSeverity alertSeverity;
+    @Column(name = "alert_severity", nullable = false)
+    private AlertSeverity alertSeverity= AlertSeverity.LOW;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "alert_status")
     private AlertStatus alertStatus = AlertStatus.PENDING;
 
+    @Column(name = "auto_escalate")
     private Boolean autoEscalate = false;
+    
+    @Column(name = "auto_escalated_to")
     private String autoEscalatedTo;
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "auto_escalate_result")
     private EscalateResult autoEscalateResult;
 
-   
+    @Column(name = "auto_escalate_request_time")
     private LocalDateTime autoEscalateRequestTime;
+    
+    @Column(name = "auto_escalate_response_time")
     private LocalDateTime autoEscalateResponseTime;
+    
+    @Column(name = "alert_timestamp")
     private LocalDateTime alertTimestamp;
     
 	@CreationTimestamp
+	@Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
     @Builder
     public CrisisAlert(Member member, CounsellingSession session,EmotionAnalysis analysis,
-    		CrisisTypeCode crisisTypeCode,AlertSeverity alertSeverity,AlertStatus alertStatus,
+    		AlertSeverity alertSeverity,AlertStatus alertStatus,
     		Boolean autoEscalate,String autoEscalatedTo,EscalateResult autoEscalateResult) {
-    	
+    	this.member = member;
+        this.session = session;
+        this.analysis = analysis;
+        this.alertSeverity = alertSeverity;
+        this.alertStatus = alertStatus;
+        this.autoEscalate = autoEscalate;
+        this.autoEscalatedTo = autoEscalatedTo;
+        this.autoEscalateResult = autoEscalateResult;
+        this.alertTimestamp = LocalDateTime.now();
     }
 }
 
