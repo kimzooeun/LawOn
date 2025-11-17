@@ -1,4 +1,8 @@
+// ============================================
+// 맞춤형 상담 (로그인/회원가입) 모달
+// ============================================
 import { TokenManager } from "./token.js";
+import { showToast } from "./utils.js";
 
 const authModal = document.getElementById("authModal");
 const authOverlay = document.getElementById("auth-overlay");
@@ -119,17 +123,13 @@ document
   .getElementById("loginForm")
   .addEventListener("submit", async function (e) {
     e.preventDefault();
-
     const nickname = document.getElementById("loginNickname").value;
     const password = document.getElementById("loginPassword").value;
 
-    const errorDiv = document.getElementById("login-error-message");
-
     if (!nickname || !password) {
-      if (errorDiv) {
-        errorDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
-        errorDiv.classList.add("show");
-      }
+      const errDiv = document.getElementById("login-error-message");
+      errDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
+      errDiv.classList.add("show");
       return;
     }
 
@@ -137,69 +137,58 @@ document
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include", // 쿠키 전송 허용
         body: JSON.stringify({ nickname, password }),
       });
 
-      // 3) 응답 파싱 (JSON이 아닐 수도 있으니까 방어적으로)
       let resData = {};
       try {
-        resData = await response.json();
-      } catch (parseErr) {
-        console.warn("로그인 응답 JSON 파싱 실패:", parseErr);
-      }
+        resData = await response.json(); // 위 JSON을 받음
+      } catch (err) {}
 
       if (response.ok) {
-        // accessToken 저장
-        if (resData.accessToken) {
-          TokenManager.setTokens(resData.accessToken, false);
-        } else {
-          console.warn("accessToken이 응답에 없습니다:", resData);
-        }
+        //200 OK 성공 처리 JWT 저장
+        TokenManager.setTokens(resData.accessToken, false);
 
         if (resData.userId && resData.display_name) {
           localStorage.setItem(USER_ID_KEY, resData.userId);
           localStorage.setItem(NICK_KEY, resData.display_name);
+          console.log("로그인 성공: ", resData.display_name);
+          console.log("userId:", resData.userId);
         } else {
+          // 백엔드 응답에 userId나 display_name이 없는 경우 경고
           console.warn(
             "로그인 응답 데이터에 userId 또는 display_name이 없습니다.",
             resData
           );
         }
 
-        TokenManager.showToast_auth("로그인 완료!<br>맞춤형 상담 페이지로 이동");
+        showToast("로그인 완료!<br>맞춤형 상담 페이지로 이동");
         resetAuthForms();
-
+        console.log(resData);
         setTimeout(() => {
           window.location.href = "/chat";
         }, 800);
-
-        return;
-      }
-
-      if (response.status === 400 && resData) {
-        if (errorDiv) {
-          errorDiv.innerText =
-            resData.message || "아이디 또는 비밀번호를 다시 확인해주세요.";
-          errorDiv.classList.add("show");
-        }
-        return;
-      }
-
-      if (errorDiv) {
+      } else if (response.status === 400 && resData) {
+        // 400 Bad Request (유효성 검사 실패) 처리
+        const div = document.getElementById("login-error-message");
+        if (div) div.innerText = resData.message;
+        div.classList.add("show");
+      } else {
+        // 500 Internal Server Error 또는 기타 서버 오류 처리
+        const errorDiv = document.getElementById("login-error-message");
         errorDiv.innerText =
           resData.message || "서버에서 알 수 없는 오류가 발생했습니다.";
         errorDiv.classList.add("show");
       }
     } catch (err) {
-      console.error("로그인 처리 중 JS/네트워크 에러:", err);
-
-      if (errorDiv) {
-        errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
-        errorDiv.classList.add("show");
-      }
+      // 네트워크 오류, JSON 파싱 실패 등 예상치 못한 오류 처리
+      const errorDiv = document.getElementById("login-error-message");
+      errorDiv.innerText = "네트워크 연결 또는 기타 치명적인 오류 발생!";
+      errorDiv.classList.add("show");
     }
   });
+
 //-----------------------------------------------------------------------------
 // 회원가입 폼 제출
 document
@@ -237,7 +226,7 @@ document
 
       if (response.ok) {
         //200 OK 성공 처리
-        TokenManager.showToast_auth("회원가입이 완료되었습니다!<br>    로그인해주세요!");
+        showToast("회원가입이 완료되었습니다!<br>    로그인해주세요!");
         switchToLoginTab();
         setTimeout(() => {
           document.getElementById("loginNickname").focus();

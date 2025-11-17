@@ -61,7 +61,7 @@ export const TokenManager = (() => {
           const toastMsg = apiFailed
             ? "로그아웃. 로컬 데이터만 삭제합니다."
             : "로그아웃 되었습니다.";
-          showToast_auth(toastMsg); // token.js의 showToast 사용
+          showToast(toastMsg); // token.js의 showToast 사용
 
           setTimeout(() => (window.location.href = "/"), 600);
         }
@@ -89,7 +89,7 @@ export const TokenManager = (() => {
     }
   }
 
-  function showToast_auth(message) {
+  function showToast(message) {
     const toast = document.getElementById("auth-toast");
     toast.innerHTML = message;
     toast.classList.add("show");
@@ -98,5 +98,5 @@ export const TokenManager = (() => {
       toast.classList.remove("show");
     }, 1000);
   }
-  return { getAccessToken, setTokens, updateAccessToken, clearTokens, showToast_auth };
+  return { getAccessToken, setTokens, updateAccessToken, clearTokens };
 })();
