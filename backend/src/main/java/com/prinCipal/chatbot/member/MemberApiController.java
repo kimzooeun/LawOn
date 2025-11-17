@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.security.access.AccessDeniedException;
 
+import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
@@ -32,6 +34,42 @@ public class MemberApiController {
 
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
+	
+	
+     // 비밀번호 정책 위반 시 (IllegalArgumentException)
+	// (400 Bad Request: 사용자의 요청이 잘못됨)
+  
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST) // 400
+                .body(Map.of("status", "fail", "message", e.getMessage()));
+    }
+
+   
+     // 현재 비밀번호가 틀렸을 때 (LoginFailedException)
+    //(401 Unauthorized: 인증 실패)
+   
+    @ExceptionHandler(LoginFailedException.class)
+    public ResponseEntity<Map<String, String>> handleLoginFailedException(LoginFailedException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED) // 401
+                .body(Map.of("status", "fail", "message", e.getMessage()));
+    }
+    
+  
+    // 예상치 못한 모든 서버 오류 처리 (Exception)
+   // (500 Internal Server Error: 서버 내부 오류)
+ 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneralException(Exception e) {
+        //  log.error("예상치 못한 오류", e);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+                .body(Map.of("status", "error", "message", "요청 처리 중 오류가 발생했습니다."));
+    }
+	
+	
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){

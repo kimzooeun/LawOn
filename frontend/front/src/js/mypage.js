@@ -57,6 +57,28 @@ export function initMypageListeners() {
   // 페이지 로드 시 현재 알림 설정 상태를 텍스트에 반영
   updatePushStatusText();
 
+  /*비밀번호 유효성 검사
+   * @param {string} password
+   * @param {string} nickname
+   * @returns {string | null} 에러 메시지 또는 null (성공)
+   */
+  function validatePasswordJS(password, nickname) {
+    if (!password) {
+      return "비밀번호를 입력해주세요.";
+    }
+    if (password.length < 8) {
+      return "비밀번호는 최소 8자 이상이어야 합니다.";
+    }
+    // 정책: 영문 대/소문자, 숫자 조합
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) {
+      return "비밀번호는 영문 대문자, 소문자, 숫자를 모두 포함해야 합니다.";
+    }
+    if (nickname && password.includes(nickname)) {
+      return "비밀번호에 닉네임을 포함할 수 없습니다.";
+    }
+    return null; // 통과
+  }
+
   // 카드 액션 핸들러
   explore.addEventListener("click", async (e) => {
     const btn = e.target.closest(".mpx-list-item");
@@ -139,7 +161,7 @@ export function initMypageListeners() {
         `,
         onConfirm: async (data) => {
           const { currentPassword, newPassword, confirmPassword } = data;
-
+          const currentNick = localStorage.getItem(NICK_KEY) || ""; // 닉네임 가져오기
           if (!currentPassword || !newPassword || !confirmPassword) {
             showToast("모든 항목을 입력해주세요.", "error");
             return false;
@@ -155,6 +177,13 @@ export function initMypageListeners() {
             return false;
           }
 
+          //프론트 유효성 검사
+          const validationError = validatePasswordJS(newPassword, currentNick);
+          if (validationError) {
+            showToast(validationError, "error");
+            return false;
+          }
+
           try {
             if (!currentUserId) {
               showToast(
@@ -166,8 +195,12 @@ export function initMypageListeners() {
             await updatePassword(currentUserId, currentPassword, newPassword);
             showToast("비밀번호 변경 완료", "success");
           } catch (error) {
-            showToast("비밀번호 변경 실패 (현재 비밀번호 확인)", "error");
-            return false;
+            // [수정] 백엔드에서 보낸 유효성 검사 오류 메시지 표시
+            const errorMsg =
+              error.response?.data?.message ||
+              "비밀번호 변경 실패 (현재 비밀번호 확인)";
+            showToast(errorMsg, "error");
+            return false; //
           }
         },
       });
