@@ -1,7 +1,5 @@
 export const TokenManager = (() => {
 
-		
-
   const setTokens = (accessToken, rememberMe) => {
     if (rememberMe) {
       localStorage.setItem(ACCESS_KEY, accessToken);
