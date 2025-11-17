@@ -9,15 +9,6 @@ export default defineConfig({
         index: "index.html",
         chat: "chat.html",
         oauth2_success: "oauth2_success.html",
-
-        // ✅ 어드민 페이지들 추가
-        "admin/login": "admin/login.html",
-        "admin/main": "admin/main.html",
-        "admin/lawyers": "admin/lawyers.html",
-        "admin/user": "admin/user.html",
-        "admin/settings": "admin/settings.html",
-        "admin/logs": "admin/logs.html",
-
       },
     },
   },
