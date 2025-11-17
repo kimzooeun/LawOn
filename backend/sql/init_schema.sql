@@ -135,6 +135,7 @@ CREATE TABLE crisisAlert (
     FOREIGN KEY (type_id) REFERENCES CrisisTypeCode(type_id) ON DELETE CASCADE
 );
 
+
 SET FOREIGN_KEY_CHECKS=1;
 
 

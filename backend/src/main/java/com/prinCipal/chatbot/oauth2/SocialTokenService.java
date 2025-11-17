@@ -75,7 +75,7 @@ public class SocialTokenService {
             return newAccessToken;
 		}
 		
-		System.out.println("유효해서 그냥 네이버 accessToken 반환을 하나요?");
+		System.out.println("유효해서 그냥 네이버 accessToken 반환을 하나요");
 		// 유효하면 그대로 반환
         return accessToken.getTokenValue();
 		
