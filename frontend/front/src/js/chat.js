@@ -3,37 +3,113 @@
 // (세션/메시지 관리, 최근 대화, 삭제, 렌더링)
 // ===================================
 
-// ---- 세션 ----
-function createNewSession() {
-  const id = "s_" + Date.now();
-  state.sessions[id] = {
-    id,
-    title: "새 대화",
-    createdAt: Date.now(),
-    messages: [],
-  };
-  state.currentId = id;
-  saveStore(state);
-  renderChat();
+import { showToast, state, qs, Modal } from "./utils.js";
+import { createSession, saveMessage, deleteSession } from "./api.js";
+import { showPage } from "./init.js";
+
+const USER_ID_KEY = "todak_user_id";
+
+/**
+ * 로그인이 필요할 때 로그인 페이지로 리디렉션합니다.
+ */
+function redirectToLogin() {
+  showToast("로그인이 필요합니다. 로그인 페이지로 이동합니다.", "error", 2000);
+  setTimeout(() => {
+    // index.html 또는 / 등 실제 로그인 페이지 주소로 변경하세요.
+    window.location.href = "/";
+  }, 2100);
 }
 
-function current() {
+// ---- 세션 ----
+export async function createNewSession() {
+  const currentUserId = localStorage.getItem(USER_ID_KEY);
+
+  if (!currentUserId) {
+    showToast("로그인이 필요합니다. 로그인 후 다시 시도해주세요.", "error");
+    // (선택적) 로그인 모달 열기
+    if (typeof openAuthModal === "function") {
+      redirectToLogin();
+    }
+    return false;
+  }
+  try {
+    const newSession = await createSession(currentUserId);
+
+    state.sessions[newSession.id] = newSession;
+    state.currentId = newSession.id;
+
+    renderChat(); // UI 렌더링
+    return true; //
+  } catch (err) {
+    console.error("새 세션 생성 실패:", err);
+    showToast("새 대화를 시작할 수 없습니다.", "error");
+    return false; //
+  }
+}
+export function current() {
   return state.sessions[state.currentId] || null;
 }
 
 // ---- 메시지 ----
-function addMessage(role, text) {
+export async function addMessage(role, text) {
   const sess = current();
   if (!sess) return;
-  sess.messages.push({ role, text, at: Date.now() });
+
+  const messageData = { role, text, at: Date.now() };
+  sess.messages.push(messageData); // (일단 화면에 그리기 위해 state에 추가)
+
+  // (기존 로직)
   if (role === "user" && (!sess.title || sess.title === "새 대화"))
     sess.title = text.slice(0, 18) + (text.length > 18 ? "…" : "");
-  saveStore(state);
+
+  // (낙관적 UI) 먼저 화면에 그리고
   renderChat();
+
+  // [핵심] 사용자가 보낸 메시지일 때만 서버에 전송 (봇 메시지는 안 보냄)
+  if (role === "user") {
+    const currentUserId = localStorage.getItem(USER_ID_KEY);
+
+    if (!currentUserId) {
+      sess.messages.pop();
+      renderChat();
+      redirectToLogin();
+      return;
+    }
+
+    try {
+      const botResponse = await saveMessage(
+        sess.id,
+        currentUserId, // 👈 (수정) 동적 ID 사용
+        messageData
+      );
+
+      // 2. (중요) 서버가 반환한 봇 응답을 state에 추가
+      if (botResponse && botResponse.text) {
+        const botMessageData = {
+          role: "bot",
+          text: botResponse.text,
+          at: Date.now(),
+        };
+        sess.messages.push(botMessageData);
+      }
+
+      // 3. (선택적) 서버가 새 제목을 주면 state에 반영
+      if (botResponse && botResponse.newTitle) {
+        sess.title = botResponse.newTitle;
+      }
+
+      // 4. 봇 응답이 추가된 상태로 화면 다시 렌더링
+      renderChat();
+      archiveCurrent();
+    } catch (err) {
+      console.error("메시지 저장/봇 응답 실패:", err);
+      showToast("메시지 전송 실패", "error");
+    }
+  }
 }
 
 // ---- 최근 저장 ----
-function archiveCurrent() {
+export function archiveCurrent() {
   const sess = current();
   if (!sess || !sess.messages.length) return;
   state.recents = state.recents.filter((r) => r.id !== sess.id);
@@ -42,61 +118,65 @@ function archiveCurrent() {
     title: sess.title,
     updatedAt: Date.now(),
   });
-  saveStore(state);
   renderRecents();
 }
 
 // ---- 삭제 기능 ----
-function deleteRecent(id) {
-  state.recents = state.recents.filter((r) => r.id !== id);
+// deleteRecent 함수를  변경
+export async function deleteRecent(id) {
+  try {
+    // 1. 서버에 먼저 삭제 요청 (api.js 함수 호출)
+    await deleteSession(id); //
 
-  if (state.sessions[id]) {
-    delete state.sessions[id];
-  }
-
-  // 만약 현재 열린 채팅을 삭제했다면, 다른 채팅으로 이동
-  if (state.currentId === id) {
-    state.currentId = null; // 현재 ID 비우기
-
-    if (state.recents.length > 0) {
-      // 다른 채팅이 남아있으면, 가장 위의 채팅을 활성화
-      state.currentId = state.recents[0].id;
-      saveStore(state);
-      renderChat(); // 채팅창과 최근 목록 모두 새로고침
-    } else {
-      // 최근 채팅이 아예 없으면, 새 채팅 생성
-      saveStore(state); // currentId가 null인 상태로 저장
-      location.reload(); // 페이지를 새로고침
+    // 2. (API 성공 시) 로컬 state 및 UI 업데이트
+    state.recents = state.recents.filter((r) => r.id !== id);
+    if (state.sessions[id]) {
+      delete state.sessions[id];
     }
-  } else {
-    // 다른 채팅(활성 상태가 아닌)을 삭제한 경우
-    saveStore(state);
-    renderRecents(); // 최근 목록만 새로고침
+
+    if (state.currentId === id) {
+      state.currentId = null;
+      if (state.recents.length > 0) {
+        state.currentId = state.recents[0].id;
+        renderChat();
+      } else {
+        // 새 채팅방 생성 (페이지 리로드 대신 createNewSession 호출)
+        await createNewSession(); // await 추가
+      }
+    } else {
+      renderRecents();
+    }
+
+    // 3. 성공 토스트 (animateAndDeleteRecent에서 여기로 이동)
+    showToast("대화 1개 삭제했어요", "success");
+  } catch (err) {
+    console.error("대화 삭제 실패:", err);
+    showToast("대화 삭제에 실패했습니다.", "error");
   }
 }
 
 // --- 삭제 애니메이션 ---
 // async await 추가, showToast 주석 처리
-function animateAndDeleteRecent(li, id) {
+export async function animateAndDeleteRecent(li, id) {
   const item = li.querySelector(".recent-item");
   if (!item) {
-    deleteRecent(id);
-    showToast("대화 1개 삭제했어요", "success");
+    await deleteRecent(id);
+    // showToast("대화 1개 삭제했어요", "success");
     return;
   }
   item.classList.add("removing");
   item.addEventListener(
     "animationend",
-    () => {
-      deleteRecent(id);
-      showToast("대화 1개 삭제했어요", "success");
+    async () => {
+      await deleteRecent(id);
+      // showToast("대화 1개 삭제했어요", "success");
     },
     { once: true }
   );
 }
 
 // ---- 렌더링 ----
-function renderRecents() {
+export function renderRecents() {
   const ul = qs("#recentList");
   ul.innerHTML = "";
   if (!state.recents.length) {
@@ -117,7 +197,7 @@ function renderRecents() {
     li.querySelector(".recent-text").addEventListener("click", () => {
       archiveCurrent(); // 현재 채팅 저장
       state.currentId = r.id; // 새 세션 ID로 변경
-      saveStore(state);
+      // saveStore(state);
       renderChat(); // 채팅 내용 다시 그리기
 
       if (typeof showPage === "function") {
@@ -137,24 +217,20 @@ function renderRecents() {
         message: "⚠ 경고! 삭제 시 대화 내용을 되돌릴 수 없습니다",
         okText: "삭제",
         cancelText: "취소",
-        onConfirm: () => animateAndDeleteRecent(li, r.id),
+        // 비동기 async 추가
+        onConfirm: async () => animateAndDeleteRecent(li, r.id),
       });
     });
     ul.appendChild(li);
   });
 }
 
-function renderChat() {
+export function renderChat() {
   const msgs = qs("#messages");
   msgs.innerHTML = "";
   const sess = current();
-  if (!sess) {
-    createNewSession();
-    return;
-  }
 
-  // 빈 채팅방 환영 문구
-  if (!sess.messages.length) {
+  if (!sess || !sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
     // 1. 템플릿 가져오기
     const template = document.getElementById("emptyChatTemplate");
@@ -190,33 +266,43 @@ function renderChat() {
 }
 
 // ---- 전송 ----
-function handleSend(e) {
+export async function handleSend(e) {
   e.preventDefault();
   const input = qs("#chatInput");
   const text = input.value.trim();
   if (!text) return;
 
-  // 1. 사용자 메시지를 먼저 추가하고 입력창 비우기
-  addMessage("user", text);
+  let sess = current();
+  if (!sess) {
+    // 2. 👈 [추가] 세션이 없으면 (첫 메시지) -> 새로 생성
+    const success = await createNewSession(); // DB에 세션 생성
+    if (!success) {
+      // (createNewSession 내부에서 이미 에러 토스트를 띄움)
+      return; // 세션 생성 실패 시 중단
+    }
+  }
+
+  // 1. 사용자 메시지를 먼저 추가 (API 호출 포함)
+  await addMessage("user", text); // await 추가
   input.value = "";
 
-  // 2. 봇 응답 시뮬레이션 (LLM이 응답하는 데 300ms가 걸린다고 가정)
-  setTimeout(() => {
-    // (가정) LLM이 응답 본문과 요약 제목을 반환
-    const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
-    const newTitleFromLLM = "이혼 재산분할 상담"; // LLM이 생성한 요약 제목
+  // 2. 봇 응답 시뮬레이션
+  // setTimeout(async () => {
+  //   // async 추가
+  //   const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
+  //   const newTitleFromLLM = "이혼 재산분할 상담";
 
-    // 3. 봇 메시지 추가
-    addMessage("bot", botResponseText);
+  //   // 3. 봇 메시지 추가 (API 호출 포함)
+  //   await addMessage("bot", botResponseText); // await 추가
 
-    // 4. 현재 세션의 title을 LLM이 준 제목으로 덮어쓰기
-    const sess = current(); // 현재 세션 가져오기
-    if (sess) {
-      sess.title = newTitleFromLLM; // <-- 핵심
-    }
+  //   // 4. 제목 덮어쓰기 (이 로직은 서버로 이동하는 것이 좋음)
+  //   const sess = current();
+  //   if (sess) {
+  //     sess.title = newTitleFromLLM;
+  //     // [변경] 제목 변경 API 호출 (예: await api.updateSessionTitle(sess.id, newTitleFromLLM))
+  //   }
 
-    // 5. 변경된 제목과 봇 메시지를 저장하고 사이드바 새로고침
-    //    (이 archiveCurrent() 호출이 모든 것을 최종 저장)
-    archiveCurrent();
-  }, 300); // 300ms 후 실행
+  //   // 5. 사이드바 새로고침 (API 호출이 성공하면 archiveCurrent는 DB 조회를 다시 하도록 변경)
+  //   archiveCurrent(); // 이 함수도 내부적으로 API를 호출하도록 수정 필요
+  // }, 300);
 }

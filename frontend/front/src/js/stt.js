@@ -3,6 +3,8 @@
 // (음성 녹음, 서버 전송, 텍스트 변환)
 // ===================================
 
+import { showToast, STT_ENDPOINT } from "./utils.js";
+
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
@@ -132,7 +134,7 @@ function cleanupRecording() {
   }
 }
 
-function bindMic(micBtnEl, inputEl, autoSubmit = false) {
+export function bindMic(micBtnEl, inputEl, autoSubmit = false) {
   if (!micBtnEl || !inputEl) return;
   micBtnEl.addEventListener("click", () => {
     if (isRecording) {

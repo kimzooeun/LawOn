@@ -2,6 +2,8 @@
 // 7. 변호사 페이지
 // ===================================
 
+import { showToast } from "./utils.js";
+
 // ===== 1) 데이터 스키마 =====
 const DATA = [
   {
@@ -472,7 +474,7 @@ function card(item) {
   return $;
 }
 
-function render() {
+export function render() {
   const app = document.getElementById("app");
   const sectionTpl = document.getElementById("section-tpl");
 
@@ -565,7 +567,7 @@ function exportCSV() {
 }
 
 // ===== 4) 이벤트 바인딩 (초기화 함수) =====
-function initLawyerPageListeners() {
+export function initLawyerPageListeners() {
   document.getElementById("q")?.addEventListener("input", (e) => {
     lawyerState.query = e.target.value;
     render();

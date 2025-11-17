@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.prinCipal.chatbot.content.CounsellingContent;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
@@ -19,12 +22,13 @@ import jakarta.persistence.ManyToOne;
 
 
 @Entity
-@Table(name="EmotionAnalysis")
+@Table(name="emotion_analysis")
 @Getter
 @NoArgsConstructor
 public class EmotionAnalysis {
 
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "analysis_id")
 	private Long analysisId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -35,17 +39,22 @@ public class EmotionAnalysis {
     @JoinColumn(name = "content_id")
     private CounsellingContent content;
 	
+	@Column(name = "emotion_label", nullable = false)
     private String emotionLabel;
 
+	@Column(name = "analysis_time")
     private LocalDateTime analysisTime = LocalDateTime.now();
 
+	@Column(name = "alert_triggered")
     private Boolean alertTriggered = false;
 	
 	
 	@CreationTimestamp
+	@Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+	@Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
     

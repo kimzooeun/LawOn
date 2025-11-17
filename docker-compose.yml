@@ -30,7 +30,7 @@ services:
     container_name: finalproject-backend
     ports:
       - "${BACKEND_PORT}:8080"
-      - "35729:35729" # LiveReload 포트 추가
+      - "35729:35729"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -101,22 +101,30 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       TZ: Asia/Seoul
-
-    env_file: # 👈 1. [수정] .env 파일을 읽도록 추가
-      - .env
-
     ports:
-      - "3307:3306" # 로컬 3306 ↔ 컨테이너 3306
+      - "3307:3306" # 로컬 3307 ↔ 컨테이너 3306
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
+    command:
+      - "mysqld"
+      - "--default-authentication-plugin=caching_sha2_password"
+      - "--host-cache-size=0"
+      - "--pid-file=/var/lib/mysql/mysqld.pid"
     healthcheck:
-      test: # 👈 2. [수정] CMD-SHELL로 변경
-        ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p${DB_PASSWORD}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-p${DB_PASSWORD}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 300s # 👈 3. [수정] 5분(300초)으로 유예 기간 설정
 
   redis:
     image: redis:7

@@ -1,4 +1,6 @@
 spring:
+  thymeleaf:
+    check-template-location: false
   application:
     name: backend
   server:
@@ -8,10 +10,6 @@ spring:
     multipart:
       max-file-size: 250MB
       max-request-size: 250MB
-    session:
-      cookie:
-        same-site: none
-        secure: false
 
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -27,7 +25,6 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
         naming:
           physical-strategy: com.prinCipal.chatbot.config.SnakeCaseNamingStrategy
 
