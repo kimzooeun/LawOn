@@ -1,160 +1,163 @@
-/* ==========================================================
-   🌸 로그인 상태 유지 로직
-   ========================================================== */
-document.addEventListener("DOMContentLoaded", () => {
-  const isLogin = localStorage.getItem("adminLogin");
-  const path = window.location.pathname;
-  const isLoginPage = path.includes("login.html");
+import { TokenManager } from '../../src/js/token.js';
 
-  // 1️⃣ 로그인 안 돼 있고, 현재 페이지가 login.html이 아니면 → 로그인 페이지로
-  if (!isLogin && !isLoginPage) {
-    console.warn("로그인 상태 아님 → login.html로 이동");
+// ===============================
+// 🔥 관리자 메뉴 페이지 전환 기능
+// ===============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll(".admin-nav .page-buttons button");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const page = btn.dataset.page;
+
+      // 페이지 매핑
+      const routes = {
+        main: "/admin/main.html",
+        settings: "/admin/settings.html",
+        lawyers: "/admin/lawyers.html",
+        user: "/admin/user.html",
+        logs: "/admin/logs.html"
+      };
+
+      // 매핑된 HTML 파일로 이동
+      if (routes[page]) {
+        window.location.href = routes[page];
+      } else {
+        console.warn("Unknown page:", page);
+      }
+    });
+  });
+
+  // 🔥 페이지 active 효과 적용
+  const current = window.location.pathname.split("/").pop().replace(".html", "");
+
+  buttons.forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.dataset.page === current) {
+      btn.classList.add("active");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const token = TokenManager.getAccessToken();
+
+  if (!token) {
     window.location.href = "/admin/login.html";
     return;
   }
 
-  // 2️⃣ 로그인돼 있는데 login.html 들어가면 → main.html로 리다이렉트
-  if (isLogin && isLoginPage) {
-    window.location.href = "/admin/main.html";
-    return;
-  }
+  initializeMainPage();
 });
 
-/* ==========================================================
-   🌸 페이지 이동 버튼 + active 표시
-   ========================================================== */
-document.querySelectorAll(".page-buttons button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.page;
-    const pages = {
-      main: "/admin/main.html",
-      settings: "/admin/settings.html",
-      lawyers: "/admin/lawyers.html",
-      log: "/admin/logs.html",
-      user: "/admin/user.html"
-    };
+function initializeMainPage() {
+  console.log("관리자 메인 페이지 로드됨");
+  loadDashboardSummary();
+  loadDashboardLogs();
+}
 
-    const isLogin = localStorage.getItem("adminLogin");
-    if (!isLogin) {
-      alert("로그인이 필요합니다.");
+// HTML 응답 체크
+async function safeJson(res) {
+  const type = res.headers.get("content-type");
+  if (type && type.includes("text/html")) {
+    return { htmlError: true };
+  }
+  try {
+    return await res.json();
+  } catch {
+    return { parseError: true };
+  }
+}
+
+// 🔹 요약 데이터 로딩
+async function loadDashboardSummary() {
+  const token = TokenManager.getAccessToken();
+
+  try {
+    const res = await fetch("http://localhost:8080/api/admin/dashboard/summary", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.status === 401) {
+      TokenManager.clearTokens();
       window.location.href = "/admin/login.html";
       return;
     }
 
-    if (pages[target]) {
-      window.location.href = pages[target];
-    }
-  });
-});
+    const data = await safeJson(res);
 
-// ✅ 현재 페이지 active 버튼 표시
-const current = window.location.pathname.split("/").pop().replace(".html", "");
-const activeBtn = document.querySelector(`.page-buttons button[data-page="${current}"]`);
-if (activeBtn) activeBtn.classList.add("active");
-
-/* ==========================================================
-   🌸 로그아웃
-   ========================================================== */
-const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("adminLogin");
-    alert("로그아웃 되었습니다.");
-    window.location.href = "/admin/login.html";
-  });
-}
-
-/* ==========================================================
-   📊 대시보드 기능 (요약 + 최근 로그 + 자동 새로고침)
-   ========================================================== */
-
-const API_BASE = "http://localhost:8080/api/admin/dashboard";
-let prevDashboard = {};
-let prevLogs = [];
-
-// ✅ 데이터 새로고침 (요약 + 로그)
-async function refreshDashboard() {
-  await Promise.all([loadDashboard(), loadRecentLogs()]);
-  console.info("🔄 대시보드 자동 갱신 완료 (" + new Date().toLocaleTimeString() + ")");
-}
-
-// ✅ 대시보드 요약 데이터
-async function loadDashboard() {
-  try {
-    const res = await fetch(`${API_BASE}/summary`);
-    const data = await res.json();
-
-    document.getElementById("userCount").textContent = data.userCount ?? "-";
-    document.getElementById("lawCount").textContent = data.lawyerCount ?? "-";
-
-    const total = data.chatTotalCount ?? 0;
-    const today = data.chatTodayCount ?? 0;
-    document.getElementById("chatCount").textContent = `${total}건 (${today}건 오늘)`;
-
-  } catch (err) {
-    console.error("대시보드 요약 불러오기 실패:", err);
-  }
-}
-
-// ✅ 카드 숫자 변경 시 애니메이션 효과
-function updateValue(id, newValue) {
-  const el = document.getElementById(id);
-  const oldValue = prevDashboard[id];
-  el.textContent = newValue ?? "-";
-
-  if (oldValue !== undefined && oldValue !== newValue) {
-    el.classList.add("updated");
-    setTimeout(() => el.classList.remove("updated"), 1000);
-  }
-}
-
-// ✅ 최근 회원 이용 내역
-async function loadRecentLogs() {
-  try {
-    const res = await fetch(`${API_BASE}/recent-logs`);
-    const data = await res.json();
-
-    const tableBody = document.getElementById("logTableBody");
-
-    if (!data.length) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">기록이 없습니다.</td></tr>`;
+    if (data.htmlError || data.parseError) {
+      TokenManager.clearTokens();
+      window.location.href = "/admin/login.html";
       return;
     }
 
-    // 이전 로그와 비교해 새 데이터 강조
-    const prevIds = prevLogs.map(l => l.id);
-    tableBody.innerHTML = data.map(log => {
-      const isNew = !prevIds.includes(log.id);
-      return `
-        <tr class="${isNew ? "new-row" : ""}">
-          <td>${log.userNickname || log.userId || "익명"}</td>
-          <td>${formatDate(log.startTime)}</td>
-          <td>${formatDate(log.endTime)}</td>
-          <td>${log.status || "-"}</td>
-        </tr>
-      `;
-    }).join("");
+    applySummaryData(data);
 
-    prevLogs = data;
   } catch (err) {
-    console.error("최근 이용내역 불러오기 실패:", err);
+    console.error("대시보드 통신 오류:", err);
   }
 }
 
-// ✅ 날짜 포맷 함수
-function formatDate(dt) {
-  if (!dt) return "-";
-  const d = new Date(dt);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} 
-          ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+// 🔹 최근 상담 로그
+async function loadDashboardLogs() {
+  const token = TokenManager.getAccessToken();
+
+  try {
+    const res = await fetch("http://localhost:8080/api/admin/dashboard/logs", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.status === 401) {
+      TokenManager.clearTokens();
+      window.location.href = "/admin/login.html";
+      return;
+    }
+
+    const logs = await safeJson(res);
+
+    if (logs.htmlError || logs.parseError) {
+      TokenManager.clearTokens();
+      window.location.href = "/admin/login.html";
+      return;
+    }
+
+    applyLogData(logs);
+
+  } catch (err) {
+    console.error("로그 데이터 통신 오류:", err);
+  }
 }
 
-/* ==========================================================
-   🚀 페이지 로드 시 초기 실행 + 자동 새로고침
-   ========================================================== */
-document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.pathname.includes("main.html")) {
-    refreshDashboard();                  // 초기 로드
-    setInterval(refreshDashboard, 10000); // 10초마다 갱신
+// HTML에 맞춰 완전 수정된 부분
+function applySummaryData(data) {
+  // 👉 HTML ID와 맞춰서 수정 완료
+  document.getElementById("userCount").textContent = data.totalUsers;
+  document.getElementById("chatCount").textContent = data.todayCounsel;
+  document.getElementById("lawCount").textContent = data.totalLawyers ?? "-";
+}
+
+function applyLogData(logs) {
+  const tbody = document.getElementById("logTableBody");
+  tbody.innerHTML = "";
+
+  if (!logs || logs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">데이터 없음</td></tr>`;
+    return;
   }
-});
+
+  logs.forEach(log => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${log.username ?? "-"}</td>
+      <td>${log.startTime ?? "-"}</td>
+      <td>${log.endTime ?? "-"}</td>
+      <td>${log.status ?? "-"}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}

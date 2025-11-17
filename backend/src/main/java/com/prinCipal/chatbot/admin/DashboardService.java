@@ -3,25 +3,53 @@ package com.prinCipal.chatbot.admin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.prinCipal.chatbot.counsel.CounsellingSessionRepository;
 import com.prinCipal.chatbot.member.MemberRepository;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
 
-    private final MemberRepository memberRepo;
-    private final LawyerRepository lawyerRepo;
-    private final CounselLogRepository counselRepo;
+	
+    private final CounsellingSessionRepository sessionRepo;
+    private final MemberRepository memberRepository; 
+    private final LawyerRepository lawyerRepository;
+    // 최근 상담 리스트
+    public List<CounselLogDto> getRecentLogs() {
+        return sessionRepo.findTop20ByOrderByStartTimeDesc()
+            .stream()
+            .map(CounselLogDto::fromEntity)
+            .toList();
+    }
 
-    // ✅ 누적 + 오늘 상담 수 모두 포함
-    public Map<String, Long> getDashboardSummary() {
-        Map<String, Long> map = new HashMap<>();
-        map.put("userCount", memberRepo.count());
-        map.put("lawyerCount", lawyerRepo.count());
-        map.put("chatTotalCount", counselRepo.count()); // 누적 상담 수
-        map.put("chatTodayCount", counselRepo.countTodayCounselLogs()); // 오늘 상담 수
-        return map;
+ // 대시보드 Summary
+    public DashboardSummaryDto getSummary() {
+
+        // 🔥 1. 회원 수 (nicknameCount == memberCount)
+        long nicknameCount = memberRepository.count();
+
+        // 🔥 2. 변호사 수
+        long lawyerCount = lawyerRepository.count();
+
+        // 🔥 3. 상담 총합 + 오늘 상담
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+
+        long total = sessionRepo.count(); 
+        long today = sessionRepo.countByStartTimeBetween(start, end);
+
+        // 🔥 4. DTO 반환
+        return new DashboardSummaryDto(
+                nicknameCount,
+                lawyerCount,
+                total,
+                today
+        );
     }
 }
+

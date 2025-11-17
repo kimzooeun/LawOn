@@ -1,18 +1,22 @@
 package com.prinCipal.chatbot.admin;
 
+import com.prinCipal.chatbot.member.Member;
+
 import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class AdminDto {
-	private Long id;
-	private String username;
-	private	String email;
-	private String role;
-	private boolean active;
-    private String createdAt;
-    private String lastLogin;
+    private Long id;
+    private String nickname;
+    private String role;
+
+    public static AdminDto fromEntity(Member m) {
+        AdminDto dto = new AdminDto();
+        dto.setId(m.getUserId());
+        dto.setNickname(m.getNickname());
+        dto.setRole(m.getRole().name());
+        return dto;
+    }
 }
+

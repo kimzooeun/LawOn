@@ -38,8 +38,5 @@ public class Lawyer {
 
     // 프로필 이미지 URL
     private String imageUrl;
-
-    // 활성 여부
-    private boolean active = true;
 }
 

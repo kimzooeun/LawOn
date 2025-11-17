@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	        return;
 	    }
 	    
-
+	    
 	    //  토큰 추출 및 검증
 		String jwt = resolveToken(request);
 	

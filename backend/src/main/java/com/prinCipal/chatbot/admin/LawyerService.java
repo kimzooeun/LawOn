@@ -31,7 +31,6 @@ public class LawyerService {
         lawyer.setOffice(updatedLawyer.getOffice());
         lawyer.setOfficeLocation(updatedLawyer.getOfficeLocation());
         lawyer.setContact(updatedLawyer.getContact());
-        lawyer.setActive(updatedLawyer.isActive());
         lawyer.setImageUrl(updatedLawyer.getImageUrl());
 
         return lawyerRepository.save(lawyer);

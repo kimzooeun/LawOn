@@ -21,7 +21,7 @@ public class CounselLog {
     private String userNickname;
 
     // 사용자 아이디 (선택)
-    private String userId;
+    private Long userId;
 
     // 상담 시작 시간
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

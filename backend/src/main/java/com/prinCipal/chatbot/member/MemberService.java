@@ -86,27 +86,7 @@ public class MemberService{
 	}
 
 
-	public String loginUser(LoginRequest loginRequest, HttpServletResponse response) {
-		Member member = this.memberRepository.findByNickname(loginRequest.getNickname())
-						.orElseThrow(() -> new LoginFailedException("사용자를 찾을 수 없습니다."));
-		
-		if(!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-			throw new LoginFailedException("비밀번호가 일치하지 않습니다.");
-		}
-		
-		Authentication authentication  = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(
-						loginRequest.getNickname(), loginRequest.getPassword()
-				)
-			);
-		
-		String accessToken = this.jwtTokenProvider.generateAccessToken(authentication);
-		String refreshToken = this.jwtTokenProvider.generateRefreshToken(authentication);
-		this.cookieHeader.SendCookieWithRefreshToken(response, refreshToken);
-	
-		return accessToken;
-		
-	}
+
 	
 	
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {

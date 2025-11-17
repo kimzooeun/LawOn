@@ -200,6 +200,26 @@ function handleSend(e) {
   addMessage("user", text);
   input.value = "";
 
+  // 🔥 상담 시작 API (첫 메시지일 때만) - 어드민 페이지 카운팅 및 상태등록
+  if (!state.counselStarted) {
+    state.counselStarted = true;
+    reportCounselStart();
+  }
+
+  window.addEventListener("beforeunload", () => {
+
+  fetch("http://localhost:8080/api/admin/dashboard/logs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: localStorage.getItem("userId") || 0,
+      userNickname: localStorage.getItem("todak_nickname") || "게스트",
+      status: "종료"
+    })
+  });
+
+});
+  
   // 2. 봇 응답 시뮬레이션 (LLM이 응답하는 데 300ms가 걸린다고 가정)
   setTimeout(() => {
     // (가정) LLM이 응답 본문과 요약 제목을 반환
