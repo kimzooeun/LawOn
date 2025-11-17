@@ -6,22 +6,23 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend/front:/app        # 로컬 소스를 컨테이너 /app 에 연결
-      - /app/node_modules            # node_modules는 호스트랑 분리 (충돌 방지)  
+      - ./frontend/front:/app # 로컬 소스를 컨테이너 /app 에 연결
+      - /app/node_modules # node_modules는 호스트랑 분리 (충돌 방지)
     environment:
-      - CHOKIDAR_USEPOLLING=true     # 변경 감지 활성화 (WSL/Windows에서 필수)
-    command: npm run dev             # 프로덕션용이 아니라 개발용 명령으로 실행
+      - CHOKIDAR_USEPOLLING=true # 변경 감지 활성화 (WSL/Windows에서 필수)
+    command: npm run dev # 프로덕션용이 아니라 개발용 명령으로 실행
     env_file:
       - .env
     restart: always
     depends_on:
       backend:
-        condition: service_healthy   # 도커가 backend의 /actuator/health (Spring Boot 기본 헬스 체크) 에서
-                                     # “OK” 응답을 받을 때까지 기다렸다가 frontend를 시작
+        condition:
+          service_healthy # 도커가 backend의 /actuator/health (Spring Boot 기본 헬스 체크) 에서
+          # “OK” 응답을 받을 때까지 기다렸다가 frontend를 시작
     develop:
       watch:
         - action: rebuild
-          path: package.json        
+          path: package.json
 
   backend:
     build: ./backend
@@ -29,7 +30,7 @@ services:
     container_name: finalproject-backend
     ports:
       - "${BACKEND_PORT}:8080"
-      - "35729:35729"  # LiveReload 포트 추가
+      - "35729:35729" # LiveReload 포트 추가
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -38,7 +39,7 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
-    command: ./gradlew bootRun --continuous --no-daemon  # 👈 수정
+    command: ./gradlew bootRun --continuous --no-daemon # 👈 수정
 
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
@@ -74,7 +75,6 @@ services:
         - action: rebuild
           path: ./backend/settings.gradle
 
-
   fastapi:
     build: ./fastapi
     image: finalproject-fastapi
@@ -101,24 +101,22 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       TZ: Asia/Seoul
+
+    env_file: # 👈 1. [수정] .env 파일을 읽도록 추가
+      - .env
+
     ports:
-      - "3307:3306"  # 로컬 3306 ↔ 컨테이너 3306
+      - "3307:3306" # 로컬 3306 ↔ 컨테이너 3306
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
     healthcheck:
-      test:  [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-uroot",
-          "-p${DB_PASSWORD}",
-        ]
+      test: # 👈 2. [수정] CMD-SHELL로 변경
+        ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 300s # 👈 3. [수정] 5분(300초)으로 유예 기간 설정
 
   redis:
     image: redis:7
@@ -140,8 +138,6 @@ volumes:
   redis_data:
   gradle_cache:
 
-networks: 
-  default: 
-    name: 
-      finalproject-network
-    
+networks:
+  default:
+    name: finalproject-network

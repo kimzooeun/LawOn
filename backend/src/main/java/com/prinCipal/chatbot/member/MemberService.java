@@ -93,8 +93,7 @@ public class MemberService{
 		 
 	}
 
-
-
+  // 새 큰토큰
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
@@ -282,15 +281,30 @@ public class MemberService{
 	}
 
 	
-	public MemberProfileDto getUserProfile(String nickname) {
-	    Member member = this.memberRepository.findByNickname(nickname)
-	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
-	    return new MemberProfileDto(member);
+	// 닉네임 변경
+	@Transactional
+	public void updatedisplayName(Long userId, String dispalyName) {
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		
+		// member엔티티에 updateNickname 메소드 호출
+		member.updatedisplayName(dispalyName);
+		memberRepository.save(member);
 	}
-
 	
-
+	// 비밀번호 변경
+	@Transactional
+	public void updatePassword(Long userId, String currentPassword, String newPassword) {
+		
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		// 현재 비밀번호 검증
+		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
+			throw new LoginFailedException("현재 비밀번호가 일치하지 않습니다.");
+		}
+		// 새 비밀번호 인코딩 및 member 엔티티 업데이트
+		member.updatePassword(passwordEncoder.encode(newPassword));
+	}
 }
-
-
-	
