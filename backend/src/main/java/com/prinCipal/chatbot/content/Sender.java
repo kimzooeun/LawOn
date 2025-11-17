@@ -1,4 +1,4 @@
-package com.prinCipal.chatbot.counsel;
+package com.prinCipal.chatbot.content;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

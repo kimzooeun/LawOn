@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.prinCipal.chatbot.security.MemberDetailService;
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
 import com.prinCipal.chatbot.member.Member;
@@ -39,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+	
+	private final MemberDetailService memberDetailService;
 
 	@Value("${jwt.secret-key}")
 	private String SECRET_KEY;

@@ -3,58 +3,58 @@
 // (전역 변수, 스토리지, 모달, 토스트, 닉네임)
 // ===================================
 
-const STORE_KEY = "todak_chats_v1";
-const STT_ENDPOINT = "http://127.0.0.1:8000/stt"; // 로컬 Whisper 서버
-// const STT_ENDPOINT = "/stt";                      // 배포용 엔드포인트
+import { getInitialData } from "./api.js";
+import { renderChat } from "./chat.js";
 
-const AUTO_SEND_STT = true; // 채팅 화면 STT 결과 자동 전송
+export const STORE_KEY = "todak_chats_v1";
+export const STT_ENDPOINT = "/stt";
+export const AUTO_SEND_STT = true;
 
 // 간단한 쿼리 셀렉터 유틸
-const qs = (s, r = document) => r.querySelector(s);
+export const qs = (s, r = document) => r.querySelector(s);
 
 // 사이드바 접힘 상태 로컬스토리지 키
-const SIDEBAR_COLLAPSED_KEY = "todak_sidebar_collapsed";
+export const SIDEBAR_COLLAPSED_KEY = "todak_sidebar_collapsed";
 
 // 접힘/펼침 적용 함수
-function applySidebarCollapsed(collapsed) {
+export function applySidebarCollapsed(collapsed) {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
   sidebar.classList.toggle("collapsed", !!collapsed);
 }
 
 // == 비어있는 스토어 ==
-function createEmptyStore() {
+export function createEmptyStore() {
   return { recents: [], sessions: {}, currentId: null };
 }
 
 // ---- 스토리지 로드/저장 ----
-function loadStore() {
+export let state = createEmptyStore(); // 일단 빈 상태로 시작
+
+export async function loadInitialData() {
   try {
-    const stored = localStorage.getItem(STORE_KEY);
-    if (stored) {
-      // 데이터가 있으면 파싱해서 반환
-      return JSON.parse(stored) || createEmptyStore();
+    const dataFromServer = await getInitialData(); // 1. API 호출
+
+    console.log("[Debug] 서버로부터 받은 초기 데이터:", dataFromServer);
+
+    Object.assign(state, dataFromServer); // 2. 전역 state에 덮어쓰기
+  } catch (err) {
+    console.error("초기 데이터 로드 실패:", err);
+    showToast("데이터 로드에 실패했습니다.", "error");
+    // 실패 시 로컬스토리지 (선택적)
+    // const localData = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    // if (localData) Object.assign(state, localData);
+  } finally {
+    // 3. 데이터 로드가 완료된 후 채팅방 렌더링
+    if (!state.currentId && state.recents.length > 0) {
+      state.currentId = state.recents[0].id;
     }
-    // 저장된 데이터가 없으면, 빈 스토어 생성
-    return createEmptyStore();
-  } catch {
-    // 파싱 실패 시에도 빈 스토어
-    return createEmptyStore();
+    renderChat(); // init.js에서 호출하던 것을 여기로 이동
   }
 }
 
-function saveStore(s) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(s));
-}
-
-let state = loadStore();
-
-function saveStore(s) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(s));
-}
-
 // Confirm Modal helpers
-const Modal = {
+export const Modal = {
   el: null,
   msgEl: null,
   okBtn: null,
@@ -111,7 +111,7 @@ const Modal = {
 
 // --- Toast ---
 let toastTimer = null;
-function showToast(text, variant = "info", ms = 1800) {
+export function showToast(text, variant = "info", ms = 1800) {
   const el = document.getElementById("toast");
   if (!el) return;
   el.textContent = text;
@@ -123,7 +123,7 @@ function showToast(text, variant = "info", ms = 1800) {
 }
 
 // 닉네임 표시
-function updateNicknameDisplay() {
+export function updateNicknameDisplay() {
   const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
   const safeNick = nick || "게스트";
 
@@ -140,7 +140,7 @@ function updateNicknameDisplay() {
   }
 }
 
-const FormModal = {
+export const FormModal = {
   el: null,
   titleEl: null,
   formEl: null,

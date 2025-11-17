@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta property="og:image" content="images/og-lawon.png" />
   <title>LawOn</title>
   <link rel="stylesheet" href="src/css/base.css" />
   <link rel="stylesheet" href="src/css/sidebar.css" />
@@ -19,7 +20,7 @@
         <button class="collapse-btn" id="collapse-btn" aria-label="사이드바 접기">
           ☰
         </button>
-        <div class="version-selector nav-text">LawOn</div>
+        <div class="version-selector nav-text" id="logoBtn" style="cursor: pointer;">LawOn</div>
       </div>
 
       <button class="new-chat-btn" id="newChatBtn" title="새 채팅 시작">
@@ -294,16 +295,16 @@
     </div>
   </template>
 
-  <script src="src/js/api.js"></script>
-  <script src="src/js/utils.js"></script>
-  <script src="src/js/chat.js"></script>
-  <script src="src/js/stt.js"></script>
-  <script src="src/js/theme.js"></script>
-  <script src="src/js/mypage.js"></script>
-  <script src="src/js/policy.js"></script>
-  <script src="src/js/lawyer.js"></script>
-  <script src="src/js/init.js"></script>
-
+  <script type="module" src="src/js/tokenApi.js"></script>
+  <script type="module" src="src/js/api.js"></script>
+  <script type="module" src="src/js/utils.js"></script>
+  <script type="module" src="src/js/chat.js"></script>
+  <script type="module" src="src/js/stt.js"></script>
+  <script type="module" src="src/js/theme.js"></script>
+  <script type="module" src="src/js/mypage.js"></script>
+  <script type="module" src="src/js/policy.js"></script>
+  <script type="module" src="src/js/lawyer.js"></script>
+  <script type="module" src="src/js/init.js"></script>
 
 </body>
 
