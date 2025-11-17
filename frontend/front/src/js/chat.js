@@ -258,7 +258,7 @@ export function renderChat() {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.textContent = m.text;
-    div.appendChild(풍선껌);
+    div.appendChild(bubble);
     msgs.appendChild(div);
   });
   msgs.scrollTop = msgs.scrollHeight;
@@ -286,11 +286,11 @@ export async function handleSend(e) {
   await addMessage("user", text); // await 추가
   input.value = "";
 
-  // 2. 봇 응답 시뮬레이션
-  // setTimeout(async () => {
-  //   // async 추가
-  //   const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
-  //   const newTitleFromLLM = "이혼 재산분할 상담";
+  // 2. 봇 응답 시뮬레이션 (LLM이 응답하는 데 300ms가 걸린다고 가정)
+  setTimeout(() => {
+    // (가정) LLM이 응답 본문과 요약 제목을 반환
+    const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
+    const newTitleFromLLM = "이혼 재산분할 상담"; // LLM이 생성한 요약 제목
 
   //   // 3. 봇 메시지 추가 (API 호출 포함)
   //   await addMessage("bot", botResponseText); // await 추가
