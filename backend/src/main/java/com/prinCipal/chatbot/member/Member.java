@@ -109,4 +109,4 @@ public class Member {
     this.password = newPassword;
     this.updatedAt = LocalDateTime.now();
   }
-
+}
