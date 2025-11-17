@@ -112,12 +112,12 @@ public class MemberApiController {
 	        // SecurityContextHolder에서 principal을 꺼내는 복잡한 로직 전체를 삭제합니다.
 	        // ( if (authentication == null...) 부터 (if(member == null)...) 까지 전부 삭제 )
 	        // ---
-			System.out.println("오류확인22222222222222222222222");
+		
 			if(customOAuth2User == null) {
 				System.out.println("오류확인333333333333333333333");
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
-			System.out.println("오류확인11111111111111111111111");
+			
 			try {
 	            // --- ( 3. 수정 ) ---
 	            // customOAuth2User를 서비스로 직접 전달합니다.
