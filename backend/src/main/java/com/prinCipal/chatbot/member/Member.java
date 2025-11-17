@@ -25,42 +25,41 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@NoArgsConstructor
 @Getter
+@NoArgsConstructor
 @Table(name = "users")
 public class Member {
 	
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Id 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "user_id")
 	private Long userId;
 	
 	@Column(nullable=false, unique =true)
-	private String nickname;     // 내부 unique 닉네임
+	private String nickname;     
 	
-	
-	@Column(nullable=false)
-	private String displayName; // 화면에서 보여줄 닉네임(중복 됨) 
-	
+	@Column(name = "display_name", nullable=false)
+	private String displayName;
 	
 	@Column(nullable=false)
 	private String password;
 	
-	
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(name = "user_role", nullable = false)
 	private UserRole role;
 
-
 	@CreationTimestamp
+	@Column(name = "created_at")
 	private LocalDateTime createdAt;
 
 	@UpdateTimestamp
+	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 	
 	
 	@OneToMany(mappedBy = "member",cascade=CascadeType.ALL, orphanRemoval=false)
 	private List<CounsellingSession> sessions = new ArrayList<>();
 
-	
 	@OneToMany(mappedBy = "member",cascade=CascadeType.ALL, orphanRemoval=false)
 	private List<CrisisAlert> crisisAlerts = new ArrayList<>();
 	
@@ -78,42 +77,37 @@ public class Member {
 	
 
 	// ----- 소셜 로그인 정보 ------ 
-	@Column(length=50)
+	@Column(name = "social_provider", length=50)
 	private String socialProvider;  // ex) "google", "kakao" 소셜 제공자 
 	
-	@Column(unique = true)
+	@Column(name = "social_id", unique = true)
 	private String socialId;  // socialProvider가 제공하는 고유 id
 	
-	@Column
+	@Column(name = "profile_image_url")
 	private String profileImageUrl;  // 프로필 이미지 url
 	
-	
-    // 소셜 로그인 시 기존 회원 정보 업데이트
-    // 구글쪽 이미지랑 연관시키고 싶으면 필요한 업데이트 메소드 
-    public void updateSocialInfo(String newDisplayName, String newProfileImageUrl) {
-    	if (newDisplayName != null && !newDisplayName.isBlank()) {
-            this.displayName = newDisplayName; 
-        }
-    	if (newProfileImageUrl != null && !newProfileImageUrl.isBlank()) {
-            this.profileImageUrl = newProfileImageUrl;
-        }
-    	this.updatedAt = LocalDateTime.now();
-    }
-    
-    // displayName 변경
-    public void updateDisplayName(String newDisplayName) {
-    	if(newDisplayName != null && !newDisplayName.isBlank()) {
-    		this.displayName = newDisplayName;
-    		this.updatedAt = LocalDateTime.now();
-    	}
-    	
-    }
-    
-    
-    
-    
-    
-    
-    
-    
+  // 소셜 로그인 시 기존 회원 정보 업데이트
+  // 구글쪽 이미지랑 연관시키고 싶으면 필요한 업데이트 메소드 
+  public void updateSocialInfo(String newDisplayName, String newProfileImageUrl) {
+    if (newDisplayName != null && !newDisplayName.isBlank()) {
+          this.displayName = newDisplayName; 
+      }
+    if (newProfileImageUrl != null && !newProfileImageUrl.isBlank()) {
+          this.profileImageUrl = newProfileImageUrl;
+      }
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  // 닉네임 변경 
+  public void updatedisplayName(String displayName) {
+    this.displayName = displayName;
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  // 비밀번호 변경 메소드 추가
+  public void updatePassword(String newPassword) {
+    this.password = newPassword;
+    this.updatedAt = LocalDateTime.now();
+  }
+  
 }

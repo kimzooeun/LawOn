@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import com.prinCipal.chatbot.dto.UpdateProfileRequestDto;
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
@@ -94,8 +93,7 @@ public class MemberService{
 		 
 	}
 
-
-
+  // 새 큰토큰
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
@@ -282,49 +280,31 @@ public class MemberService{
 		this.cookieHeader.clearRefreshCookie(response);
 	}
 
-
-	// MemberService.java
-
-		/** 닉네임 변경!
-		 사용자의 프로필 표시 이름(displayName)을 변경.
-		 이 로직은 로컬/소셜 로그인 사용자 모두에게 동일하게 적용.
-		 @param customOAuth2User 현재 인증된 사용자 정보 (Detached 상태일 수 있음)
-		 @param requestDto       변경할 이름이 담긴 DTO
-		 @return 변경된 프로필 정보
-		 */
-		@Transactional
-		public MemberProfileDto updateDisplayName(CustomOAuth2User customOAuth2User, UpdateProfileRequestDto requestDto) {
-			
-	        // --- ( 1. 수정: Detached 엔티티 사용 금지 ) ---
-			// Member member = customOAuth2User.getMember(); (X)
-	        
-	        // --- ( 2. 수정: DB에서 닉네임으로 다시 조회 ) ---
-	        // customOAuth2User에서 닉네임(PK대체)을 가져옵니다.
-	        String nickname = customOAuth2User.getMember().getNickname();
-	        
-	        // Repository로 현재 트랜잭션(@Transactional) 내에서
-	        // 'Managed(영속)' 상태의 엔티티를 다시 조회합니다.
-	        Member managedMember = memberRepository.findByNickname(nickname)
-	                .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다. (Service)"));
-			
-			// --- ( 3. 수정: 'Managed' 엔티티 변경 ) ---
-	        // 'Managed' 상태의 엔티티를 변경해야 DB에 반영(Dirty Checking)됩니다.
-			managedMember.updateDisplayName(requestDto.getNewDisplayName());
-
-			return new MemberProfileDto(managedMember);
-		}
 	
-	public MemberProfileDto getUserProfile(String nickname) {
-	    Member member = this.memberRepository.findByNickname(nickname)
-	            .orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
-	    return new MemberProfileDto(member);
+	// 닉네임 변경
+	@Transactional
+	public void updatedisplayName(Long userId, String dispalyName) {
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		
+		// member엔티티에 updateNickname 메소드 호출
+		member.updatedisplayName(dispalyName);
+		memberRepository.save(member);
 	}
-
 	
-	
-	
-
+	// 비밀번호 변경
+	@Transactional
+	public void updatePassword(Long userId, String currentPassword, String newPassword) {
+		
+		// 사용자 조회
+		Member member = memberRepository.findById(userId)
+				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+		// 현재 비밀번호 검증
+		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
+			throw new LoginFailedException("현재 비밀번호가 일치하지 않습니다.");
+		}
+		// 새 비밀번호 인코딩 및 member 엔티티 업데이트
+		member.updatePassword(passwordEncoder.encode(newPassword));
+	}
 }
-
-
-	

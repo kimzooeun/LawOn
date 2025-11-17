@@ -33,24 +33,16 @@ async function saveMessage(sessionId, messageData) {
  * (U) 닉네임 변경
  * @param {string} newNickname
  */
-async function updateNickname(newNickname) {
-  const accessToken = localStorage.getItem("accessToken");
-
-  const response = await fetch(`${API_BASE_URL}/profile/update-name`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json", // 🔥 JWT 추가!
-    },
-    body: JSON.stringify({ newDisplayName: newNickname }),
+export async function updateNickname(userId, newNickname) {
+  const response = await fetch(`${API_BASE_URL}/user/${userId}/nickname`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ display_name: newNickname }),
   });
-
   if (!response.ok) {
-    alert("닉네임 변경에 실패했습니다.");
-    throw new Error(`닉네임 변경 실패: ${response.status}`);
+    throw new Error("닉네임 변경 실패");
   }
-  alert("닉네임이 성공적으로 변경되었습니다.");
-  return response.ok;
+  return response.ok; // 성공 여부
 }
 
 /**
