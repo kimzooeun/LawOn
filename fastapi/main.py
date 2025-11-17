@@ -1,414 +1,63 @@
 import os
 import re
-import torch
-import torch.nn as nn
-import numpy as np
-import pandas as pd
-import joblib
+import json
+import uuid
+import redis
 import traceback
-from typing import List
+from typing import List,Optional
+from openai import OpenAI
+from models_load import (predict_sentiment, predict_context_kobert,predict_its,search_qa_faiss,search_legal_csv, load_simple_models, load_all_models)
 
-# --- 1. FastAPI 및 기본 라이브러리 임포트 (STT 관련 제거) ---
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 # import whisper # STT 모델 (제거)
 # import shutil # STT 임시파일 (제거)
 
-# --- 2. 노트북에서 가져온 라이브러리 임포트 ---
+# --- 노트북에서 가져온 라이브러리 임포트 ---
 from fastapi.middleware.cors import CORSMiddleware
-from transformers import BertTokenizer, BertModel, AutoTokenizer
-from konlpy.tag import Okt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
-from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
 
-# --- 3. 전역 설정 및 경로 ---
-print("--- 1. 전역 설정 및 경로 초기화 ---")
+frontend_url = os.getenv("FRONTEND_URL")
+origins = [frontend_url]
 
-# 중요: 모든 모델 파일은 ./models/ 폴더 안에 있어야 합니다.
-BASE_PATH = "./models" 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
-
-# 모델 경로 정의 (노트북 경로 -> 로컬 경로로 수정)
-MODEL_SAVE_PATH_A = os.path.join(BASE_PATH, "klue_model_v1.bin")
-MODEL_NAME_A = "klue/bert-base"
-MODEL_SAVE_PATH_B = os.path.join(BASE_PATH, "kobert_divorce_end_input.pt")
-MODEL_NAME_B = "monologg/kobert"
-MODEL_PATH_C_INTENT = os.path.join(BASE_PATH, "intent_model_hybrid.joblib")
-MODEL_PATH_C_TOPIC = os.path.join(BASE_PATH, "topic_best.joblib")
-MODEL_PATH_C_SITUATION = os.path.join(BASE_PATH, "situation_model_v3_halving_best_10_31.joblib")
-FAISS_INDEX_PATH_D = os.path.join(BASE_PATH, "law_faiss_index")
-EMBEDDING_MODEL_D = "jhgan/ko-sroberta-multitask"
-PRECEDENT_CSV_PATH_EF = os.path.join(BASE_PATH, "판례_라벨2.csv")
-LAWBOOK_CSV_PATH_EF = os.path.join(BASE_PATH, "민법_소제목.csv")
-
-# [A] 감정 분류 설정
-EMOTION_LABELS = ['긍정', '분노', '불안', '슬픔', '혼란', '좌절']
-NUM_LABELS_A = len(EMOTION_LABELS)
-MAX_LEN_A = 128
-
-# [C] 의도/주제/상황 설정
-MINIMAL_STOPWORDS_C = list(set([
-    '것', '수', '때', '등', '들', '더', '이', '그', '저', '나', '우리', '같', '또', '만', '년', '월', '일', '하다', '있다', '되다',
-    '가능하다', '가능', '가다', '되다', '하다', '있다', '없다', '않다', '된다', '한다', '어떻게', '어떤', '무엇', '언제', '어디서', '왜', '누가', '얼마', '몇',
-    '알고', '싶다', '궁금하다', '문의', '질문', '답변', '설명', '이해', '과정', '절차', '이후', '다음', '먼저', '그리고', '그러나', '하지만', '그래서', '제자','제호','제조',
-    '없', '있', '하', '되', '않', '나', '우리', '너', '당신', '같', '또', '것', '때', '등', '때문', '정도', '사실', '생각', '경우', '문제', '방법', '상황', '내용', '결과', '사람',
-    '해야', '하면', '경우', '때는', '어느', '무슨', '어디', '누구' , ' 가지다' , '가지','하나요', '위해', '이혼',
-    '대한', '관련', '따르다', '인정', '성립', '발생', '주장', '되나요', '있나요', '인가요', '할까요', '되나', '있나'
-]))
-LEGAL_KEYWORDS_C = [
-    '위자료', '재산분할', '양육권', '친권', '면접교섭', '협의이혼', '청구', '배상', '손해', '책임',
-    '차용금', '반환', '취소', '원상회복', '사해행위', '채권자', '배우자', '이혼사유', '이혼', '사유', '증명', '근거', '조건', '요건','기준','요소','범위','의무','효력','적용','판단',
-    '혼인', '금전거래', '청구권', '액수', '정해지', '부적법', '혼인파탄', '파탄', '분할', '양육비', '면접',
-    '교섭', '협의', '조정신청', '손해배상', '부부', '배우자', '당사자', '사람', '개인', '상대방',"입증"
-]
-okt_C = Okt()
-
-
-# --- 4. [A] 감정 분류 모델 정의 (노트북과 동일) ---
-print("--- 2. [A] 감정 분류 모델 정의 ---")
-class SentimentClassifier(torch.nn.Module):
-    def __init__(self, n_classes):
-        super(SentimentClassifier, self).__init__()
-        self.bert = BertModel.from_pretrained(MODEL_NAME_A)
-        self.dropout = torch.nn.Dropout(p=0.3)
-        self.classifier = torch.nn.Linear(self.bert.config.hidden_size, n_classes)
-    def forward(self, input_ids, attention_mask):
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        pooled_output = outputs.pooler_output
-        output = self.dropout(pooled_output)
-        return self.classifier(output)
-
-def clean_text_emotion(text):
-    text = re.sub(r"[^가-힣A-Za-z0-9\s.,?!]", "", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
-
-def predict_sentiment(text, model, tokenizer):
-    model.eval()
-    text = clean_text_emotion(text)
-    inputs = tokenizer.encode_plus(
-        text, None, add_special_tokens=True, max_length=MAX_LEN_A,
-        padding='max_length', return_token_type_ids=False, truncation=True,
-        return_attention_mask=True, return_tensors='pt'
-    )
-    input_ids = inputs['input_ids'].to(device)
-    attention_mask = inputs['attention_mask'].to(device)
-    with torch.no_grad():
-        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-    probs = torch.sigmoid(outputs).cpu().numpy()[0]
-    emotion_probs = list(zip(EMOTION_LABELS, [float(p) for p in probs])) # JSON 직렬화를 위해 float로 변환
-    sorted_probs = sorted(emotion_probs, key=lambda item: item[1], reverse=True)
-    high_prob_emotions = [label for label, prob in sorted_probs if prob >= 0.5]
-    return text, sorted_probs, high_prob_emotions
-
-
-# --- 5. [B] 문맥 분류 모델 정의 (노트북과 동일) ---
-print("--- 3. [B] 문맥 분류 모델 정의 ---")
-class KoBERTClassifier(nn.Module):
-    def __init__(self, n_classes=2, dropout=0.3):
-        super(KoBERTClassifier, self).__init__()
-        self.bert = BertModel.from_pretrained(MODEL_NAME_B, trust_remote_code=True)
-        self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(self.bert.config.hidden_size, n_classes)
-    def forward(self, input_ids, attention_mask):
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        pooled_output = outputs.pooler_output
-        output = self.dropout(pooled_output)
-        return self.classifier(output)
-
-def predict_context_kobert(text, model, tokenizer):
-    model.eval()
-    encoding = tokenizer.encode_plus(
-        text, add_special_tokens=True, max_length=128,
-        padding='max_length', truncation=True,
-        return_attention_mask=True, return_tensors='pt'
-    )
-    input_ids = encoding['input_ids'].to(device)
-    attention_mask = encoding['attention_mask'].to(device)
-    with torch.no_grad():
-        logits = model(input_ids, attention_mask)
-        probs = torch.softmax(logits, dim=1)
-        pred = torch.argmax(probs, dim=1)
-    result = "이혼" if pred.item() == 1 else "비이혼"
-    confidence = probs[0][pred.item()].item()
-    prob_non_div = probs[0][0].item()
-    prob_div = probs[0][1].item()
-    return result, confidence, prob_non_div, prob_div
-
-
-# --- 6. [C] 의도/주제/상황 모델 정의 (노트북과 동일) ---
-print("--- 4. [C] 의도/주제/상황 모델 정의 ---")
-def preprocess_text_C(text):
-    protected_matches = {}
-    def protect_term(match):
-        original_word = match.group(0)
-        if original_word not in protected_matches:
-            protected_matches[original_word] = True
-        return original_word
-    def strip_josa(text):
-        preserve_patterns = [
-            r'자의\s*의무', r'의\s*법적', r'의\s*효력', r'의\s*책임', r'의\s*근거',
-            r'의\s*성격', r'의\s*의미', r'의\s*개념'
-        ]
-        for pattern in preserve_patterns:
-            if re.search(pattern, text): return text
-        text = re.sub(r'(제\d+자|배우자|친권자|청구자|상대방|부부|혼인|정조의무|부양의무)(의|가|는|은|을|를|와|과)$', r'\1', text)
-        return re.sub(r'([0-9가-힣]{2,})(의|가|를|은|는|과|와)$', r'\1', text)
-
-    text = re.sub(r'(제\d+[가-힣]+)', protect_term, text)
-    text = re.sub('[^ㄱ-ㅎㅏ-ㅣ가-힣0-9 ]', '', text)
-    try:
-        word_tokens = okt_C.pos(text, stem=True)
-    except Exception as e:
-        print(f"Okt POS 태깅 오류: {e} (입력: {text})")
-        return ""
-    meaningful_words = []
-    for word, pos in word_tokens:
-        if word in LEGAL_KEYWORDS_C:
-            meaningful_words.append(word)
-        elif pos in ['Noun', 'Verb', 'Number']:
-            if pos == 'Number':
-                pass
-            elif pos in ['Noun', 'Verb'] and len(word) < 2:
-                if word not in ['제', '조']:
-                    continue
-            token = strip_josa(word)
-            if token not in MINIMAL_STOPWORDS_C:
-                meaningful_words.append(token)
-    for original_term in protected_matches.keys():
-        processed_term = strip_josa(original_term)
-        if processed_term not in meaningful_words:
-             meaningful_words.append(processed_term)
-    final_words = list(dict.fromkeys(meaningful_words))
-    return ' '.join(final_words)
-
-def detect_situation_C(text):
-    text = str(text)
-    if re.search(r"(외도|바람|불륜|부정행위|다른\s?(남자|여자)|상간|바람피|몰래 만남|배신|불륜상대|불성실|간통|외박|의심|첩|성매매|이성)", text): return "부정행위"
-    if re.search(r"(폭력|폭행|맞았다|때리다|학대|욕|언어폭력|감정적 폭력|정서적 폭력|소리 질러|폭언|협박|위협|강요|구타|공포|무시|비하|따돌림|갑질|인격모독|병원 기록|진단서|녹음|맞은 흔적)", text): return "폭행/부당대우"
-    if re.search(r"(생활비|돈|경제|수입|지출|빚|채무|도박|사기|금전|재정|경제적 부담|가정경제|돈 문제|생활이 어려워|생활이 힘들다|낭비|탕진|도박빚|파산|사업실패|용돈|빚쟁이|압류)", text): return "경제적 문제"
-    if re.search(r"(집을 나가다|연락이 안|버리고 갔|떠났|유기|가출|집을 나왔|연락두절|집을 나간|행방불명|무단이탈|동거거부|부양 거부|의무 방기)", text): return "악의의 유기"
-    if re.search(r"(시댁|며느리|장모|부모님|가족|가정문제|가정불화|시어머니|시아버지|친정|부모님 문제|가족 문제|고부갈등|장서갈등|형제갈등|사위|시가|처가|간섭)", text): return "가족 간 갈등"
-    if re.search(r"(성격|대화가 안|소통이 안|불화|싸움|의견 차이|거리감|냉랭|감정이 식었|서로 맞지 않|다툼|성격이 달라|가치관 차이|무관심|섹스리스|잦은 다툼|차이|취미|안 맞|소통 안)", text): return "성격 차이/불화"
-    return "해당 없음"
-
-def predict_its(text, model_intent, model_topic, model_situation):
-    pred_intent = model_intent.predict([text])[0]
-    preprocessed_text = preprocess_text_C(text)
-    if not preprocessed_text.strip():
-        pred_topic = "N/A (전처리 결과 없음)"
-        pred_situation_ml = "N/A (전처리 결과 없음)"
-    else:
-        pred_topic = model_topic.predict([preprocessed_text])[0]
-        pred_situation_ml = model_situation.predict([preprocessed_text])[0]
-    pred_situation_rule = detect_situation_C(text)
-    if pred_situation_rule != "해당 없음":
-        pred_situation = pred_situation_rule
-    else:
-        pred_situation = pred_situation_ml
-    return pred_intent, pred_topic, pred_situation
-
-
-# --- 7. [D] 질의응답 검색 모델 정의 (노트북과 동일) ---
-print("--- 5. [D] 질의응답 검색 모델 정의 ---")
-def search_qa_faiss(query, db, k=3):
-    if db is None:
-        return []
-    # FAISS 결과(Document 객체)를 JSON 친화적인 dict 리스트로 변환
-    results = db.similarity_search(query, k=k)
-    processed_results = []
-    for doc in results:
-        content = doc.page_content.strip()
-        question, answer = "", ""
-        if '?' in content:
-            try:
-                parts = content.split('?', 1)
-                question = parts[0].strip() + '?'
-                answer = parts[1].strip()
-            except Exception:
-                question = "(분리 오류)"
-                answer = content
-        else:
-            question = "(형식 불일치: '?' 없음)"
-            answer = content
-        processed_results.append({"question": question, "answer": answer})
-    return processed_results
-
-
-# --- 8. [E/F] 판례/법률 검색 로직 (JSON 반환용으로 수정) ---
-print("--- 6. [E/F] 판례/법률 검색 (CSV 매칭 방식) 정의 ---")
-def search_legal_csv(query, pred_i, pred_t, models):
-    results = []
-    df_precedent = models.get('df_precedent_labeled')
-    df_law = models.get('df_law_content')
-
-    if df_precedent is None or df_precedent.empty or df_law is None or df_law.empty:
-        return [{"type": "error", "content": "판례 또는 법률 DB가 로드되지 않았습니다."}]
-
-    # 의도가 '법률.판례'가 아니면 검색 안 함
-    if pred_i != '법률.판례':
-        return [{"type": "skipped", "content": f"의도가 '{pred_i}'이므로 법률/판례 검색을 건너뜁니다."}]
-
-    search_keyword_for_ef = None
-    search_mode = ""
-
-    if not pred_t:
-        search_keyword_for_ef = query
-        search_mode = "주제 분류 실패"
-    elif pred_t == '단순 이혼 질문':
-        search_keyword_for_ef = query # 원본 query 사용
-        search_mode = "법령 검색"
-    else:
-        search_keyword_for_ef = pred_t # 주제 키워드 사용 (예: '재산분할')
-        search_mode = "판례 검색"
-
-    # [A] "판례 검색" 모드
-    if search_mode == "판례 검색":
-        mask = df_precedent['라벨'].str.contains(search_keyword_for_ef, na=False)
-        matched_precedents = df_precedent[mask]
-        if matched_precedents.empty:
-            results.append({"type": "precedent_miss", "content": f"'{search_keyword_for_ef}' 키워드와 일치하는 판례를 찾을 수 없습니다."})
-        else:
-            for _, row in matched_precedents.iterrows():
-                ref_laws_details = []
-                ref_law_str = row.get('참조법령_최종')
-                if pd.notna(ref_law_str):
-                    ref_law_list = [key.strip() for key in ref_law_str.split('\n') if key.strip()]
-                    for law_key in ref_law_list:
-                        law_detail = df_law[df_law['key'] == law_key]
-                        if not law_detail.empty:
-                            ref_laws_details.append({
-                                "key": law_key,
-                                "title": law_detail.iloc[0].get('소제목', 'N/A'),
-                                "content": law_detail.iloc[0].get('content', 'N/A')
-                            })
-                        else:
-                            ref_laws_details.append({"key": law_key, "title": "N/A", "content": "민법 DB에서 해당 법령을 찾을 수 없음"})
-                
-                results.append({
-                    "type": "precedent",
-                    "title": row.get('판시사항', 'N/A'),
-                    "summary": row.get('요약문장', 'N/A'),
-                    "references": ref_laws_details
-                })
-
-    # [B] "법령 검색" 모드
-    elif search_mode == "법령 검색" or search_mode == "주제 분류 실패":
-        m = re.search(r'(\d+)', search_keyword_for_ef)
-        if m:
-            jo_num = m.group(1)
-            search_key = f"제{jo_num}조"
-            law_detail = df_law[df_law['key'].str.contains(search_key, na=False)]
-            if not law_detail.empty:
-                for _, row in law_detail.iterrows():
-                    results.append({
-                        "type": "law",
-                        "key": row.get('key'),
-                        "title": row.get('소제목'),
-                        "content": row.get('content')
-                    })
-            else:
-                results.append({"type": "law_miss", "content": f"'{search_key}'에 대한 법률 내용을 DB에서 찾지 못했습니다."})
-        else:
-            results.append({"type": "law_miss", "content": "쿼리에서 법령 조항 번호를 추출할 수 없습니다."})
-            
-    return results
-
-# --- 9. 모델 로딩 래퍼 (STT 모델 로더 제거) ---
-print("--- 7. 모델 로딩 시작 ---")
-def load_all_models():
-    models = {}
-    
-    # [STT] Whisper 모델 로딩 (제거)
-    # try:
-    #     print("  [STT] Whisper 모델 로딩 중 (base)...")
-    #     models['stt_model'] = whisper.load_model("base")
-    #     print("  [STT] 완료.")
-    # except Exception as e:
-    #     print(f"  [STT] Whisper 모델 로딩 실패: {e}"); models['stt_model'] = None
-
-    # [A] 감정 분류
-    try:
-        print("  [A] 감정 분류 모델 로딩 중...")
-        models['tokenizer_A'] = BertTokenizer.from_pretrained(MODEL_NAME_A)
-        model_A = SentimentClassifier(NUM_LABELS_A).to(device)
-        model_A.load_state_dict(torch.load(MODEL_SAVE_PATH_A, map_location=device))
-        model_A.eval()
-        models['model_A'] = model_A
-        print("  [A] 완료.")
-    except Exception as e:
-        print(f"  [A] 감정 분류 모델 로딩 실패: {e}"); models['model_A'] = None
-    
-    # [B] 문맥 분류
-    try:
-        print("  [B] 문맥 분류 모델 로딩 중...")
-        models['tokenizer_B'] = AutoTokenizer.from_pretrained(MODEL_NAME_B, trust_remote_code=True)
-        model_B = KoBERTClassifier(n_classes=2, dropout=0.3).to(device)
-        model_B.load_state_dict(torch.load(MODEL_SAVE_PATH_B, map_location=device))
-        model_B.eval()
-        models['model_B'] = model_B
-        print("  [B] 완료.")
-    except Exception as e:
-        print(f"  [B] 문맥 분류 모델 로딩 실패: {e}"); models['model_B'] = None
-
-    # [C] 의도/주제/상황
-    try:
-        print("  [C] 의도/주제/상황 모델 로딩 중...")
-        models['model_C_intent'] = joblib.load(MODEL_PATH_C_INTENT)
-        models['model_C_topic'] = joblib.load(MODEL_PATH_C_TOPIC)
-        models['model_C_situation'] = joblib.load(MODEL_PATH_C_SITUATION)
-        print("  [C] 완료.")
-    except Exception as e:
-        print(f"  [C] 의도/주제/상황 모델 로딩 실패: {e}")
-        models.update({'model_C_intent': None, 'model_C_topic': None, 'model_C_situation': None})
-    
-    # [D] FAISS
-    try:
-        print("  [D] 질의응답 (FAISS) DB 로딩 중...")
-        embedding_D = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_D)
-        models['db_D'] = FAISS.load_local(FAISS_INDEX_PATH_D, embedding_D, allow_dangerous_deserialization=True)
-        print("  [D] 완료.")
-    except Exception as e:
-        print(f"  [D] 질의응답 (FAISS) DB 로딩 실패: {e}"); models['db_D'] = None
-
-    # [E/F] CSV
-    try:
-        print("  [E/F] 판례/법률 (CSV) 데이터 로딩 중...")
-        models['df_precedent_labeled'] = pd.read_csv(PRECEDENT_CSV_PATH_EF)
-        models['df_law_content'] = pd.read_csv(LAWBOOK_CSV_PATH_EF)
-        print(f"  [E/F] 판례 CSV 로드 완료. (Rows: {len(models['df_precedent_labeled'])})")
-        print(f"  [E/F] 법률 CSV 로드 완료. (Rows: {len(models['df_law_content'])})")
-        print("  [E/F] 완료.")
-    except Exception as e:
-        print(f"  [E/F] 판례/법률 CSV 로딩 실패: {e}")
-        models['df_precedent_labeled'] = pd.DataFrame()
-        models['df_law_content'] = pd.DataFrame()
-
-    print("--- 8. 모든 모델 로딩 완료 ---")
-    return models
-
-# --- 10. (중요) FastAPI 앱 초기화 및 모델 로딩 ---
-# FastAPI 앱이 시작될 때 모델을 딱 한 번만 로드합니다.
+# --- FastAPI 앱 초기화 및 모델 로딩 ---
 all_models = load_all_models()
+simple_models = load_simple_models()
+
+# OpenAI 클라이언트 (OPENAI_API_KEY는 환경변수로)
+client = OpenAI()
+
+redis_client = redis.Redis(
+    host= os.getenv("REDIS_HOST"),
+    port = int(os.getenv("REDIS_PORT")),
+    db=0,
+    decode_responses=True,
+)
+
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 
+    allow_origins=origins,  
     allow_credentials=True,
-    allow_methods=["*"],  # 
+    allow_methods=["*"],  
     allow_headers=["*"],
 )
 
-# --- 11. API 엔드포인트 정의 ---
 
+LIMIT_SIMPLE = 5  # 간편 상담 최대 질문 수
+
+# --- FastAPI에서 들어오는 JSON 바디를 파이썬 객체로 변환해주는 모델----
 class QueryRequest(BaseModel):
     query: str
+
+class SimpleChatRequest(BaseModel):
+    session_id: Optional[str] = None
+    query: str
+
 
 @app.get("/")
 def read_root():
@@ -576,6 +225,163 @@ async def handle_generate_response(request: QueryRequest):
     # Spring Boot는 이 'results' JSON 전체를 받지만,
     # 'final_response' 필드만 꺼내서 사용합니다.
     return results
+
+
+
+
+@app.post("/simple-chat")
+async def simple_chat(request:SimpleChatRequest):
+    # 세션 ID 확인/생성
+    session_id = request.session_id or str(uuid.uuid4())
+    redis_key = f"simple:session:{session_id}"
+
+    # Redis에서 이전 상태 가져오기 
+    data_str = redis_client.get(redis_key)
+    if data_str:
+        data = json.loads(data_str)
+    else:
+        data = {"count":0, "history":[]}
+    count = data.get("count",0)
+
+    # 5회 초과 여부 체크
+    if count >= LIMIT_SIMPLE:
+        return {
+            "session_id" : session_id,
+            "answer": "간편 상담은 최대 5개의 질문까지 제공됩니다.\n"
+                      "더 깊은 상담을 원하시면 회원가입 후 맞춤형 상담을 이용해 주세요 😊",
+            "count_used":count,
+            "limit": LIMIT_SIMPLE,
+            "limit_reached":True,
+            "suggest_login":True,
+        }
+    
+    query = request.query
+    # --- [B] 문맥 (KoBERT) 분류 ---
+    context_label = None # 이혼/비이혼 같은 문자열 
+    context_conf = None # 신뢰도
+    try:
+        if simple_models.get('model_B'):
+            pred_b, conf_b, prob_non_div, prob_div = predict_context_kobert(query, simple_models['model_B'], simple_models['tokenizer_B'])
+            context_label = pred_b
+            context_conf = conf_b
+        else: print("간편 상담용 이혼 문맥 분류 모델 로딩 실패")
+    except Exception as e: print("간편 상담용 문맥 분류 예측 오류 : ", e)
+
+    # [C] 의도/주제/상황 분류 (이혼 질문일 때 활용)
+    intent = topic = situation = None
+    if simple_models.get('model_C_intent') and simple_models.get('model_C_topic') and simple_models.get('model_C_situation'):
+        try:
+            intent, topic, situation = predict_its(query, simple_models['model_C_intent'], simple_models['model_C_topic'],
+                simple_models['model_C_situation']
+            )
+        except Exception as e :
+            print("의도/주제/상황 분류 모델 예측 중 오류 발생 : ", e)
+    
+    # 이혼 여부에 따라 OpenAI 호출 여부 결정
+    # context_label == 이혼 + 신뢰도 0.7 이상일때만 llm 사용 
+    use_LLM = False
+    if context_label == "이혼":
+        if(context_conf is None) or (context_conf >= 0.7):
+            use_LLM = True
+    
+    # 최종 답변 생성
+    if use_LLM:
+        system_prompt = """
+            당신은 한국의 이혼/가사 법률에 특화된 상담 챗봇입니다.
+            지금은 '간편 상담' 모드입니다.
+
+            - 사용자의 상황을 공감해주되, 너무 깊은 법률 자문보다는 개괄적인 안내 위주로 답변합니다.
+            - 주어진 intent/topic/situation 정보를 참고해서 3~6문장 정도로 친절하게 답변하세요.
+            - 최종 답변에는 '모델 분류 결과' 같은 기술적인 내용은 노출하지 마세요.
+            - 명확한 법률 자문이나 추가 서류 검토가 필요해 보이면,
+            회원가입 후 맞춤형 상담을 이용하라는 안내를 가볍게 덧붙이세요.
+        """
+        user_prompt = f"""
+            [사용자 질문]
+            {query}
+
+            [내부 분류 결과] (사용자에게 직접 보여주지 마세요)
+            - KoBERT 문맥(context): {context_label} (신뢰도: {context_conf})
+            - 의도(intent): {intent}
+            - 주제(topic): {topic}
+            - 상황(situation): {situation}
+        """
+
+        completion = client.chat.completions.create(
+            model = "gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        
+        answer = completion.choices[0].message.content
+    else:
+        #  이혼 관련이 아니라고 판단되면 , 기본 안내만 제공
+        answer = (
+            "현재 간편 상담은 주로 이혼·가사 문제에 대한 안내를 드리도록 설계되어 있어요.\n"
+            "말씀해 주신 내용은 이혼과 직접적인 관련이 크지 않은 일반 문의로 판단되어,\n"
+            "정확한 답변을 드리기 어려운 점 양해 부탁드립니다.\n\n"
+            "보다 구체적인 상담이 필요하시다면 변호사 상담이나, 회원가입 후 맞춤형 상담을 이용해 주세요."
+        )
+    
+    # Redis에 count + history 업데이트
+    new_history_item = {
+        "user": query,
+        "bot": answer,
+        "context_label": context_label,
+        "context_confidence": context_conf,
+        "intent": intent,
+        "topic": topic,
+        "situation": situation,
+    }
+    
+    data["count"] = count + 1
+    data['history'].append(new_history_item)
+
+    redis_client.set(redis_key, json.dumps(data))
+    # redis_client.expire(redis_key, 3600) # 1시간 유지
+    redis_client.expire(redis_key, 60) # 60초 = 1분 
+
+
+    new_count = data["count"]
+    limit_reached = new_count >= LIMIT_SIMPLE
+    suggest_login = limit_reached or (new_count == LIMIT_SIMPLE - 1)
+
+    return {
+        "session_id" : session_id,
+        "answer": answer,
+        "count_used": new_count,
+        "limit": LIMIT_SIMPLE,
+        "limit_reached": limit_reached,
+        "suggest_login": suggest_login,
+        "context": {
+            "label": context_label,
+            "confidence": context_conf,
+        },
+        "its": {
+            "intent": intent,
+            "topic": topic,
+            "situation": situation,
+        },
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # [엔드포인트 1: STT] (제거)
 # @app.post("/stt")
