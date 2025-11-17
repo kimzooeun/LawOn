@@ -34,6 +34,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
@@ -42,6 +43,7 @@ public class MemberService{
 	private int refreshDays;
 	
 	private final MemberRepository memberRepository;
+	private final ForbiddenWordService forbiddenWordService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
@@ -63,7 +65,7 @@ public class MemberService{
 	
 	    return errors;
 	}
-
+	
 	// 회원가입 
 	public void registerUser(SignupRequest signUpRequest) {
 		Map<String, String> errors = validateSignup(signUpRequest);
@@ -283,13 +285,34 @@ public class MemberService{
 	
 	// 닉네임(displayName) 변경
 	@Transactional
-	public void updatedisplayName(Long userId, String dispalyName) {
+	public void updatedisplayName(Long userId, String displayName) {
+		
+		// 1. ⭐️ (추가) 유효성 검사 (Validation)
+        // 예: 2~15자의 한글, 영문, 숫자, 밑줄(_)만 허용
+        String regex = "^[가-힣a-zA-Z0-9_]{2,15}$";
+        if (displayName == null || !Pattern.matches(regex, displayName.trim())) {
+            throw new IllegalArgumentException("닉네임은 2~15자의 한글, 영문, 숫자, 밑줄(_)만 사용 가능합니다.");
+        }
+        
+        String trimmedDisplayName = displayName.trim();
+        
+     //  욕설(비속어) 검사
+        // (ForbiddenWordService가 생성자를 통해 주입되었다고 가정)
+        if (forbiddenWordService.containsForbiddenWord(trimmedDisplayName)) {
+             throw new IllegalArgumentException("닉네임에 사용할 수 없는 단어가 포함되어 있습니다.");
+        }
+		
 		// 사용자 조회
 		Member member = memberRepository.findById(userId)
 				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 		
+		// 4. ⭐️ (추가) 변경 감지 (현재 닉네임과 동일한지 확인)
+        if (member.getDisplayName() != null && member.getDisplayName().equals(trimmedDisplayName)) {
+            throw new IllegalArgumentException("현재 닉네임과 동일합니다.");
+        }
+        
 		// member엔티티에 updateNickname 메소드 호출
-		member.updatedisplayName(dispalyName);
+		member.updatedisplayName(trimmedDisplayName);
 		memberRepository.save(member);
 	}
 	
