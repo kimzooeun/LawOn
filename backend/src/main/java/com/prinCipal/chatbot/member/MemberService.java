@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
@@ -39,12 +40,6 @@ import lombok.RequiredArgsConstructor;
 public class MemberService{
 	@Value("${jwt.refresh-token-days:2}")
 	private int refreshDays;
-	
-	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
-    private String naverClientId;
-	
-	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
-    private String naverClientSecret;
 	
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -166,10 +161,10 @@ public class MemberService{
 			// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
 			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
 			String jti = claims.getId();     // 토큰의 고유ID
-			String identifier = claims.getSubject();  // 소셜쪽은, social_id로 토큰을 만들었어서. 아래와 같이 비교 해야함
+			String identifier = claims.getSubject();
 			Optional<Member> optionalMember;
 			
-			if (identifier.startsWith("kakao_") || identifier.startsWith("google_") || identifier.startsWith("naver_")) {
+			if (identifier.startsWith("kakao_") || identifier.startsWith("google_")) {
 			    optionalMember = this.memberRepository.findBySocialId(identifier);
 			} else {
 			    optionalMember = this.memberRepository.findByNickname(identifier);
@@ -193,7 +188,6 @@ public class MemberService{
 		String provider = member.getSocialProvider();
 		String socialToken = oAuth2User.getSocial_accessToken();
 		
-		System.out.println("여기는 들어옴???????");
 		if(socialToken == null) {
 			System.out.println("소셜 액세스토큰 없음 !!! 로그아웃 스킵!!!");
 			return;
@@ -205,12 +199,6 @@ public class MemberService{
 				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
 				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
 
-				WebClient.create("https://kapi.kakao.com/v1/user/unlink")
-				        .post()
-				        .header("Authorization", "Bearer " + kakaoAccessToken)
-				        .retrieve()
-				        .bodyToMono(String.class)
-				        .block(); 
 				WebClient.create("https://kapi.kakao.com/v1/user/logout")
 						 .post()
 						 .headers(h -> h.setBearerAuth(kakaoAccessToken))
@@ -232,16 +220,13 @@ public class MemberService{
 			}
 			// 네이버는 AccessToken 삭제 API를 줘야함 
 			case "naver": {
-				System.out.println("여기는 네이버까지는 ????????");
-				// naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
-				String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
 				 WebClient.create("https://nid.naver.com/oauth2.0/token")
 				 		  .post()
 				 		  .uri(uriBuilder ->uriBuilder
 				 				  .queryParam("grant_type", "delete")
-				 				  .queryParam("client_id",  naverClientId)
-	                              .queryParam("client_secret", naverClientSecret)
-	                              .queryParam("access_token", naverAccessToken)
+				 				  .queryParam("client_id", "{네이버_CLIENT_ID}")
+	                              .queryParam("client_secret", "{네이버_CLIENT_SECRET}")
+	                              .queryParam("access_token", socialToken)
 	                              .queryParam("service_provider", "NAVER")
 				 				  .build())
 				 		  .retrieve()

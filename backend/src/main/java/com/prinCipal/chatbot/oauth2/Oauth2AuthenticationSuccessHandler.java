@@ -9,10 +9,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -34,14 +30,13 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private final JwtTokenProvider jwtTokenProvider;
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
+	private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 처리를 위한 ObjectMapper
 	
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
 	
 	@Value("${jwt.refresh-token-days}")
 	private int refreshDays;
-	
-	private final OAuth2AuthorizedClientService authorizedClientService;
 	
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
@@ -58,7 +53,8 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            null,
 	            authentication.getAuthorities()
 	    );
-	 
+	    
+		
 		// 로그인 성공(인증 성공) 시 , 처리되는 영역
 		String accessToken = this.jwtTokenProvider.generateAccessToken(newAuthentication);
 		String refreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication);
