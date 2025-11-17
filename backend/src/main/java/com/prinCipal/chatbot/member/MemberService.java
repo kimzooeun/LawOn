@@ -307,3 +307,4 @@ public class MemberService{
 		// 새 비밀번호 인코딩 및 member 엔티티 업데이트
 		member.updatePassword(passwordEncoder.encode(newPassword));
 	}
+}
