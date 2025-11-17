@@ -29,6 +29,7 @@ venv/
 
 # ---- Docker ---- Docker가 만드는 임시 pid 파일도 제외
 *.pid
+/.metadata/
 
 # ---- 모델 파일 ----
 fastapi/models/

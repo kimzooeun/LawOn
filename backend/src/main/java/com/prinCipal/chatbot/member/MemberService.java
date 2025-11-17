@@ -98,7 +98,14 @@ public class MemberService{
 		 
 	}
 
+<<<<<<< HEAD
+
+
+	
+	
+=======
   // 새 큰토큰
+>>>>>>> bf6cd7265bef947e814395279a0355dbf6e99ca3
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");

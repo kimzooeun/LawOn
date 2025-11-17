@@ -32,7 +32,15 @@ public class MemberApiController {
 
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
+<<<<<<< HEAD
+	private static final Logger logger = LoggerFactory.getLogger(MemberApiController.class);
+	 
 
+	
+	
+=======
+
+>>>>>>> bf6cd7265bef947e814395279a0355dbf6e99ca3
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
 			this.memberService.registerUser(signUpRequest);
