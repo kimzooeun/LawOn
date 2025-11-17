@@ -126,5 +126,3 @@ public class MemberApiController {
 		return ResponseEntity.ok(Map.of("status","success","message","비밀번호가 변경되었습니다."));
 	}
 		
-}
-
