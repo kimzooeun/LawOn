@@ -28,10 +28,14 @@
       <table id="memberTable">
         <thead>
           <tr>
-            <th>ID</th>
             <th>닉네임</th>
-            <th>권한</th>
+            <th>ID</th>
+            <th>표시 이름</th>
+            <th>A/U뭘로할까?</th>
+            <th>소셜 제공자</th>
+            <th>소셜 ID</th>
             <th>가입일</th>
+            <th>수정일</th>
             <th>탈퇴일</th>
           </tr>
         </thead>
@@ -40,6 +44,12 @@
     </section>
   </main>
 
-  <script src="js/user.js"></script>
+  <!-- 1) TokenManager 먼저 로드 -->
+  <script type="module" src="/src/js/token.js"></script>
+  <!-- 2) 관리자용 fetch 인터셉트 적용 -->
+  <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
+  <!-- 3) 마지막에 페이지 스크립트 실행 -->
+  <script type="module" src="/admin/js/user.js"></script>
+
 </body>
 </html>

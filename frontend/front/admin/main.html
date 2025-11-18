@@ -22,7 +22,7 @@
         <button data-page="settings">⚙️ 설정</button>
         <button data-page="lawyers">👨‍⚖️ 변호사</button>
         <button data-page="user">👥 회원 관리</button>
-        <button data-page="log">🧾 로그</button>
+        <button data-page="logs">🧾 로그</button>
       </div>
       <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
@@ -69,6 +69,13 @@
     © 2025 TodakTodak Admin Panel
   </footer>
 
-  <script type="module" src="js/main.js"></script>
+  <!-- 1) TokenManager 먼저 로드 -->
+  <script type="module" src="/src/js/token.js"></script>
+  <!-- 2) 관리자용 fetch 인터셉트 적용 -->
+  <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
+  <!-- 3) 마지막에 페이지 스크립트 실행 -->
+  <script type="module" src="/admin/js/main.js"></script>
+
+
 </body>
 </html>

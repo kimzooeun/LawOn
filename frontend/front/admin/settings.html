@@ -48,6 +48,7 @@
           <h2>👤 관리자 계정 관리</h2>
           <label>현재 계정: </label>
           <div class="pw-box">
+            <input type="password" id="currentPw" placeholder="현재 비밀번호 입력" />
             <input type="password" id="newPw" placeholder="새 비밀번호 입력" />
             <button id="pwChangeBtn">비밀번호 변경</button>
           </div>
@@ -67,6 +68,14 @@
     © 2025 TodakTodak Admin Panel
   </footer>
  
-  <script src="js/settings.js"></script>
+  <!-- 1) TokenManager 먼저 로드 -->
+  <script type="module" src="/src/js/token.js"></script>
+  <!-- 2) 관리자용 fetch 인터셉트 적용 -->
+  <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
+  <!-- 3) 마지막에 페이지 스크립트 실행 -->
+  <script type="module" src="/admin/js/settings.js"></script>
+
+
+
 </body>
 </html>

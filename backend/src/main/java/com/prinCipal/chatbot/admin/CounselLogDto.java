@@ -14,18 +14,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor 
 @NoArgsConstructor
 public class CounselLogDto {
-    private Long id;
-    private LocalDateTime start;
-    private LocalDateTime end;
+    private Long userid;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String status;
 	private String nickname;
 
     public static CounselLogDto fromEntity(CounsellingSession s) {
         CounselLogDto dto = new CounselLogDto();
-        dto.id = s.getSessionId();
+        dto.userid = s.getSessionId();
         dto.nickname = s.getMember().getNickname();
-        dto.start = s.getStartTime();
-        dto.end = s.getEndTime();
+        dto.startTime = s.getStartTime();
+        dto.endTime = s.getEndTime();
         dto.status = s.getCompletionStatus().name();
         return dto;
     }

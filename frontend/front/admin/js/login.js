@@ -1,5 +1,6 @@
 // login.js
-import { TokenManager } from '../../src/js/token.js';
+import { TokenManager } from '/src/js/token.js';
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");

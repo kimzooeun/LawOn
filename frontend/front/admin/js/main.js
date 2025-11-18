@@ -1,4 +1,5 @@
-import { TokenManager } from '../../src/js/token.js';
+import { TokenManager } from '/src/js/token.js';
+
 
 // ===============================
 // 🔥 관리자 메뉴 페이지 전환 기능
@@ -76,7 +77,7 @@ async function loadDashboardSummary() {
   const token = TokenManager.getAccessToken();
 
   try {
-    const res = await fetch("http://localhost:8080/api/admin/dashboard/summary", {
+    const res = await fetch("/api/admin/dashboard/summary", {
       headers: { "Authorization": `Bearer ${token}` }
     });
 

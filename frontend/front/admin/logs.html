@@ -72,6 +72,13 @@
     © 2025 TodakTodak Admin Panel
   </footer>
 
-  <script type="module" src="js/logs.js"></script>
+  <!-- 1) TokenManager 먼저 로드 -->
+  <script type="module" src="/src/js/token.js"></script>
+  <!-- 2) 관리자용 fetch 인터셉트 적용 -->
+  <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
+  <!-- 3) 마지막에 페이지 스크립트 실행 -->
+  <script type="module" src="/admin/js/log.js"></script>
+
+
 </body>
 </html>

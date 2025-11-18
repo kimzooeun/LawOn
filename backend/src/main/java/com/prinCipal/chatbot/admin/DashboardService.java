@@ -2,6 +2,7 @@ package com.prinCipal.chatbot.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.prinCipal.chatbot.counsel.CounsellingSessionRepository;
 import com.prinCipal.chatbot.member.MemberRepository;
@@ -20,6 +21,8 @@ public class DashboardService {
     private final MemberRepository memberRepository; 
     private final LawyerRepository lawyerRepository;
     // 최근 상담 리스트
+    
+    @Transactional(readOnly = true)
     public List<CounselLogDto> getRecentLogs() {
         return sessionRepo.findTop20ByOrderByStartTimeDesc()
             .stream()
