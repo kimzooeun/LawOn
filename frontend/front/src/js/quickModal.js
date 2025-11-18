@@ -1,14 +1,21 @@
-// ============================================
-// 간편 상담 채팅 위젯
-// ============================================
-
 const chatWidget = document.getElementById('chat-widget');
 const chatOverlay = document.getElementById('chat-overlay');
 const closeChatBtn = document.getElementById('close-chat-btn');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 const chatBody = document.getElementById('chat-body');
-const chatLoading = document.getElementById('chat-loading');
+const loadingMessage = document.getElementById('chat-loading-message');
+
+const chatStatus = document.getElementById('chat-status');
+const chatLoginBanner = document.getElementById('chat-login-banner');
+const chatGoSignup = document.getElementById('chat-go-signup');
+const chatGoLogin = document.getElementById('chat-go-login');
+
+// 세션 관리용 변수
+const SIMPLE_SESSION_KEY = 'simpleChatSessionId';
+let simpleSessionId = localStorage.getItem(SIMPLE_SESSION_KEY) || null;
+let inputDisabled = false;
+
 
 // 간편 상담 버튼 클릭 시 열기
 const quickBtn = document.querySelector('[data-role="quick"]');
@@ -35,8 +42,6 @@ function openChat() {
   chatOverlay.classList.add('is-open');
   document.body.classList.add('chat-open');
   chatInput.focus();
-  // 로딩 숨기기
-  if (chatLoading) chatLoading.style.display = 'none';
 }
 
 // 채팅 닫기
@@ -46,12 +51,9 @@ function closeChat() {
   document.body.classList.remove('chat-open');
 }
 
-
-
 if (closeChatBtn) {
   closeChatBtn.addEventListener('click', closeChat);
 }
-
 
 // 오버레이 클릭 시 닫기
 if (chatOverlay) {
@@ -65,8 +67,12 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+
+
 // 메시지 전송
-function sendMessage() {
+async function sendMessage() {
+  if (inputDisabled) return; // 제한 걸렸으면 전송 막음
+
   const message = chatInput.value.trim();
   if (!message) return;
 
@@ -77,12 +83,44 @@ function sendMessage() {
   // 로딩 표시
   showLoading();
 
-  // 봇 응답 시뮬레이션 (실제로는 API 호출)
-  setTimeout(() => {
+  try{
+    const body = {query:message};
+    if(simpleSessionId){
+      body.session_id = simpleSessionId;
+    }
+
+    const response = await fetch("/simple-chat",{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+    console.log(data);
+
+    // 세션 ID가 없던 상태였는데, 이번에 새로 발급됐다면 저장
+    if (!simpleSessionId && data.session_id){
+      simpleSessionId = data.session_id;
+      localStorage.setItem(SIMPLE_SESSION_KEY, simpleSessionId);
+    }
+
     hideLoading();
-    addMessage('네, 알겠습니다. 더 자세한 내용을 알려주시면 도와드리겠습니다.', 'bot');
-  }, 1000);
+
+    // 봇 메시지 추가 
+    addMessage(data.answer, 'bot');
+
+    // 상태(질문 카운트, 제한 여부, 배너 등) 업데이트
+    // updateChatState(data);
+  } catch(err){
+    console.error(err);
+    hideLoading()
+    addMessage('서버와 통신 중 오류가 발생했어요. 잠시 후 다시 시도해주세요 🙏', 'bot');
+  }
 }
+
+
 
 // 메시지 추가 함수
 function addMessage(text, type) {
@@ -97,17 +135,18 @@ function addMessage(text, type) {
 
 // 로딩 표시/숨김
 function showLoading() {
-  if (chatLoading) {
-    chatLoading.style.display = 'block';
-    chatBody.scrollTop = chatBody.scrollHeight;
-  }
+  if(!loadingMessage || !chatBody) return;
+
+  loadingMessage.style.display = 'block';
+  chatBody.appendChild(loadingMessage); // 항상 맨 아래에 오도록
+  chatBody.scrollTop = chatBody.scrollHeight;
 }
 
 function hideLoading() {
-  if (chatLoading) {
-    chatLoading.style.display = 'none';
-  }
+  if (!loadingMessage) return;
+  loadingMessage.style.display = 'none';
 }
+
 
 // 전송 버튼 클릭
 if (chatSendBtn) {

@@ -968,12 +968,6 @@
 </section>       
 
 
-
-
-
-
-
-
 <!-- 간편 상담 관련 오버레이 + 위젯 -->
 <div class="chat-overlay" id="chat-overlay"></div>
 
@@ -990,15 +984,43 @@
       안녕하세요! 무엇을 도와드릴까요? 😊
     </div>
 
-    <div class="chat-loading" id="chat-loading" style="display: none;">
-      상담중입니다... ⏳
-    </div>
+    <!-- 봇 로딩 말풍선 (처음엔 숨김) -->
+  <div class="chat-message bot loading" id="chat-loading-message" style="display: none;">
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+  </div>
   </main>
+
+
+  <!-- 카운트 / 안내 영역 (새로 추가하면 좋음) -->
+  <div class="chat-status" id="chat-status"></div>
+
+  <!-- 로그인/회원가입 유도 배너 (처음엔 숨겨두기) -->
+  <div class="chat-login-banner" id="chat-login-banner" style="display:none;">
+    간편 상담 5회가 모두 사용되었습니다.<br>
+    더 깊은 상담을 원하시면 회원가입 후 맞춤형 상담을 이용해 주세요 😊
+    <div class="banner-buttons">
+      <button id="chat-go-signup">회원가입 하러 가기</button>
+      <button id="chat-go-login">로그인 하기</button>
+    </div>
+  </div>
+
 
   <footer class="chat-footer">
     <input type="text"  id="chat-input" placeholder="메시지를 입력하세요..."/>
     <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
   </footer>
+  
+  <!-- <div class="chat-loading" id="chat-loading" style="display:none;">
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+  </div> -->
+
+  <!-- <div class="cp-typing" id="cpTyping" aria-hidden="true">
+    <span class="cp-bounce"></span><span class="cp-bounce"></span><span class="cp-bounce"></span>
+  </div> -->
 </aside>
 
 
