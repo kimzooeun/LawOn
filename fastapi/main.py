@@ -70,22 +70,7 @@ def health_check():
     return {"status": "healthy"}
 
 
-@app.get("/test-openai")
-async def test_openai():
-    try:
-        completion = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": "한 줄로 자기소개 해줘."},
-            ],
-        )
-        answer = completion.choices[0].message.content
-        return {"ok": True, "answer": answer}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
 
-        
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
 async def handle_generate_response(request: QueryRequest):
