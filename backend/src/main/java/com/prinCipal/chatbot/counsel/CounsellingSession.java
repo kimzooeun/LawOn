@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.prinCipal.chatbot.alert.CrisisAlert;
 import com.prinCipal.chatbot.content.CounsellingContent;
+import com.prinCipal.chatbot.content.KeywordAnalysis;
 import com.prinCipal.chatbot.member.Member;
 
 import jakarta.persistence.CascadeType;

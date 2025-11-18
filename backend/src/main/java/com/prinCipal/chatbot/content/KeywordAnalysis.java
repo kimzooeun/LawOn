@@ -1,11 +1,11 @@
-package com.prinCipal.chatbot.counsel;
+package com.prinCipal.chatbot.content;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.prinCipal.chatbot.content.CounsellingContent;
+import com.prinCipal.chatbot.counsel.CounsellingSession;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

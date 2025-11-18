@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.prinCipal.chatbot.content.KeywordAnalysis;
 import com.prinCipal.chatbot.counsel.CounsellingSession;
-import com.prinCipal.chatbot.counsel.KeywordAnalysis;
 import com.prinCipal.chatbot.member.Member;
 
 import jakarta.persistence.Column;

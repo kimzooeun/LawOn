@@ -2,6 +2,8 @@ package com.prinCipal.chatbot.counsel;
 
 import com.prinCipal.chatbot.ChatService;
 import com.prinCipal.chatbot.content.CounsellingContent;
+import com.prinCipal.chatbot.content.KeywordAnalysis;
+import com.prinCipal.chatbot.content.KeywordRepository;
 import com.prinCipal.chatbot.content.ContentRepository;
 import com.prinCipal.chatbot.content.Sender;
 import com.prinCipal.chatbot.dto.ChatRequestDto; // 👈 (A) 프론트 요청 DTO
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDateTime;
