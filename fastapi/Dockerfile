@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. 애플리케이션 코드 및 모델 복사
 COPY ./main.py .
 COPY ./models /app/models
+COPY ./models_load.py .
 
 # 6. 서버 실행 (Konlpy를 위해 JAVA_HOME 설정 유지)
 EXPOSE 8000

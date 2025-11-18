@@ -1,20 +1,25 @@
 # FastAPI
 fastapi==0.119.0
 uvicorn==0.37.0
-protobuf
-sentencepiece
+pydantic==2.12.2
+pydantic_core==2.41.4
 
 # RAG/LangChain (모델 D)
 langchain-community==0.3.0
+langchain-huggingface
 langchain==0.3.25
 faiss-cpu
 sentence-transformers
+protobuf
+sentencepiece
+
 
 # ML/Torch (모델 A, B, C)
 torch
 transformers
 scikit-learn==1.6.1
-langchain-huggingface
+numpy>=1.23,<2
+joblib
 
 # Data & Utils
 pandas
@@ -22,3 +27,7 @@ konlpy
 
 # Database
 redis==5.0.1
+
+# OpenAI / 토큰 관련 => 후에 llm 끌어올때 필요. 
+# openai==1.52.2
+# tiktoken==0.7.0
