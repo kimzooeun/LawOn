@@ -9,6 +9,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ChatRequestDto {
 	private Long sessionId;
-//	private Long userId;
     private String userMessage; // 프론트가 보낸 메시지
 }

@@ -8,6 +8,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'principa
 FLUSH PRIVILEGES;
 SET FOREIGN_KEY_CHECKS=0;
 
+
 -- 사용자 정보 테이블
 CREATE TABLE users (
     user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -23,6 +24,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 -- 상담 세션 테이블
 CREATE TABLE counselling_session (
@@ -55,28 +57,31 @@ CREATE TABLE counselling_content (
     
     sender ENUM('PERSON', 'CHATBOT') NOT NULL,			-- 보낸이
     content TEXT NOT NULL,								-- 텍스트
-    
-    is_divorce BOOLEAN DEFAULT NULL,					-- 문맥 키워드
-    emotion_label VARCHAR(50) DEFAULT NULL,				-- 감정 키워드 (다중)
-	topic VARCHAR(50) DEFAULT NULL,						-- 주제 키워드
-	intent VARCHAR(50) DEFAULT NULL,					-- 의도 키워드
-	situation VARCHAR(50) DEFAULT NULL,					-- 상황 키워드
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES counselling_session(session_id) ON DELETE CASCADE
 );
 
 
--- 감정 분석 결과
-CREATE TABLE emotion_analysis (
+-- 키워드 분석 결과
+CREATE TABLE keyword_analysis (
     analysis_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_id BIGINT DEFAULT NULL,
-    content_id BIGINT DEFAULT NULL,
+    content_id BIGINT DEFAULT NULL UNIQUE,
     
-    emotion_label VARCHAR(50) NOT NULL,										-- 해당 발화 감정 라벨
-    alert_triggered BOOLEAN DEFAULT FALSE,  								-- 위기 감정 발생 여부             
-    analysis_time DATETIME DEFAULT CURRENT_TIMESTAMP,						-- 감정 분석 시간
+    -- [분류 모델 결과]
+    is_divorce BOOLEAN DEFAULT NULL,					-- 문맥 키워드
+    emotion_label VARCHAR(50) DEFAULT NULL,				-- 감정 키워드 (다중)
+	topic VARCHAR(50) DEFAULT NULL,						-- 주제 키워드
+	intent VARCHAR(50) DEFAULT NULL,					-- 의도 키워드
+	situation VARCHAR(50) DEFAULT NULL,					-- 상황 키워드
+	
+	-- [검색 모델 결과]
+    retrieved_data JSON DEFAULT NULL,					-- 질의응답, 판례/법률 결과
+    
+    analysis_time DATETIME DEFAULT CURRENT_TIMESTAMP,	-- 분석 시간
+    alert_triggered BOOLEAN DEFAULT FALSE,  			-- 위기 감정 발생 여부             
     
 --    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -93,18 +98,17 @@ CREATE TABLE crisis_alert (
     analysis_id BIGINT DEFAULT NULL,   
     
     alert_severity ENUM('LOW', 'MEDIUM', 'HIGH', 'DANGER') DEFAULT 'LOW', 	-- 감정 심각도 (낮음, 중간, 높음, 위험)
-    alert_status ENUM('Sensing', 'Resolving') DEFAULT 'Sensing' NOT NULL,   -- 위기 대응 상태 (감지, 해결)
+    alert_status ENUM('PENDING', 'RESOLVED') DEFAULT 'PENDING' NOT NULL,   -- 위기 대응 상태 (감지, 완료)
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
     FOREIGN KEY (session_id) REFERENCES counselling_session(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (analysis_id) REFERENCES emotion_analysis(analysis_id) ON DELETE CASCADE
+    FOREIGN KEY (analysis_id) REFERENCES keyword_analysis(analysis_id) ON DELETE CASCADE
 );
 
 
 SET FOREIGN_KEY_CHECKS=1;
-
 
 -- 1번 테스트 사용자 추가
 INSERT INTO users (user_id, nickname, display_name, password, user_role, social_provider) 
