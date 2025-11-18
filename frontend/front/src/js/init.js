@@ -224,7 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputSec = document.querySelector(".input-section");
 
   if (!chatArea || !mypageExplore || !lawyerPage || !inputSec) {
-    console.error("탐색에 필요한 주요 DOM 요소가 없습니다.");
+    console.warn(
+      "채팅 페이지 전용 DOM 요소가 없어, init.js의 일부 로직을 건너뜁니다."
+    );
+    return;
   } else {
     // 1. '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {
