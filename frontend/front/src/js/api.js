@@ -89,9 +89,9 @@ export async function updatePassword(userId, currentPassword, newPassword) {
 /* (D) 회원 탈퇴 (백엔드에 아직 구현 안 됨)*/
 export async function deleteUser(userId) {
   // 👈 [수정] userId 인자 추가
-  const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+  const response = await fetch(`${API_BASE_URL}/withdraw`, {
     headers: getAuthHeaders(),
-    method: "DELETE",
+    method: "POST",
   });
   if (!response.ok) {
     throw new Error("회원 탈퇴 실패");
