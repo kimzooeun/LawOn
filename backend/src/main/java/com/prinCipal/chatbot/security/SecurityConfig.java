@@ -21,6 +21,7 @@ import com.prinCipal.chatbot.oauth2.CutomOAuth2UserService;
 import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationFailureHandler;
 import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationSuccessHandler;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -67,6 +68,19 @@ public class SecurityConfig {
 	                config.setExposedHeaders(List.of("Authorization"));
 	                return config;
 	            }))
+	            // 정민 추가
+	            .exceptionHandling(ex -> ex
+	                    .authenticationEntryPoint((request, response, authException) -> {
+	                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	                        response.setContentType("application/json;charset=UTF-8");
+	                        response.getWriter().write("{\"error\": \"unauthorized\"}");
+	                    })
+	                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+	                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+	                        response.setContentType("application/json;charset=UTF-8");
+	                        response.getWriter().write("{\"error\": \"forbidden\"}");
+	                    })
+	                )
 				.httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
 	            .formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
 			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
@@ -80,6 +94,7 @@ public class SecurityConfig {
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
+						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/admin/**").permitAll()
 						.requestMatchers(PERMIT_URL).permitAll()
 						.requestMatchers("/auth/**").authenticated() //인증 필요

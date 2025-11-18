@@ -26,6 +26,12 @@ import { render, initLawyerPageListeners } from "./lawyer.js";
 // 페이지 전환 함수
 let isLawyerPageInitialized = false;
 
+if (!document.getElementById("chatArea")) {
+  console.warn("Index page detected — init.js 실행 안 함");
+  window.INIT_STOP = true;
+}
+
+
 // showPage 함수를 동기식으로 변경
 export function showPage(pageToShow) {
   const chatArea = document.getElementById("chatArea");
@@ -130,6 +136,7 @@ export function openDocModal(title, content, size = "lg") {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+   if (window.INIT_STOP) return;     // index.html에서는 전체 init 로직을 실행하지 않음
   Modal.init();
   FormModal.init();
 

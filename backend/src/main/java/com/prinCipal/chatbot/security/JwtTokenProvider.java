@@ -67,7 +67,7 @@ public class JwtTokenProvider {
 
     	if(principal instanceof Member member) {
     		nickname = member.getNickname();
-    		authorities = member.getRole().name();
+    		authorities = member.getRole().getAuthority();
     	} else if (principal instanceof User user) {
     		nickname = user.getUsername();
     		authorities = authentication.getAuthorities().
@@ -106,7 +106,7 @@ public class JwtTokenProvider {
     	
     	if(principal instanceof Member member) {
     		nickname = member.getNickname();
-    		authorities = member.getRole().name();
+    		authorities = member.getRole().getAuthority();
     	} else if (principal instanceof User user) {
     		nickname = user.getUsername();
     		authorities = authentication.getAuthorities().
