@@ -1,0 +1,90 @@
+/* 관리자 로그인 페이지 */
+.login-page {
+  background: linear-gradient(135deg, #ffe9f4, #fff6fb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.login-card {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 360px;
+  width: 90%;
+}
+
+.login-logo {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 10px;
+}
+
+.login-card h1 {
+  margin: 8px 0;
+  color: #ff4da0;
+}
+
+.login-sub {
+  color: #777;
+  margin-bottom: 24px;
+}
+
+#loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#loginForm input {
+  padding: 10px 0px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1em;
+  outline: none;
+  transition: 0.2s;
+}
+
+#loginForm input:focus {
+  border-color: #ff4da0;
+}
+
+#loginBtn {
+  background-color: #ff4da0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#loginBtn:hover {
+  background-color: #e74393;
+}
+
+.login-hint {
+  font-size: 0.85em;
+  margin-top: 20px;
+  color: #555;
+}
+
+.login-hint a {
+  color: #4d88ff;
+  text-decoration: none;
+}
+
+.login-hint a:hover {
+  text-decoration: underline;
+}
