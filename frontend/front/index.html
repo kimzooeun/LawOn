@@ -973,6 +973,7 @@
 
 
 
+
 <!-- 간편 상담 관련 오버레이 + 위젯 -->
 <div class="chat-overlay" id="chat-overlay"></div>
 
@@ -984,17 +985,21 @@
     </button>
   </header>
 
-  <main class="chat-body">
+  <main class="chat-body" id="chat-body">
     <div class="chat-message bot">
       안녕하세요! 무엇을 도와드릴까요? 😊
+    </div>
+
+    <div class="chat-loading" id="chat-loading" style="display: none;">
+      상담중입니다... ⏳
     </div>
   </main>
 
   <footer class="chat-footer">
-    <input type="text" placeholder="메시지를 입력하세요...">
-    <button><i class="fas fa-paper-plane"></i></button>
+    <input type="text"  id="chat-input" placeholder="메시지를 입력하세요..."/>
+    <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
   </footer>
-  </aside>
+</aside>
 
 
 <div id="portal-root">
