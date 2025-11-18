@@ -89,6 +89,7 @@ app:
     queue-key: ${REDIS_QUEUE_KEY:chatlog_queue}
   frontend:
     url: ${FRONTEND_URL} 
+    internal_url : ${FRONTEND_INTERNAL_URL}
   backend:
     url: ${BACKEND_URL}
 

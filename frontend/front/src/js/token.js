@@ -7,6 +7,14 @@ export const TokenManager = (() => {
     );
   };
 
+  const ACCESS_KEY = "accessToken";
+
+  const getAccessToken = () => {
+    return (
+      localStorage.getItem(ACCESS_KEY) || sessionStorage.getItem(ACCESS_KEY)
+    );
+  };
+
   const setTokens = (accessToken, rememberMe) => {
     if (rememberMe) {
       localStorage.setItem(ACCESS_KEY, accessToken);
@@ -94,7 +102,7 @@ export const TokenManager = (() => {
     }
   }
 
-  function showToast(message) {
+  function showToast_auth(message) {
     const toast = document.getElementById("auth-toast");
     toast.innerHTML = message;
     toast.classList.add("show");
@@ -103,5 +111,8 @@ export const TokenManager = (() => {
       toast.classList.remove("show");
     }, 1000);
   }
-  return { getAccessToken, setTokens, updateAccessToken, clearTokens };
+
+  return { getAccessToken, setTokens, updateAccessToken, clearTokens, showToast_auth};
+
 })();
+
