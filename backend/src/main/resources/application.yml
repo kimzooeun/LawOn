@@ -46,8 +46,8 @@ spring:
   devtools:
      restart:
        enabled: true
-       poll-interval: 2s  #  추가: 2초마다 체크
-       quiet-period: 400ms   # 추가: 변경 후 1초 대기
+       poll-interval: 2s  # 👈 추가: 2초마다 체크
+       quiet-period: 400ms   # 👈 추가: 변경 후 1초 대기
        additional-paths:
          - src/main/java
      livereload:
@@ -69,6 +69,13 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: ${GOOGLE_REDIRECT_URI}  
             scope: profile, email
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${KAKAO_REDIRECT_URI}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email,profile_image
           naver:
             client-id: ${NAVER_CLIENT_ID}
             client-secret: ${NAVER_CLIENT_SECRET}
@@ -77,13 +84,7 @@ spring:
             authorization-grant-type: authorization_code
             client-name: naver
             scope: nickname, profile_image, email
-          kakao:
-            client-id: ${KAKAO_CLIENT_ID}
-            client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: ${KAKAO_REDIRECT_URI}
-            authorization-grant-type: authorization_code
-            client-authentication-method: client_secret_post
-            scope: profile_nickname, account_email,profile_image
+      
         provider: # OAuth2 제공자 정보(카카오 서버 URL 등)
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -102,6 +103,7 @@ app:
     queue-key: ${REDIS_QUEUE_KEY:chatlog_queue}
   frontend:
     url: ${FRONTEND_URL} 
+    internal_url : ${FRONTEND_INTERNAL_URL}
   backend:
     url: ${BACKEND_URL}
 

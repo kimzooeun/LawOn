@@ -3,6 +3,7 @@ package com.prinCipal.chatbot.security;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,14 +38,22 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
 
     private static final String[] PERMIT_URL = {
-    		"/api/redis/test",      // Redis 관련 
+    		"/api/redis/test",  
     		"/api/login", "/api/signup", "/api/refresh",  "/api/logout",
 		    "/oauth2/**",     // 소셜 로그인
-		    "/login/oauth2/code/**",  
-		    "/css/**", "/js/**", "/images/**", "/favicon.ico" // 정적 파일
+		    "/login/oauth2/code/**",  "/api/auth/**",
+		    "/css/**", "/js/**", "/images/**", "/favicon.ico", // 정적 파일
+		    "/actuator/health", "/actuator/info"
 		};
     
  
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+    
+    @Value("${app.frontend.internal_url}")
+    private String frontendInternalUrl;
+    
+    
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationFilter customLoginFilter) throws Exception{
 		String[] cookiesToClear = {"JSESSIONID", "refreshToken"};
@@ -52,18 +61,13 @@ public class SecurityConfig {
 				.csrf((csrf) -> csrf.disable())
 	            .cors(cors -> cors.configurationSource(request -> {
 	                var config = new org.springframework.web.cors.CorsConfiguration();
-	                config.setAllowedOrigins(List.of("http://localhost:3000", "http://finalproject-frontend:3000")); // 프론트 주소
+	                config.setAllowedOrigins(List.of(frontendUrl, frontendInternalUrl)); // 프론트 주소
 	                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 	                config.setAllowCredentials(true);
 	                config.setAllowedHeaders(List.of("*"));
 	                config.setExposedHeaders(List.of("Authorization"));
 	                return config;
 	            }))
-				.httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
-	            .formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
-			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
-	            .sessionManagement(session -> session
-	            	    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 	            // 정민 추가
 	            .exceptionHandling(ex -> ex
 	                    .authenticationEntryPoint((request, response, authException) -> {
@@ -77,7 +81,11 @@ public class SecurityConfig {
 	                        response.getWriter().write("{\"error\": \"forbidden\"}");
 	                    })
 	                )
-	            
+				.httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
+	            .formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
+			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
+	            .sessionManagement(session -> session
+	            	    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 	            .oauth2Login(oauth2 -> oauth2
 						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler)
@@ -85,8 +93,8 @@ public class SecurityConfig {
 				)
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
-						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
+						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/admin/**").permitAll()
 						.requestMatchers(PERMIT_URL).permitAll()
 						.requestMatchers("/auth/**").authenticated() //인증 필요

@@ -57,10 +57,20 @@ export async function updateNickname(userId, newNickname) {
     headers: getAuthHeaders(),
     body: JSON.stringify({ display_name: newNickname }),
   });
+
   if (!response.ok) {
-    throw new Error("닉네임 변경 실패");
+    // 서버가 보낸 오류 JSON을 읽음.
+    const errorData = await response.json();
+
+    // mypage.js가 error.response.data.message를 읽을 수 있도록
+    // Axios와 유사한 구조로 에러 객체를 만들어 throw함.
+    const error = new Error(errorData.message || "닉네임 변경 실패");
+    error.response = { data: errorData }; // errorData는 { status: "fail", message: "..." }
+    throw error;
   }
-  return response.ok; // 성공 여부
+
+  // mypage.js는 성공 시 이 값을 사용하지 않으므로 .json()을 기다릴 필요 없이 ok만 반환
+  return response.ok;
 }
 
 /*비밀번호 변경*/
@@ -79,9 +89,9 @@ export async function updatePassword(userId, currentPassword, newPassword) {
 /* (D) 회원 탈퇴 (백엔드에 아직 구현 안 됨)*/
 export async function deleteUser(userId) {
   // 👈 [수정] userId 인자 추가
-  const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+  const response = await fetch(`${API_BASE_URL}/withdraw`, {
     headers: getAuthHeaders(),
-    method: "DELETE",
+    method: "POST",
   });
   if (!response.ok) {
     throw new Error("회원 탈퇴 실패");

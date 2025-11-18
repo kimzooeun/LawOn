@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.exception.SignupValidationException;
@@ -33,6 +34,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
@@ -40,13 +42,8 @@ public class MemberService{
 	@Value("${jwt.refresh-token-days:2}")
 	private int refreshDays;
 	
-	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
-    private String naverClientId;
-	
-	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
-    private String naverClientSecret;
-	
 	private final MemberRepository memberRepository;
+	private final ForbiddenWordService forbiddenWordService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
@@ -55,6 +52,12 @@ public class MemberService{
 	private final BlackTokenRepository blackTokenRepository;
 	private SocialTokenService socialTokenService;
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+	
+	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+	
+	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
 	
 	// 회원가입 시, 유효성 검사 
 	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
@@ -68,7 +71,7 @@ public class MemberService{
 	
 	    return errors;
 	}
-
+	
 	// 회원가입 
 	public void registerUser(SignupRequest signUpRequest) {
 		Map<String, String> errors = validateSignup(signUpRequest);
@@ -98,14 +101,7 @@ public class MemberService{
 		 
 	}
 
-<<<<<<< HEAD
-
-
-	
-	
-=======
   // 새 큰토큰
->>>>>>> bf6cd7265bef947e814395279a0355dbf6e99ca3
 	public String newAccessToken(String refreshToken, HttpServletResponse response) {
 		if(refreshToken == null || !this.jwtTokenProvider.validateToken(refreshToken)) {
 			throw new TokenValidationException("Refresh Token이 유효하지 않습니다.");
@@ -200,7 +196,6 @@ public class MemberService{
 		String provider = member.getSocialProvider();
 		String socialToken = oAuth2User.getSocial_accessToken();
 		
-		System.out.println("여기는 들어옴???????");
 		if(socialToken == null) {
 			System.out.println("소셜 액세스토큰 없음 !!! 로그아웃 스킵!!!");
 			return;
@@ -212,12 +207,14 @@ public class MemberService{
 				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
 				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
 
+
 				WebClient.create("https://kapi.kakao.com/v1/user/unlink")
 				        .post()
 				        .header("Authorization", "Bearer " + kakaoAccessToken)
 				        .retrieve()
 				        .bodyToMono(String.class)
 				        .block(); 
+				
 				WebClient.create("https://kapi.kakao.com/v1/user/logout")
 						 .post()
 						 .headers(h -> h.setBearerAuth(kakaoAccessToken))
@@ -239,9 +236,8 @@ public class MemberService{
 			}
 			// 네이버는 AccessToken 삭제 API를 줘야함 
 			case "naver": {
-				System.out.println("여기는 네이버까지는 ????????");
-				// naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
-				String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
+				 // naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
+				 String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
 				 WebClient.create("https://nid.naver.com/oauth2.0/token")
 				 		  .post()
 				 		  .uri(uriBuilder ->uriBuilder
@@ -303,15 +299,36 @@ public class MemberService{
 	}
 
 	
-	// 닉네임 변경
+	// 닉네임(displayName) 변경
 	@Transactional
-	public void updatedisplayName(Long userId, String dispalyName) {
+	public void updatedisplayName(Long userId, String displayName) {
+		
+		// 1. ⭐️ (추가) 유효성 검사 (Validation)
+        // 예: 2~15자의 한글, 영문, 숫자, 밑줄(_)만 허용
+        String regex = "^[가-힣a-zA-Z0-9_]{2,15}$";
+        if (displayName == null || !Pattern.matches(regex, displayName.trim())) {
+            throw new IllegalArgumentException("닉네임은 2~15자의 한글, 영문, 숫자, 밑줄(_)만 사용 가능합니다.");
+        }
+        
+        String trimmedDisplayName = displayName.trim();
+        
+     //  욕설(비속어) 검사
+        // (ForbiddenWordService가 생성자를 통해 주입되었다고 가정)
+        if (forbiddenWordService.containsForbiddenWord(trimmedDisplayName)) {
+             throw new IllegalArgumentException("닉네임에 사용할 수 없는 단어가 포함되어 있습니다.");
+        }
+		
 		// 사용자 조회
 		Member member = memberRepository.findById(userId)
 				.orElseThrow(()-> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
 		
+		// 4. ⭐️ (추가) 변경 감지 (현재 닉네임과 동일한지 확인)
+        if (member.getDisplayName() != null && member.getDisplayName().equals(trimmedDisplayName)) {
+            throw new IllegalArgumentException("현재 닉네임과 동일합니다.");
+        }
+        
 		// member엔티티에 updateNickname 메소드 호출
-		member.updatedisplayName(dispalyName);
+		member.updatedisplayName(trimmedDisplayName);
 		memberRepository.save(member);
 	}
 	
@@ -326,7 +343,82 @@ public class MemberService{
 		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
 			throw new LoginFailedException("현재 비밀번호가 일치하지 않습니다.");
 		}
+		// 새 비밀번호 정책 검사
+		validatePassword(newPassword, member.getDisplayName()).ifPresent(error -> {
+			throw new IllegalArgumentException(error); // 유효성 검사 실패 시 예외 발생
+		});
 		// 새 비밀번호 인코딩 및 member 엔티티 업데이트
 		member.updatePassword(passwordEncoder.encode(newPassword));
 	}
+	
+	/*
+	 * 비밀번호 유효성 검사
+	 * @param password 검사할 비밀번호
+	 * @param nickname 닉네임 (비밀번호에 포함되는지 검사하기 위함)
+	 * @return Optional.empty() (성공) 또는 Optional.of(에러메시지) (실패)
+	 */
+	private Optional<String> validatePassword(String password, String nickname){
+		if(password == null || password.isEmpty()) {
+			return Optional.of("비밀번호를 입력해주세요.");
+		}
+		if(password.length()<8) {
+			return Optional.of("비밀번호는 8자 이상이어야 합니다.");
+		}
+		// 2. 조합: 영문 대/소문자, 숫자 포함
+	    if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$")) {
+	        return Optional.of("비밀번호는 영문 대문자, 소문자, 숫자를 모두 포함해야 합니다.");
+	    }
+	    // 3. 제한: 닉네임 포함 금지
+	    if(nickname != null && !nickname.isEmpty()&&password.contains(nickname)) {
+	    	return Optional.of("비밀번호에 닉네임(아이디)을 포함할 수 없습니다.");
+	    }
+	    // 4. 제한: 연속된/단순한 문자열
+	    if(containsSequential(password)) {
+	    	return Optional.of("연속된 문자(예: 1234, abcd)는 사용할 수 없습니다.");
+	    }
+	    // 5. 제한: 동일한 문자 반복
+	    if(containsRepeated(password, 3)) {// 예: 3번 이상 반복 (aaa, 111)
+	    	return Optional.of("동일한 문자를 3번이상 반복할 수 없습니다.");
+	    }
+	    return Optional.empty(); // 모든 검사 통과
+	    
+	}
+	// 3자리 이상 연속된 문자/숫자 (예: 123, abc, qwe)
+	private boolean containsSequential(String s) {
+	    for (int i = 0; i < s.length() - 2; i++) {
+	        char c1 = s.charAt(i);
+	        char c2 = s.charAt(i + 1);
+	        char c3 = s.charAt(i + 2);
+	        if (c2 == c1 + 1 && c3 == c2 + 1) {
+	            return true; // 123, abc
+	        }
+	        if (c2 == c1 - 1 && c3 == c2 - 1) {
+	            return true; // 321, cba
+	        }
+	    }
+	    return false;
+	}
+
+	// 3자리 이상 동일한 문자 (예: 111, aaa)
+	private boolean containsRepeated(String s, int count) {
+	    for (int i = 0; i < s.length() - (count - 1); i++) {
+	        char c = s.charAt(i);
+	        boolean repeated = true;
+	        for (int j = 1; j < count; j++) {
+	            if (s.charAt(i + j) != c) {
+	                repeated = false;
+	                break;
+	            }
+	        }
+	        if (repeated) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	
+	
+	
+	
 }

@@ -39,7 +39,7 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
-    command: ./gradlew bootRun --continuous --no-daemon # 👈 수정
+    command: ./gradlew bootRun --continuous --no-daemon 
 
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
@@ -84,6 +84,14 @@ services:
     env_file:
       - .env
     restart: always
+    volumes:
+      - ./fastapi:/app
+    # 개발용: 코드 바뀌면 자동 리로드
+    command: >
+      uvicorn main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
     depends_on:
       redis:
         condition: service_healthy

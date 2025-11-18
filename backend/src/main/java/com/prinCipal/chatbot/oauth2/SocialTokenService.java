@@ -29,9 +29,9 @@ public class SocialTokenService {
 	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
     private String naverClientSecret;
 	
+	
 	private final OAuth2AuthorizedClientService authorizedClientService;
 	private final WebClient webClient = WebClient.create();
-	
 	public String refreshNaverAccessToken(Authentication authentication) {
 		OAuth2AuthorizedClient client = this.authorizedClientService.loadAuthorizedClient("kakao",authentication.getName());
 		if(client == null) {
@@ -80,6 +80,7 @@ public class SocialTokenService {
         return accessToken.getTokenValue();
 		
 	}
+	
 	public String refreshKakaoAccessToken(Authentication authentication) {
 		OAuth2AuthorizedClient client = this.authorizedClientService.loadAuthorizedClient("kakao",authentication.getName());
 		if(client == null) {
@@ -103,7 +104,7 @@ public class SocialTokenService {
 										.bodyToMono(JsonNode.class)
 										.map(json->json.get("access_token").asText())
 										.block();
-			System.out.println(" 새 카카오 AccessToken 발급 완료: " + newAccessToken);
+			System.out.println("✅ 새 카카오 AccessToken 발급 완료: " + newAccessToken);
 
 			// 새 AccessToken을 authorizedClientService에 갱신
             OAuth2AuthorizedClient updatedClient = new OAuth2AuthorizedClient(

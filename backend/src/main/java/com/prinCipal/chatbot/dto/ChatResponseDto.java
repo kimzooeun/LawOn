@@ -1,13 +1,12 @@
 package com.prinCipal.chatbot.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor // 생성자 자동 생성
-@NoArgsConstructor
+@Data
+@AllArgsConstructor 
 public class ChatResponseDto {
-    private String text; // FastAPI가 준 답변
-    private String sessionId;
+    private String text;      // 프론트엔드가 받을 챗봇 응답
+    private String sessionId; // 프론트엔드가 받을 세션 ID
 }
+

@@ -163,9 +163,9 @@ document
           );
         }
 
-        showToast("로그인 완료!<br>맞춤형 상담 페이지로 이동");
+        TokenManager.showToast_auth("로그인 완료!<br>맞춤형 상담 페이지로 이동");
         resetAuthForms();
-        console.log(resData);
+
         setTimeout(() => {
           window.location.href = "/chat";
         }, 800);
@@ -226,7 +226,7 @@ document
 
       if (response.ok) {
         //200 OK 성공 처리
-        showToast("회원가입이 완료되었습니다!<br>    로그인해주세요!");
+        TokenManager.showToast_auth("회원가입이 완료되었습니다!<br>    로그인해주세요!");
         switchToLoginTab();
         setTimeout(() => {
           document.getElementById("loginNickname").focus();

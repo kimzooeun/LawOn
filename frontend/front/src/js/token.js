@@ -1,6 +1,11 @@
 export const TokenManager = (() => {
+  const ACCESS_KEY = "accessToken";
 
-		
+  const getAccessToken = () => {
+    return (
+      localStorage.getItem(ACCESS_KEY) || sessionStorage.getItem(ACCESS_KEY)
+    );
+  };
 
   const setTokens = (accessToken, rememberMe) => {
     if (rememberMe) {
@@ -61,7 +66,7 @@ export const TokenManager = (() => {
           const toastMsg = apiFailed
             ? "로그아웃. 로컬 데이터만 삭제합니다."
             : "로그아웃 되었습니다.";
-          showToast(toastMsg); // token.js의 showToast 사용
+          showToast_auth(toastMsg); // token.js의 showToast 사용
 
           setTimeout(() => (window.location.href = "/"), 600);
         }
@@ -89,7 +94,7 @@ export const TokenManager = (() => {
     }
   }
 
-  function showToast(message) {
+  function showToast_auth(message) {
     const toast = document.getElementById("auth-toast");
     toast.innerHTML = message;
     toast.classList.add("show");
@@ -98,5 +103,8 @@ export const TokenManager = (() => {
       toast.classList.remove("show");
     }, 1000);
   }
-  return { getAccessToken, setTokens, updateAccessToken, clearTokens };
+
+  return { getAccessToken, setTokens, updateAccessToken, clearTokens, showToast_auth};
+
 })();
+
