@@ -7,14 +7,6 @@ export const TokenManager = (() => {
     );
   };
 
-  const ACCESS_KEY = "accessToken";
-
-  const getAccessToken = () => {
-    return (
-      localStorage.getItem(ACCESS_KEY) || sessionStorage.getItem(ACCESS_KEY)
-    );
-  };
-
   const setTokens = (accessToken, rememberMe) => {
     if (rememberMe) {
       localStorage.setItem(ACCESS_KEY, accessToken);
