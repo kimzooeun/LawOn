@@ -345,11 +345,10 @@ async def simple_chat(request:SimpleChatRequest):
             print("의도/주제/상황 분류 모델 예측 중 오류 발생 : ", e)
     
     # 이혼 여부에 따라 OpenAI 호출 여부 결정
-    # context_label == 이혼 + 신뢰도 0.7 이상일때만 llm 사용 
+    # context_label == 이혼 + 신뢰도 0.5 이상일때만 llm 사용 
     use_LLM = False
     if context_label == "이혼":
-        if(context_conf is None) or (context_conf >= 0.7):
-            use_LLM = True
+        use_LLM = True
     
     # 최종 답변 생성
     if use_LLM:
@@ -389,7 +388,7 @@ async def simple_chat(request:SimpleChatRequest):
             "현재 간편 상담은 주로 이혼·가사 문제에 대한 안내를 드리도록 설계되어 있어요.\n"
             "말씀해 주신 내용은 이혼과 직접적인 관련이 크지 않은 일반 문의로 판단되어,\n"
             "정확한 답변을 드리기 어려운 점 양해 부탁드립니다.\n\n"
-            "보다 구체적인 상담이 필요하시다면 변호사 상담이나, 회원가입 후 맞춤형 상담을 이용해 주세요."
+            "보다 구체적인 상담이 필요하시다면 회원가입 후 맞춤형 상담을 이용해 주세요."
         )
     
     # Redis에 count + history 업데이트
@@ -407,8 +406,8 @@ async def simple_chat(request:SimpleChatRequest):
     data['history'].append(new_history_item)
 
     redis_client.set(redis_key, json.dumps(data))
-    # redis_client.expire(redis_key, 3600) # 1시간 유지
-    redis_client.expire(redis_key, 60) # 60초 = 1분 
+    redis_client.expire(redis_key, 3600) # 1시간 유지
+    # redis_client.expire(redis_key, 60) # 60초 = 1분 
 
 
     new_count = data["count"]
