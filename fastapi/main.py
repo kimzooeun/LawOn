@@ -5,6 +5,7 @@ import torch.nn as nn
 import numpy as np
 import pandas as pd
 import joblib
+import asyncio
 import traceback
 from typing import List
 
@@ -420,67 +421,122 @@ def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
-# [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
 async def handle_generate_response(request: QueryRequest):
     query = request.query
-    results = {} # 모든 결과를 담을 딕셔너리
+    results = {}
 
-    # --- [A] 감정 분류 ---
+    # --- [A, B, C, D] 모델 병렬 실행 ---
+    # (CPU-bound 작업이므로 asyncio.to_thread로 별도 스레드에서 실행)
     try:
-        if all_models.get('model_A'):
-            text_a, probs_a, preds_a = predict_sentiment(query, all_models['model_A'], all_models['tokenizer_A'])
-            results['sentiment'] = {
-                "cleaned_text": text_a,
-                "probabilities": probs_a,
-                "labels": preds_a
-            }
-        else: results['sentiment'] = {"error": "Model A not loaded"}
-    except Exception as e: results['sentiment'] = {"error": str(e), "trace": traceback.format_exc()}
+        (
+            sentiment_result,
+            context_result,
+            its_result,
+            qa_result
+        ) = await asyncio.gather(
+            asyncio.to_thread(predict_sentiment, query, all_models['model_A'], all_models['tokenizer_A']),
+            asyncio.to_thread(predict_context_kobert, query, all_models['model_B'], all_models['tokenizer_B']),
+            asyncio.to_thread(predict_its, query, all_models['model_C_intent'], all_models['model_C_topic'], all_models['model_C_situation']),
+            asyncio.to_thread(search_qa_faiss, query, all_models['db_D'], k=3)
+        )
 
-    # --- [B] 문맥 (KoBERT) 분류 ---
-    try:
-        if all_models.get('model_B'):
-            pred_b, conf_b, prob_non_div, prob_div = predict_context_kobert(query, all_models['model_B'], all_models['tokenizer_B'])
-            results['context'] = {
-                "prediction": pred_b,
-                "confidence": conf_b,
-                "prob_non_divorce": prob_non_div,
-                "prob_divorce": prob_div
-            }
-        else: results['context'] = {"error": "Model B not loaded"}
-    except Exception as e: results['context'] = {"error": str(e), "trace": traceback.format_exc()}
+        # (결과 정리)
+        text_a, probs_a, preds_a = sentiment_result
+        results['sentiment'] = {"cleaned_text": text_a, "probabilities": probs_a, "labels": preds_a}
 
-    # --- [C] 주제/의도/상황 분류 ---
-    pred_i, pred_t, pred_s = None, None, None # E/F 검색을 위해 변수 유지
-    try:
-        if all_models.get('model_C_intent') and all_models.get('model_C_topic') and all_models.get('model_C_situation'):
-            pred_i, pred_t, pred_s = predict_its(
-                query,
-                all_models['model_C_intent'],
-                all_models['model_C_topic'],
-                all_models['model_C_situation']
-            )
-            results['its_classification'] = {
-                "intent": pred_i,
-                "topic": pred_t,
-                "situation": pred_s
-            }
-        else: results['its_classification'] = {"error": "Model C not loaded"}
-    except Exception as e: results['its_classification'] = {"error": str(e), "trace": traceback.format_exc()}
+        pred_b, conf_b, prob_non_div, prob_div = context_result
+        results['context'] = {"prediction": pred_b, "confidence": conf_b, "prob_non_divorce": prob_non_div, "prob_divorce": prob_div}
 
-    # --- [D] 질의응답 검색 ---
-    try:
-        if all_models.get('db_D'):
-            results['qa_search'] = search_qa_faiss(query, all_models['db_D'], k=3)
-        else: results['qa_search'] = [{"error": "DB D not loaded"}]
-    except Exception as e: results['qa_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
+        pred_i, pred_t, pred_s = its_result
+        results['its_classification'] = {"intent": pred_i, "topic": pred_t, "situation": pred_s}
 
-    # --- [E/F] 판례/법률 검색 ---
+        results['qa_search'] = qa_result
+
+    except Exception as e:
+        # (A, B, C, D 중 하나라도 실패하면 여기로 옴)
+        results['error_async_gather'] = {"error": str(e), "trace": traceback.format_exc()}
+        # (안전장치로 개별 모델 결과 초기화)
+        if 'sentiment' not in results: results['sentiment'] = {"error": "Model execution failed"}
+        if 'context' not in results: results['context'] = {"error": "Model execution failed"}
+        if 'its_classification' not in results: results['its_classification'] = {"error": "Model execution failed"}
+        if 'qa_search' not in results: results['qa_search'] = [{"error": "Model execution failed"}]
+        # E/F 검색에 필요한 값들 비워두기
+        pred_i, pred_t = None, None
+
+    # --- [E/F] 판례/법률 검색 (C의 결과가 필요하므로 순차 실행) ---
     try:
-        # C 모델의 결과(pred_i, pred_t)를 기반으로 검색 실행
-        results['legal_search'] = search_legal_csv(query, pred_i, pred_t, all_models)
-    except Exception as e: results['legal_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
+        # C에서 가져온 pred_i, pred_t 사용
+        pred_i_val = results.get('its_classification', {}).get('intent')
+        pred_t_val = results.get('its_classification', {}).get('topic')
+        
+        results['legal_search'] = await asyncio.to_thread(
+            search_legal_csv, query, pred_i_val, pred_t_val, all_models
+        )
+    except Exception as e:
+        results['legal_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
+
+# # [엔드포인트 2: RAG 응답 생성]
+# @app.post("/generate-response")
+# async def handle_generate_response(request: QueryRequest):
+#     query = request.query
+#     results = {} # 모든 결과를 담을 딕셔너리
+
+#     # --- [A] 감정 분류 ---
+#     try:
+#         if all_models.get('model_A'):
+#             text_a, probs_a, preds_a = predict_sentiment(query, all_models['model_A'], all_models['tokenizer_A'])
+#             results['sentiment'] = {
+#                 "cleaned_text": text_a,
+#                 "probabilities": probs_a,
+#                 "labels": preds_a
+#             }
+#         else: results['sentiment'] = {"error": "Model A not loaded"}
+#     except Exception as e: results['sentiment'] = {"error": str(e), "trace": traceback.format_exc()}
+
+#     # --- [B] 문맥 (KoBERT) 분류 ---
+#     try:
+#         if all_models.get('model_B'):
+#             pred_b, conf_b, prob_non_div, prob_div = predict_context_kobert(query, all_models['model_B'], all_models['tokenizer_B'])
+#             results['context'] = {
+#                 "prediction": pred_b,
+#                 "confidence": conf_b,
+#                 "prob_non_divorce": prob_non_div,
+#                 "prob_divorce": prob_div
+#             }
+#         else: results['context'] = {"error": "Model B not loaded"}
+#     except Exception as e: results['context'] = {"error": str(e), "trace": traceback.format_exc()}
+
+#     # --- [C] 주제/의도/상황 분류 ---
+#     pred_i, pred_t, pred_s = None, None, None # E/F 검색을 위해 변수 유지
+#     try:
+#         if all_models.get('model_C_intent') and all_models.get('model_C_topic') and all_models.get('model_C_situation'):
+#             pred_i, pred_t, pred_s = predict_its(
+#                 query,
+#                 all_models['model_C_intent'],
+#                 all_models['model_C_topic'],
+#                 all_models['model_C_situation']
+#             )
+#             results['its_classification'] = {
+#                 "intent": pred_i,
+#                 "topic": pred_t,
+#                 "situation": pred_s
+#             }
+#         else: results['its_classification'] = {"error": "Model C not loaded"}
+#     except Exception as e: results['its_classification'] = {"error": str(e), "trace": traceback.format_exc()}
+
+#     # --- [D] 질의응답 검색 ---
+#     try:
+#         if all_models.get('db_D'):
+#             results['qa_search'] = search_qa_faiss(query, all_models['db_D'], k=3)
+#         else: results['qa_search'] = [{"error": "DB D not loaded"}]
+#     except Exception as e: results['qa_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
+
+#     # --- [E/F] 판례/법률 검색 ---
+#     try:
+#         # C 모델의 결과(pred_i, pred_t)를 기반으로 검색 실행
+#         results['legal_search'] = search_legal_csv(query, pred_i, pred_t, all_models)
+#     except Exception as e: results['legal_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
 
 
     # *** (중요) Colab 테스트처럼 모든 결과를 문자열로 포맷팅 ***
