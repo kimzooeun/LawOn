@@ -3,6 +3,7 @@ package com.prinCipal.chatbot;
 import org.springframework.stereotype.Service;
 //import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.cache.annotation.Cacheable;
 
 import com.prinCipal.chatbot.dto.ChatRequestDto;
 import com.prinCipal.chatbot.dto.ChatResponseDto;
@@ -11,11 +12,11 @@ import com.prinCipal.chatbot.dto.FastApiResponseDto;
 
 import java.time.Duration;
 
-import org.springframework.http.HttpEntity;
+//import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
+//import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class ChatService {
     // 2. FastAPI 엔드포인트 주소 (docker-compose의 서비스 이름 사용)
     private final String FASTAPI_URL = "http://fastapi:8000/generate-response";
 
+    @Cacheable(value = "fastApiResponses", key = "#requestDto.userMessage")
 	public ChatResponseDto getFastApiResponse(ChatRequestDto requestDto) {
 	        
         // 1. 프론트에서 받은 메시지
