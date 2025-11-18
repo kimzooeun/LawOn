@@ -258,7 +258,7 @@ export function renderChat() {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.textContent = m.text;
-    div.appendChild(풍선껌);
+    div.appendChild(bubble);
     msgs.appendChild(div);
   });
   msgs.scrollTop = msgs.scrollHeight;

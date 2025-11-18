@@ -21,7 +21,6 @@ import com.prinCipal.chatbot.oauth2.CutomOAuth2UserService;
 import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationFailureHandler;
 import com.prinCipal.chatbot.oauth2.Oauth2AuthenticationSuccessHandler;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -73,20 +72,6 @@ public class SecurityConfig {
 			    // authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.) 
 	            .sessionManagement(session -> session
 	            	    .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	            // 정민 추가
-	            .exceptionHandling(ex -> ex
-	                    .authenticationEntryPoint((request, response, authException) -> {
-	                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-	                        response.setContentType("application/json;charset=UTF-8");
-	                        response.getWriter().write("{\"error\": \"unauthorized\"}");
-	                    })
-	                    .accessDeniedHandler((request, response, accessDeniedException) -> {
-	                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-	                        response.setContentType("application/json;charset=UTF-8");
-	                        response.getWriter().write("{\"error\": \"forbidden\"}");
-	                    })
-	                )
-	            
 	            .oauth2Login(oauth2 -> oauth2
 						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler)

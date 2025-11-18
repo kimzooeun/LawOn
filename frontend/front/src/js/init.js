@@ -23,12 +23,6 @@ import { initMypageListeners } from "./mypage.js";
 import { bindMic } from "./stt.js";
 import { render, initLawyerPageListeners } from "./lawyer.js";
 
-
-if (!document.getElementById("chatArea")) {
-  console.warn("Index page detected — init.js 실행 안 함");
-  window.INIT_STOP = true;
-}
-
 // 페이지 전환 함수
 let isLawyerPageInitialized = false;
 
@@ -136,7 +130,6 @@ export function openDocModal(title, content, size = "lg") {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.INIT_STOP) return;     // index.html에서는 전체 init 로직을 실행하지 않음
   Modal.init();
   FormModal.init();
 
@@ -231,7 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputSec = document.querySelector(".input-section");
 
   if (!chatArea || !mypageExplore || !lawyerPage || !inputSec) {
-    console.error("탐색에 필요한 주요 DOM 요소가 없습니다.");
+    console.warn(
+      "채팅 페이지 전용 DOM 요소가 없어, init.js의 일부 로직을 건너뜁니다."
+    );
+    return;
   } else {
     // 1. '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {

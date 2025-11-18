@@ -55,7 +55,6 @@ public class JwtTokenProvider {
     private SecretKey getSigningKey() {
     	return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
-   
     
 	// Access Token 생성
     public String generateAccessToken(Authentication authentication) {
@@ -68,7 +67,7 @@ public class JwtTokenProvider {
 
     	if(principal instanceof Member member) {
     		nickname = member.getNickname();
-    		authorities = member.getRole().getAuthority();
+    		authorities = member.getRole().name();
     	} else if (principal instanceof User user) {
     		nickname = user.getUsername();
     		authorities = authentication.getAuthorities().
@@ -107,7 +106,7 @@ public class JwtTokenProvider {
     	
     	if(principal instanceof Member member) {
     		nickname = member.getNickname();
-    		authorities = member.getRole().getAuthority();
+    		authorities = member.getRole().name();
     	} else if (principal instanceof User user) {
     		nickname = user.getUsername();
     		authorities = authentication.getAuthorities().
@@ -146,19 +145,11 @@ public class JwtTokenProvider {
     		throw new AuthenticationCredentialsNotFoundException("JWT Claims 비어있음");
     	}
     	
-    	Collection<? extends GrantedAuthority> authorities = 
-    			Arrays.stream(claims.get("auth").toString().split(","))
-    					.map(SimpleGrantedAuthority::new)
-    					.collect(Collectors.toList());
-    	
-//    	UserDetails principal = new User(claims.getSubject(),"", authorities);
-//    	return new UsernamePasswordAuthenticationToken(principal, token, authorities);
-    	
     	// ✅ [수정 3] - 닉네임(subject)으로 MemberDetailService에서 실제 사용자 정보(알맹이)를 로드합니다.
         UserDetails principal = this.memberDetailService.loadUserByUsername(claims.getSubject());
 
         // ✅ [수정 4] - 'principal.getAuthorities()'를 사용하도록 변경합니다.
-       return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+    	return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
     }
     
     

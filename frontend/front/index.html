@@ -33,13 +33,14 @@
         <li><a href="#features">이용 방법</a></li>
         <li><a href="#layerimg">변호사 소개</a></li>
       </ul>
-      <a href="https://open.kakao.com/o/sz9Xko2h" class="btn btn-primary">도입 문의</a>
+      <a href="#" class="btn btn-primary">도입 문의</a>
     </div>
   </header>
 
   <main class="hero">
     <div class="container hero-content">
       <div class="hero-text">
+        <button id="test401Btn" class="btn btn-secondary" style="margin: 20px;">401 테스트 요청</button>
         <h1>
         이혼 고민,<br>
         <span>AI가 먼저 들어드립니다</span>
@@ -1045,7 +1046,9 @@
           <button type="submit" class="auth-submit-btn">로그인</button>
         </form>
 
-    
+        <div class="auth-links">
+          <button type="button" class="auth-link" id="forgotBtn">비밀번호 찾기</button>
+        </div>
       </div>
 
       <!-- 회원가입 탭 -->
@@ -1134,6 +1137,26 @@
   reveals.forEach((el) => observer.observe(el));
 });
 
+document.getElementById("test401Btn").addEventListener("click", async () => {
+  try {
+    console.log("🧪 /api/user/info 요청 중...");
+    const res = await fetch("/api/user/info", {
+      method: "GET",
+    });
+
+    console.log("응답 : ", res);
+    const data = await res.json();
+    console.log("✅ 응답 성공:", data);
+    alert("정상 응답: " + JSON.stringify(data));
+
+  } catch (err) {
+    if(err.message.includes("401")){
+      return;
+    }
+    console.error("❌ 요청 실패:", err);
+    alert("다른 오류 발생: " + err.message);
+  }
+});
 </script>
 </body>
 </html>

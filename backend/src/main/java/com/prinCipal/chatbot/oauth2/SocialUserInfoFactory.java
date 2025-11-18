@@ -16,10 +16,6 @@ public class SocialUserInfoFactory {
 				return new KaKaoUserInfo(attributes);
 			}
 			
-			case "naver":{
-				return new NaverUserInfo(attributes);
-			}
-			
 			default : 
 				throw new IllegalArgumentException("예상치 못한 소셜 : " + registId);
 		}

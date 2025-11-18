@@ -1,4 +1,11 @@
 export const TokenManager = (() => {
+  const ACCESS_KEY = "accessToken";
+
+  const getAccessToken = () => {
+    return (
+      localStorage.getItem(ACCESS_KEY) || sessionStorage.getItem(ACCESS_KEY)
+    );
+  };
 
   const ACCESS_KEY = "accessToken";
 
@@ -104,6 +111,8 @@ export const TokenManager = (() => {
       toast.classList.remove("show");
     }, 1000);
   }
+
   return { getAccessToken, setTokens, updateAccessToken, clearTokens, showToast_auth};
+
 })();
 

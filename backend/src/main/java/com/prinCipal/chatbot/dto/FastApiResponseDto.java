@@ -1,13 +1,13 @@
 package com.prinCipal.chatbot.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-//FastAPI가 어떤 JSON으로 응답하는지에 따라 수정해야 합니다.
-//예: {"answer": "모델 답변입니다."}
-@JsonIgnoreProperties(ignoreUnknown = true) 
-@Getter
+//1. 최상위 응답 DTO
+@Data
+@NoArgsConstructor
 public class FastApiResponseDto {
-    // 필드 이름 수정 (answer -> final_response)
-    private String final_response;
+	private KeywordAnalysisDto keywordAnalysis;
+	private ChatbotResponseDto chatbotResponse;
+	private SessionUpdatesDto sessionUpdates;
 }
