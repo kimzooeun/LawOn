@@ -10,7 +10,12 @@ spring:
     multipart:
       max-file-size: 250MB
       max-request-size: 250MB
-
+  # --- 정적 파일 서빙 설정 (신규 추가) ---
+  mvc:
+    static-path-pattern: /uploads/** # (1) /uploads/.. 패턴으로 웹에서 접근 허용
+  web:
+    resources:
+      static-locations: file:./uploads/ # (2) 실제 물리적 경로 ./uploads/ 폴더와 매핑
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USER}
