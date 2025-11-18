@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 처리를 위한 ObjectMapper
-	
+
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
 	

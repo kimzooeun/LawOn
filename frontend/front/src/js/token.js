@@ -66,7 +66,7 @@ export const TokenManager = (() => {
           const toastMsg = apiFailed
             ? "로그아웃. 로컬 데이터만 삭제합니다."
             : "로그아웃 되었습니다.";
-          showToast(toastMsg); // token.js의 showToast 사용
+          showToast_auth(toastMsg); // token.js의 showToast 사용
 
           setTimeout(() => (window.location.href = "/"), 600);
         }

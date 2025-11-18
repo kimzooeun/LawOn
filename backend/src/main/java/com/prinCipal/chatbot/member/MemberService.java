@@ -53,6 +53,12 @@ public class MemberService{
 	private SocialTokenService socialTokenService;
 	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	
+	@Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+	
+	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+	
 	// 회원가입 시, 유효성 검사 
 	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
 	    Map<String, String> errors = new HashMap<>();
@@ -163,10 +169,10 @@ public class MemberService{
 			// 토큰 파싱 (만료 여부는 상관 없음, 만료되던 안되던 클레임만 뽑되, 서명을 검증해서 redis에서 삭제는 해야함)
 			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
 			String jti = claims.getId();     // 토큰의 고유ID
-			String identifier = claims.getSubject();
+			String identifier = claims.getSubject();  // 소셜쪽은, social_id로 토큰을 만들었어서. 아래와 같이 비교 해야함
 			Optional<Member> optionalMember;
 			
-			if (identifier.startsWith("kakao_") || identifier.startsWith("google_")) {
+			if (identifier.startsWith("kakao_") || identifier.startsWith("google_") || identifier.startsWith("naver_")) {
 			    optionalMember = this.memberRepository.findBySocialId(identifier);
 			} else {
 			    optionalMember = this.memberRepository.findByNickname(identifier);
@@ -201,6 +207,14 @@ public class MemberService{
 				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
 				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
 
+
+				WebClient.create("https://kapi.kakao.com/v1/user/unlink")
+				        .post()
+				        .header("Authorization", "Bearer " + kakaoAccessToken)
+				        .retrieve()
+				        .bodyToMono(String.class)
+				        .block(); 
+				
 				WebClient.create("https://kapi.kakao.com/v1/user/logout")
 						 .post()
 						 .headers(h -> h.setBearerAuth(kakaoAccessToken))
@@ -222,13 +236,15 @@ public class MemberService{
 			}
 			// 네이버는 AccessToken 삭제 API를 줘야함 
 			case "naver": {
+				 // naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함 
+				 String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
 				 WebClient.create("https://nid.naver.com/oauth2.0/token")
 				 		  .post()
 				 		  .uri(uriBuilder ->uriBuilder
 				 				  .queryParam("grant_type", "delete")
-				 				  .queryParam("client_id", "{네이버_CLIENT_ID}")
-	                              .queryParam("client_secret", "{네이버_CLIENT_SECRET}")
-	                              .queryParam("access_token", socialToken)
+				 				  .queryParam("client_id",  naverClientId)
+	                              .queryParam("client_secret", naverClientSecret)
+	                              .queryParam("access_token", naverAccessToken)
 	                              .queryParam("service_provider", "NAVER")
 				 				  .build())
 				 		  .retrieve()
