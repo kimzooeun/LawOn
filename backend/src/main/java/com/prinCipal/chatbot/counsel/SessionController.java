@@ -67,24 +67,40 @@ public class SessionController {
 
 		return ResponseEntity.ok(response);
 	}
-
-	/**
-	 * 3. 채팅 메시지 전송 (POST /api/chat)
-	 */
+	
 	@PostMapping("/chat")
-	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
 	public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto,
-			@AuthenticationPrincipal CustomOAuth2User customUser) {
+	        @AuthenticationPrincipal CustomOAuth2User customUser) {
 
-		if (customUser == null) {
-			// 👈 [수정] (B) 프론트 응답 DTO 사용
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null, null));
-		}
+	    if (customUser == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                .body(new ChatResponseDto("로그인이 필요합니다.", null, null));
+	    }
 
-		ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
+	    // [변경] addMessage -> processChat 호출
+	    // 내부에서 Redis 체크 -> (없으면 FastAPI) -> Async DB 저장 -> 응답 반환 순으로 동작
+	    ChatResponseDto response = sessionService.processChat(requestDto, customUser.getMember());
 
-		return ResponseEntity.ok(response);
+	    return ResponseEntity.ok(response);
 	}
+
+//	/**
+//	 * 3. 채팅 메시지 전송 (POST /api/chat)
+//	 */
+//	@PostMapping("/chat")
+//	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
+//	public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto,
+//			@AuthenticationPrincipal CustomOAuth2User customUser) {
+//
+//		if (customUser == null) {
+//			// 👈 [수정] (B) 프론트 응답 DTO 사용
+//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null, null));
+//		}
+//
+//		ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
+//
+//		return ResponseEntity.ok(response);
+//	}
 	
 	
 	// 세션 삭제(개별 삭제)

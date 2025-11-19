@@ -226,3 +226,45 @@
 .recent-item.removing {
   animation: itemFadeOut 0.28s ease forwards;
 }
+
+/* ================================
+  4. 로딩 메시지 스타일
+  ================================ */
+/* 로딩 메시지 스타일 */
+.msg.loading .bubble {
+  background-color: #f1f1f1;
+  color: #888;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+/* 점 3개 애니메이션 */
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #aaa;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+.typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}

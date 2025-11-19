@@ -50,36 +50,62 @@ export function current() {
   return state.sessions[state.currentId] || null;
 }
 
+// [추가] 로딩 말풍선 생성 헬퍼 함수
+function createLoadingBubble() {
+  const div = document.createElement("div");
+  div.className = "msg bot loading"; // bot 스타일 상속 + loading 클래스
+  div.innerHTML = `
+    <div class="bubble">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  `;
+  return div;
+}
+
 // ---- 메시지 ----
 export async function addMessage(role, text) {
   const sess = current();
   if (!sess) return;
 
   const messageData = { role, text, at: Date.now() };
-  sess.messages.push(messageData); // (일단 화면에 그리기 위해 state에 추가)
+  sess.messages.push(messageData);
 
-  // (낙관적 UI) 먼저 화면에 그리고
+  // 1. 화면에 사용자 메시지 먼저 그리기
   renderChat();
 
-  // [핵심] 사용자가 보낸 메시지일 때만 서버에 전송 (봇 메시지는 안 보냄)
+  // [핵심] 사용자가 보낸 메시지일 때만 서버 전송 로직 수행
   if (role === "user") {
-    const currentUserId = localStorage.getItem(USER_ID_KEY);
+    const currentUserId = localStorage.getItem(USER_ID_KEY); // USER_ID_KEY는 상단 선언 필요
 
     if (!currentUserId) {
       sess.messages.pop();
       renderChat();
-      redirectToLogin();
+      redirectToLogin(); // chat.js 내부에 선언된 함수라고 가정
       return;
     }
 
+    // 2. [추가] API 호출 전 로딩 말풍선 붙이기
+    const msgsContainer = qs("#messages");
+    const loadingEl = createLoadingBubble();
+    msgsContainer.appendChild(loadingEl);
+    msgsContainer.scrollTop = msgsContainer.scrollHeight; // 스크롤 하단 이동
+
     try {
+      // 3. API 호출 (대기)
       const botResponse = await saveMessage(
         sess.id,
-        currentUserId, // 👈 (수정) 동적 ID 사용
+        currentUserId,
         messageData
       );
 
-      // 2. (중요) 서버가 반환한 봇 응답을 state에 추가
+      // 4. [추가] 응답 오면 로딩 말풍선 제거
+      if (loadingEl && loadingEl.parentNode) {
+        loadingEl.parentNode.removeChild(loadingEl);
+      }
+
+      // 5. 봇 응답 처리
       if (botResponse && botResponse.text) {
         const botMessageData = {
           role: "bot",
@@ -89,21 +115,78 @@ export async function addMessage(role, text) {
         sess.messages.push(botMessageData);
       }
 
-      // 3. ⭐ [수정] 서버가 새 제목을 주면 state 즉시 반영 (주석 해제 및 수정)
       if (botResponse && botResponse.newTitle) {
         sess.title = botResponse.newTitle;
-        // state.sessions[sess.id].title = botResponse.newTitle; // 안전하게 원본 참조 업데이트
       }
 
-      // 4. 봇 응답이 추가된 상태로 화면 다시 렌더링
+      // 6. 최종 화면 렌더링 (봇 메시지 포함)
       renderChat();
       archiveCurrent();
     } catch (err) {
+      // 에러 발생 시에도 로딩바 제거
+      if (loadingEl && loadingEl.parentNode) {
+        loadingEl.parentNode.removeChild(loadingEl);
+      }
       console.error("메시지 저장/봇 응답 실패:", err);
       showToast("메시지 전송 실패", "error");
     }
   }
 }
+
+// ---- 메시지 ----
+// export async function addMessage(role, text) {
+//   const sess = current();
+//   if (!sess) return;
+
+//   const messageData = { role, text, at: Date.now() };
+//   sess.messages.push(messageData); // (일단 화면에 그리기 위해 state에 추가)
+
+//   // (낙관적 UI) 먼저 화면에 그리고
+//   renderChat();
+
+//   // [핵심] 사용자가 보낸 메시지일 때만 서버에 전송 (봇 메시지는 안 보냄)
+//   if (role === "user") {
+//     const currentUserId = localStorage.getItem(USER_ID_KEY);
+
+//     if (!currentUserId) {
+//       sess.messages.pop();
+//       renderChat();
+//       redirectToLogin();
+//       return;
+//     }
+
+//     try {
+//       const botResponse = await saveMessage(
+//         sess.id,
+//         currentUserId, // 👈 (수정) 동적 ID 사용
+//         messageData
+//       );
+
+//       // 2. (중요) 서버가 반환한 봇 응답을 state에 추가
+//       if (botResponse && botResponse.text) {
+//         const botMessageData = {
+//           role: "bot",
+//           text: botResponse.text,
+//           at: Date.now(),
+//         };
+//         sess.messages.push(botMessageData);
+//       }
+
+//       // 3. ⭐ [수정] 서버가 새 제목을 주면 state 즉시 반영 (주석 해제 및 수정)
+//       if (botResponse && botResponse.newTitle) {
+//         sess.title = botResponse.newTitle;
+//         // state.sessions[sess.id].title = botResponse.newTitle; // 안전하게 원본 참조 업데이트
+//       }
+
+//       // 4. 봇 응답이 추가된 상태로 화면 다시 렌더링
+//       renderChat();
+//       archiveCurrent();
+//     } catch (err) {
+//       console.error("메시지 저장/봇 응답 실패:", err);
+//       showToast("메시지 전송 실패", "error");
+//     }
+//   }
+// }
 
 // ---- 최근 저장 ----
 export function archiveCurrent() {
