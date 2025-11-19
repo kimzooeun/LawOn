@@ -29,6 +29,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       "/api": { target: "http://backend:8080" },
+      "/simple-chat": {target: "http://fastapi:8000"},
     },
     strictPort: true,
     watch: {

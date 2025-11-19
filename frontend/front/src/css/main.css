@@ -1209,6 +1209,8 @@ body.page-fading {
   }
 }
 
+
+
 /* 채팅 입력창 */
 .chat-footer {
   display: flex;
@@ -1259,6 +1261,32 @@ body.page-fading {
     max-width: 100%;
   }
 }
+
+
+
+.chat-login-banner {
+  display: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #444;
+  background: #fff7e6;
+  border-top: 1px solid #f0e0b8;
+}
+
+.chat-login-banner .banner-buttons {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.chat-login-banner button {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+
 
 
 /*-------------------------=== 특징 섹션 --------------------------------=== */
@@ -1849,6 +1877,36 @@ body.page-fading {
     margin-top: 10px;
     margin-bottom: 20px;
   }
+}
+
+
+
+.chat-message.bot.loading {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: #ccc;
+  animation: typingBlink 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBlink {
+  0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
 }
 
 
