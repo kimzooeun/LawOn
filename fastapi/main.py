@@ -253,7 +253,7 @@ async def handle_generate_response(request: QueryRequest):
         print(f"KeywordAnalysis 데이터 매핑 중 오류: {e}")
 
     # 3. 'CounsellingSession' 업데이트용 데이터 (마지막)
-    summary_title_val = "상담 내용" # 기본값
+    summary_title_val = "이혼 상담" # 기본값
     try:
         title_parts = []
         if situation_val and situation_val not in ['해당 없음', 'N/A', 'N/A (전처리 결과 없음)']:
