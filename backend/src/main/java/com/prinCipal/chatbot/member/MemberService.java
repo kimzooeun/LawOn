@@ -2,8 +2,10 @@ package com.prinCipal.chatbot.member;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,26 +61,99 @@ public class MemberService{
 	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
     private String naverClientSecret;
 	
-	// 회원가입 시, 유효성 검사 
-	public Map<String, String> validateSignup(SignupRequest signUpRequest) {
-	    Map<String, String> errors = new HashMap<>();
-	    if(this.memberRepository.existsByNickname(signUpRequest.getNickname())) {
-	        errors.put("nickname", "이미 사용 중인 닉네임입니다.");
-	    }
-	    if(!signUpRequest.isPasswordMatching()) {
-	        errors.put("password", "입력된 두 비밀번호가 다릅니다.");
-	    }
+	private static final Pattern LOGIN_ID_PATTERN = Pattern.compile("^[a-z][a-z0-9]{5,19}$");
+	private static final Set<String> RESERVED_IDS = Set.of(
+		    "admin", "administrator", "master", "manager", "root", "system", "support");
+	private static final Pattern UPPER = Pattern.compile("[A-Z]");
+	private static final Pattern LOWER = Pattern.compile("[a-z]");
+	private static final Pattern DIGIT = Pattern.compile("[0-9]");
+	private static final Pattern SPECIAL = Pattern.compile("[!@#$%^&*()_+\\-\\[\\]{};:,.?]");
+	private static final List<String> COMMON_PASSWORDS = List.of(
+		    "1234", "123456", "abcd", "qwerty", "password");
 	
-	    return errors;
+	
+	// 회원가입 시, 아이디 = 현 닉네임. 검증 함수 
+	public void validateLoginId(String nickname, Map<String, String> errors) {
+		if(nickname == null) {
+			errors.put("nickname", "아이디를 입력해주세요.");
+			return;
+		}
+		
+		String id = nickname.trim().toLowerCase();
+		
+		if(!LOGIN_ID_PATTERN.matcher(id).matches()) {
+			errors.put("nickname", "아이디는 영문 소문자로 시작하고, 영문 소문자와 숫자로 6~20자여야 합니다.");
+			return;
+		}
+		
+		for(String reserved : RESERVED_IDS) {
+			if(id.contains(reserved)) {
+				errors.put("nickname", "사용할 수 없는 아이디입니다.");
+				return;
+			}
+		}
+		
+		if(this.memberRepository.existsByNickname(id)) {
+			errors.put("nickname", "이미 사용 중인 아이디입니다.");
+		}
 	}
+	
+	// 회원가입 시, 비밀번호 검증 함수 
+	public void validatePassword(String password, String confirmPassword, String nickname, Map<String, String> errors) {
+		if(password == null || password.length() < 8) {
+			errors.put("password", "비밀번호는 최소 8자 이상이어야 합니다.");
+	        return;
+		}
+		
+		int kinds = 0;
+		if(UPPER.matcher(password).find())  kinds++;
+		if (LOWER.matcher(password).find()) kinds++;
+		if (DIGIT.matcher(password).find()) kinds++;
+		if (SPECIAL.matcher(password).find()) kinds++;
+		
+		if(kinds <3 ) {
+			errors.put("password", "비밀번호는 대문자/소문자/숫자/특수문자 중 3가지 이상을 포함해야 합니다.");
+	    }
+		
+		String lowerPassword = password.toLowerCase();
+		if(nickname != null && lowerPassword.contains(nickname.toLowerCase())) {
+			errors.put("password", "비밀번호에 아이디를 포함할 수 없습니다.");
+	    }
+		
+		for(String common : COMMON_PASSWORDS) {
+			if(lowerPassword.contains(common)) {
+				errors.put("password",  "너무 단순한 비밀번호입니다. 다른 패턴을 사용해주세요.");
+	            break;
+	        }
+		}
+		
+		// 같은 문자 4번 이상 반복 금지
+	    if (password.matches(".*(.)\\1{3,}.*")) {
+	        errors.put("password", "같은 문자를 여러 번 반복하는 비밀번호는 사용할 수 없습니다.");
+	    }
+	    
+	    // 비밀번호 확인
+	    if (confirmPassword == null || !password.equals(confirmPassword)) {
+	        errors.put("confirmPassword", "비밀번호가 일치하지 않습니다.");
+	    }
+	}
+	
 	
 	// 회원가입 
 	public void registerUser(SignupRequest signUpRequest) {
-		Map<String, String> errors = validateSignup(signUpRequest);
-		 if (!errors.isEmpty()) {
-		        throw new SignupValidationException(errors);
-		    }
-		 
+		Map<String, String> errors = new HashMap<>();
+		
+		// 아이디 검증(현 nickname 필드) 
+		validateLoginId(signUpRequest.getNickname(), errors);
+		
+		// 비밀번호 검증
+		validatePassword(signUpRequest.getPassword(), signUpRequest.getConfirmPassword(), signUpRequest.getNickname(), errors);
+		
+		if(!errors.isEmpty()) {
+			throw new SignupValidationException(errors);
+		}
+		
+		
 		if(signUpRequest.getNickname().equals("admin")) {
 			Member member = Member.builder()
 			            .nickname(signUpRequest.getNickname())
