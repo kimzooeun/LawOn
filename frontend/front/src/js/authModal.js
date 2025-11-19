@@ -21,8 +21,8 @@ const NICK_KEY = "todak_nickname";
 // 세션 관리용 변수
 const SIMPLE_SESSION_KEY = 'simpleChatSessionId';
 let simpleSessionId = localStorage.getItem(SIMPLE_SESSION_KEY) || null;
-let inputDisabled = false;
-
+let inputDisabled = false;   // 입력 폼 막는 용 
+let historyLoaded = false;  // 히스토리 로딩 여부 
 
 // 맞춤형 상담 버튼 클릭 시 열기
 const customBtn = document.getElementById("btnCustom");
@@ -371,6 +371,8 @@ function openChat() {
   chatOverlay.classList.add('is-open');
   document.body.classList.add('chat-open');
   chatInput.focus();
+
+  loadSimpleChatHistory();  // 히스토리 복원 
 }
 
 // 간편 상담 채팅 닫기
@@ -449,6 +451,58 @@ async function sendMessage() {
 }
 
 
+// 간편 상담 모달 열면 히스토리 복원 요청 함수
+async function loadSimpleChatHistory() {
+  if(!simpleSessionId) return ;   // 세션 없으면 return 
+  if(historyLoaded) return; // 이미 한번 true 되면 즉, 한 번 불렀으면 또 안함
+  historyLoaded = true;
+
+  try{
+    const response = await fetch(`/simple-chat/history?session_id=${encodeURIComponent(simpleSessionId)}`);
+
+    if(!response.ok){
+      console.warn('간편 상담 히스토리 fetch 실패', response.status);
+      return;
+    }
+
+    const data = await response.json();
+
+    // 세션 만료된 경우 (Redis TTL 지나서 없어진 경우)
+    if (data.session_expired){
+      localStorage.removeItem(SIMPLE_SESSION_KEY);
+      simpleSessionId = null;
+
+      // 채팅창 비우고, 안내 메시지 띄움
+      if (chatBody) {
+        chatBody.innerHTML ='';
+        addMessage('이전에 진행하셨던 간편 상담 기록은 만료되어 새로 시작됩니다.\n새로운 질문을 남겨주시면 도와드릴게요! 무엇이 궁금하신가요? 😊', 'bot');
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        inputDisabled = false; // 입력 가능 상태로 초기화
+        if(chatInput) chatInput.disabled = false;
+        if(chatSendBtn) chatSendBtn.disabled = false;
+        return;
+      }
+    }
+
+    const history = data.history || [];
+
+    history.forEach((item) => {
+      if(item.user){
+        addMessage(item.user, 'user');
+      }
+      if (item.bot){
+        addMessage(item.bot, 'bot');
+      }
+    });
+
+    updateChatState(data);
+  } catch(err){
+    console.err('히스토리 로딩 중 에러', err);
+  }
+}
+
+
 // 간편 상담 상태 업데이트 함수
 function updateChatState(data){
   // limit_reached면 입력 막음 (5번째 질문 이후)
@@ -460,11 +514,7 @@ function updateChatState(data){
 
   // 회원가입 유도 
   if (chatLoginBanner){
-    if (data.suggest_login && data.limit_reached){
-      chatLoginBanner.style.display='block';
-    } else{
-      chatLoginBanner.style.display = 'none';
-    }    
+    chatLoginBanner.style.display= data.limit_reached ? 'block' : 'none';
   } 
 }
 
@@ -473,6 +523,8 @@ if(chatGoSignup){
     openSignupModal();
   })
 }
+
+
 
 // 간편 상담 메시지 추가 함수
 function addMessage(text, type) {

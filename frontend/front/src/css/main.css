@@ -1166,6 +1166,7 @@ body.page-fading {
   border: 1px solid #e8e8e8;
   border-bottom-left-radius: 4px;
   align-self: flex-start;
+  white-space: pre-line;
 }
 
 /* 유저 메시지 */
@@ -1266,26 +1267,56 @@ body.page-fading {
 
 .chat-login-banner {
   display: none;
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 12px 14px;
+  font-size: 12.9px;
   color: #444;
   background: #fff7e6;
   border-top: 1px solid #f0e0b8;
+
+  /* 살짝 카드 느낌 */
+  margin: 8px 8px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  line-height: 1.5;
 }
 
 .chat-login-banner .banner-buttons {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   gap: 8px;
 }
 
+/* 기본 버튼 스타일 */
 .chat-login-banner button {
   flex: 1;
-  font-size: 12px;
-  padding: 6px 8px;
+  font-size: 13px;
+  padding: 8px 10px;
   cursor: pointer;
+
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+
+  background: linear-gradient(135deg, #ffb347, #de7d4c);
+  color: #fff;
+
+  box-shadow: 0 2px 6px rgba(255, 136, 75, 0.35);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
 }
 
+.chat-login-banner button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(255, 136, 75, 0.4);
+  filter: brightness(1.03);
+}
+
+.chat-login-banner button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 136, 75, 0.25);
+  filter: brightness(0.98);
+}
 
 
 

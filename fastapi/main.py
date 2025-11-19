@@ -323,7 +323,6 @@ async def simple_chat(request:SimpleChatRequest):
             "count_used":count,
             "limit": LIMIT_SIMPLE,
             "limit_reached":True,
-            "suggest_login":True,
         }
     
     query = request.query
@@ -418,7 +417,6 @@ async def simple_chat(request:SimpleChatRequest):
 
     new_count = data["count"]
     limit_reached = new_count >= LIMIT_SIMPLE
-    suggest_login = limit_reached
 
     return {
         "session_id" : session_id,
@@ -426,7 +424,6 @@ async def simple_chat(request:SimpleChatRequest):
         "count_used": new_count,
         "limit": LIMIT_SIMPLE,
         "limit_reached": limit_reached,
-        "suggest_login": suggest_login,
         "context": {
             "label": context_label,
             "confidence": context_conf,
@@ -439,8 +436,34 @@ async def simple_chat(request:SimpleChatRequest):
     }
 
 
-# 간편 상담의 과거 대화 내역을 불러오는 
-# @app.get("/simple-chat/history")
-# async def get_simple_chat_history(session_id: str):
+# 간편 상담의 과거 대화 내역을 불러오는 엔드포인트
+# Redis에 저장된 history와 count를 그대로 돌려줌
+@app.get("/simple-chat/history")
+async def get_simple_chat_history(session_id: str):
+    redis_key = f"simple:session:{session_id}"
+    data_str = redis_client.get(redis_key)
 
+    if not data_str:
+        # 세션 없으면 빈 상태 반환
+        return {
+            "session_id":session_id,
+            "history":[],
+            "count_used": 0,
+            "limit": LIMIT_SIMPLE,
+            "limit_reached": False,
+            "session_expired": True,
+        }
+    data = json.loads(data_str)
+    count = data.get("count", 0)
+    history = data.get("history",[])
 
+    limit_reached = count >= LIMIT_SIMPLE
+
+    return {
+        "session_id": session_id,
+        "history": history,        
+        "count_used": count,
+        "limit": LIMIT_SIMPLE,
+        "limit_reached": limit_reached,
+        "session_expired": False,
+    }
