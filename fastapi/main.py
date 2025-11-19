@@ -67,6 +67,7 @@ def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
+
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
 async def handle_generate_response(request: QueryRequest):
@@ -417,7 +418,7 @@ async def simple_chat(request:SimpleChatRequest):
 
     new_count = data["count"]
     limit_reached = new_count >= LIMIT_SIMPLE
-    suggest_login = limit_reached or (new_count == LIMIT_SIMPLE - 1)
+    suggest_login = limit_reached
 
     return {
         "session_id" : session_id,
@@ -436,5 +437,10 @@ async def simple_chat(request:SimpleChatRequest):
             "situation": situation,
         },
     }
+
+
+# 간편 상담의 과거 대화 내역을 불러오는 
+# @app.get("/simple-chat/history")
+# async def get_simple_chat_history(session_id: str):
 
 
