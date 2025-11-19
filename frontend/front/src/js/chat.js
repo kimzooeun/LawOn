@@ -58,10 +58,6 @@ export async function addMessage(role, text) {
   const messageData = { role, text, at: Date.now() };
   sess.messages.push(messageData); // (일단 화면에 그리기 위해 state에 추가)
 
-  // (기존 로직)
-  if (role === "user" && (!sess.title || sess.title === "새 대화"))
-    sess.title = text.slice(0, 18) + (text.length > 18 ? "…" : "");
-
   // (낙관적 UI) 먼저 화면에 그리고
   renderChat();
 
@@ -93,9 +89,10 @@ export async function addMessage(role, text) {
         sess.messages.push(botMessageData);
       }
 
-      // 3. (선택적) 서버가 새 제목을 주면 state에 반영
+      // 3. ⭐ [수정] 서버가 새 제목을 주면 state 즉시 반영 (주석 해제 및 수정)
       if (botResponse && botResponse.newTitle) {
         sess.title = botResponse.newTitle;
+        // state.sessions[sess.id].title = botResponse.newTitle; // 안전하게 원본 참조 업데이트
       }
 
       // 4. 봇 응답이 추가된 상태로 화면 다시 렌더링
@@ -186,11 +183,17 @@ export function renderRecents() {
   }
   state.recents.forEach((r) => {
     const li = document.createElement("li");
+
+    // 1. r.updatedAt 값을 Date 객체로 변환 시도
+    const dateObj = new Date(r.updatedAt);
+    const dateString =
+      dateObj.getTime() > 0 ? dateObj.toLocaleString() : "시간 정보 없음"; // Invalid Date일 경우 대체
+
     li.innerHTML = `
       <div class="recent-item">
         <div class="recent-text">
           <span class="title">${r.title}</span>
-          <span class="meta">${new Date(r.updatedAt).toLocaleString()}</span>
+          <span class="meta">${dateString}</span>
         </div>
         <button class="recent-delete" title="삭제"><span class="delete-icon">X</span></button>
       </div>`;

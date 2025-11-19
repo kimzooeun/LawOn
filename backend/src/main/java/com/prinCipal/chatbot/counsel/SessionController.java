@@ -78,7 +78,7 @@ public class SessionController {
 
 		if (customUser == null) {
 			// 👈 [수정] (B) 프론트 응답 DTO 사용
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null));
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null, null));
 		}
 
 		ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
