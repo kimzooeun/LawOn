@@ -19,7 +19,7 @@ import {
   deleteUser,
 } from "./api.js";
 
-import { createNewSession } from "./chat.js";
+import { createNewSession, renderChat } from "./chat.js";
 import { openDocModal } from "./init.js";
 
 // [추가] PDF 다운로드 기능
@@ -373,14 +373,15 @@ export function initMypageListeners() {
         // onConfirm을 async 함수로 변경
         onConfirm: async () => {
           try {
-            // 1. 서버에 전체 삭제 요청 (api.js 함수 호출)
+            // 1. 서버에 전체 삭제 요청
             await clearAllSessions();
 
-            // 2. (API 성공 시) 로컬 state 초기화
+            // 2. 로컬 state 초기화 (currentId가 null이 됨)
             Object.assign(state, createEmptyStore());
 
-            // 3. 서버에 새 채팅 세션 생성 요청
-            await createNewSession(); // (내부적으로 renderChat() 호출됨)
+            // 3. [수정] 강제 세션 생성 코드 삭제 -> 빈 화면만 렌더링
+            // await createNewSession();  <-- 이 줄을 삭제하거나 주석 처리하세요.
+            renderChat(); // <-- 대신 UI를 빈 상태로 갱신
 
             // 4. 토스트 표시
             showToast("대화 전체 비우기 완료", "success");
