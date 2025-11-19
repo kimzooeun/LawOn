@@ -286,22 +286,6 @@ export function initMypageListeners() {
           }
         },
       });
-    } else if (action === "wipe-local") {
-      Modal.open({
-        message: "로컬 저장소 사용자 데이터를 초기화할까요?",
-        okText: "초기화",
-        onConfirm: () => {
-          localStorage.removeItem(NICK_KEY);
-          localStorage.removeItem(PUSH_KEY);
-          localStorage.removeItem(RECENTS_KEY);
-          localStorage.removeItem(CHATS_KEY);
-          if (typeof updateNicknameDisplay === "function") {
-            updateNicknameDisplay();
-          }
-          showToast("로컬 데이터 초기화 완료", "success");
-          setTimeout(() => location.reload(), 1000); // 새로고침
-        },
-      });
     } else if (action === "open-withdrawal") {
       Modal.open({
         title: "회원 탈퇴",
