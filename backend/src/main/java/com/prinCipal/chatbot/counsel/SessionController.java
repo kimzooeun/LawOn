@@ -87,7 +87,7 @@ public class SessionController {
 	}
 	
 	
-	// 세션 삭제
+	// 세션 삭제(개별 삭제)
 	@DeleteMapping("/sessions/{id}")
 	public ResponseEntity<?> deleteSession(@PathVariable Long id,@AuthenticationPrincipal CustomOAuth2User customUser){
 		
@@ -103,4 +103,25 @@ public class SessionController {
 
         return ResponseEntity.ok("세션이 삭제되었습니다.");
 	}
+	
+	//세선 전체 삭제
+	@DeleteMapping("/sessions/clear-all")
+	public ResponseEntity<?> clearAllSessions(@AuthenticationPrincipal CustomOAuth2User customUser){
+		
+			if(customUser == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+			}
+			
+			Member member = customUser.getMember();
+			
+			sessionService.deleteAllSessions(member);
+			
+			return ResponseEntity.ok("모든 대화 기록이 삭제되었습니다.");
+		
+		}
+		
+	
+	
+	
+	
 }
