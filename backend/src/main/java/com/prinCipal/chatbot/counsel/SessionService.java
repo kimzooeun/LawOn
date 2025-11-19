@@ -20,6 +20,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -100,6 +101,7 @@ public class SessionService {
                     sessionDetail.put("title", session.getSummaryTitle());
                     
                     List<Map<String, Object>> messages = session.getContents().stream() 
+						.sorted(Comparator.comparing(CounsellingContent::getCreatedAt))	
                         .map(content -> {
                             Map<String, Object> msg = new HashMap<>();
                             msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");

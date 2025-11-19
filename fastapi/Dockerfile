@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # 2. 시스템 의존성 설치 (Java for Konlpy)
 # 'openjdk-17-jdk-headless' 대신 'default-jdk-headless'를 사용하여 호환성 문제 해결
 RUN apt-get update && \
-    apt-get install -y default-jdk-headless && \
+    apt-get install -y default-jdk-headless curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
