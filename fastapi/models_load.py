@@ -1,10 +1,8 @@
 import os
 import re
 import joblib
-import traceback
 import torch
 import torch.nn as nn
-import numpy as np
 import pandas as pd
 
 from transformers import BertTokenizer, BertModel, AutoTokenizer
