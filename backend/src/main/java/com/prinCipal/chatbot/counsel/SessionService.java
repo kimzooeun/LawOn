@@ -239,4 +239,17 @@ public class SessionService {
 		}
 	}
 	
+	
+	//사용자 전체 세션 삭제
+	@Transactional
+	public void deleteAllSessions(Member member) {
+		// 이 사용자의 모든 세션을 찾음
+		List<CounsellingSession> allSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
+		
+		if(!allSessions.isEmpty()) {
+			sessionRepository.deleteAll(allSessions);
+		}
+		
+	}
+	
 }
