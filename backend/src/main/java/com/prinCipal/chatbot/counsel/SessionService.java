@@ -236,6 +236,10 @@ public class SessionService {
                     .content(requestDto.getUserMessage())
                     .build();
             contentRepository.save(userMessage);
+            
+	         // 봇 메시지 시간 강제 조정 (순서 꼬임 방지)
+	         // 봇 메시지 생성 시간을 사용자 메시지보다 조금 뒤로 설정하기 위해 Thread.sleep 사용 권장
+	         try { Thread.sleep(50); } catch (InterruptedException e) {}
 
             // 3. 봇 메시지 저장
             CounsellingContent botMessage = CounsellingContent.builder()
@@ -279,6 +283,52 @@ public class SessionService {
             logger.error("❌ Async DB Save Failed: {}", e.getMessage(), e);
             // 실무 팁: 여기서 에러나면 사용자에게 티가 안 나므로, 운영자가 알 수 있게 로그를 잘 남겨야 합니다.
         }
+    }
+    
+    /**
+     * [수동] 상담 종료
+     */
+    @Transactional
+    public void endSessionManually(Long sessionId, Member member) {
+        CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
+                .orElseThrow(() -> new RuntimeException("세션이 없거나 권한이 없습니다."));
+
+        // 이미 끝난 세션이면 무시
+        if (session.getCompletionStatus() != CompletionStatus.ONGOING) {
+            return; 
+        }
+
+        // 종료 처리
+        session.updateStatus(CompletionStatus.COMPLETED); // 수동 종료는 COMPLETED
+        session.updateendTime(LocalDateTime.now());
+        
+        // (선택) 종료 메시지 남기기
+        saveSystemMessage(session, "상담이 종료되었습니다.");
+    }
+
+    /**
+     * [수동] 상담 재시작
+     */
+    @Transactional
+    public void restartSessionManually(Long sessionId, Member member) {
+        CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
+                .orElseThrow(() -> new RuntimeException("세션이 없거나 권한이 없습니다."));
+
+        // Entity에 추가한 메서드 호출 (상태 ONGOING, 시간 갱신, 경고 초기화)
+        session.restartSession(); 
+        
+        // 재개 메시지 남기기
+        saveSystemMessage(session, "상담이 재개되었습니다. 말씀해 주세요.");
+    }
+
+    // 서비스 내부에서도 쓰기 위해 private 메서드로 추출 추천
+    private void saveSystemMessage(CounsellingSession session, String text) {
+        CounsellingContent systemMsg = CounsellingContent.builder()
+                .session(session)
+                .sender(Sender.CHATBOT)
+                .content(text)
+                .build();
+        contentRepository.save(systemMsg);
     }
 
 //	/**

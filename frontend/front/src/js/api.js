@@ -164,3 +164,34 @@ function getAuthHeaders(includeContentType = true) {
   }
   return headers;
 }
+
+/**
+ * (U) 상담 수동 종료
+ */
+export async function endSession(sessionId) {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/end`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error("상담 종료 실패");
+  }
+  return response.ok;
+}
+
+/**
+ * (U) 상담 재시작
+ */
+export async function restartSession(sessionId) {
+  const response = await fetch(
+    `${API_BASE_URL}/sessions/${sessionId}/restart`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    }
+  );
+  if (!response.ok) {
+    throw new Error("상담 재시작 실패");
+  }
+  return response.ok;
+}
