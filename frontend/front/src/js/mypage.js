@@ -19,8 +19,82 @@ import {
   deleteUser,
 } from "./api.js";
 
-import { createNewSession } from "./chat.js";
+import { createNewSession, renderChat } from "./chat.js";
 import { openDocModal } from "./init.js";
+
+// [추가] PDF 다운로드 기능
+function downloadChatPdf(session) {
+  if (!session || !session.messages) {
+    showToast("저장된 대화 내용이 없습니다.", "error");
+    return;
+  }
+
+  // 1. PDF용 HTML 생성
+  const element = document.createElement("div");
+  element.style.padding = "30px";
+  element.style.fontFamily = "sans-serif";
+
+  element.innerHTML = `
+    <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">${
+      session.title || "상담 내역"
+    }</h1>
+    <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 30px;">
+      저장 일시: ${new Date().toLocaleString()}
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      ${session.messages
+        .map(
+          (msg) => `
+        <div style="
+          padding: 15px; 
+          border-radius: 8px; 
+          background-color: ${msg.role === "user" ? "#e3f2fd" : "#f5f5f5"};
+          border: 1px solid ${msg.role === "user" ? "#bbdefb" : "#e0e0e0"};
+        ">
+          <strong style="display:block; margin-bottom:5px; color: ${
+            msg.role === "user" ? "#1976d2" : "#424242"
+          };">
+            ${msg.role === "user" ? "나" : "토닥이"}
+          </strong>
+          <span style="white-space: pre-wrap; line-height: 1.5; font-size: 14px;">${
+            msg.text
+          }</span>
+        </div>
+      `
+        )
+        .join("")}
+    </div>
+    <div style="margin-top: 30px; text-align: center; color: #999; font-size: 10px;">
+      LawOn AI 법률 상담 서비스
+    </div>
+  `;
+
+  // 2. PDF 옵션
+  const opt = {
+    margin: 10,
+    filename: `LawOn_상담_${session.title || "내역"}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+  };
+
+  // 3. 저장 실행
+  // html2pdf 라이브러리가 로드되었는지 확인
+  if (typeof html2pdf !== "undefined") {
+    showToast("PDF 생성을 시작합니다...", "info");
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => showToast("PDF가 다운로드 되었습니다.", "success"))
+      .catch((err) => {
+        console.error(err);
+        showToast("PDF 생성 중 오류가 발생했습니다.", "error");
+      });
+  } else {
+    showToast("PDF 라이브러리가 로드되지 않았습니다.", "error");
+  }
+}
 
 // === 탐색형 마이페이지 전환 & 검색/필터 ===
 export function initMypageListeners() {
@@ -222,38 +296,68 @@ export function initMypageListeners() {
         },
       });
     } else if (action === "open-report") {
+      // [수정됨] 상담 내역 + PDF 다운로드 버튼 구현
       if (typeof openDocModal === "function") {
-        let reportContent = "";
+        // 1. 목록을 담을 컨테이너 생성
+        const listContainer = document.createElement("ul");
+        listContainer.className = "report-list";
 
-        // (utils.js에서 로드되고 chat.js에서 관리되는) 전역 state.recents를 확인합니다.
         if (!state.recents || state.recents.length === 0) {
-          // 채팅 내역이 없을 경우
-          reportContent =
+          listContainer.innerHTML =
             '<p style="text-align: center; padding: 20px;">최근 상담 내역이 없습니다.</p>';
         } else {
-          // state.recents 배열을 기반으로 목록 생성
-          const itemsHtml = state.recents
-            .map((r) => {
-              // r.updatedAt으로 날짜 포맷팅
-              const dateStr = new Date(r.updatedAt).toLocaleString();
-              // r.title로 채팅 제목 표시
-              return `
-              <li class="report-item">
-                <span>
-                  <strong>${r.title}</strong>
-                  <span style="font-size: 0.9em; color: var(--ink-muted); margin-top: 4px; display: block;">
-                    ${dateStr}
-                  </span>
-                </span>
-              </li>`;
-            })
-            .join("");
+          // 2. 리스트 아이템 생성 및 이벤트 바인딩
+          state.recents.forEach((r) => {
+            const li = document.createElement("li");
+            li.className = "report-item";
+            // 스타일 조정 (Flexbox 사용)
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
 
-          reportContent = `<ul class="report-list">${itemsHtml}</ul>`;
+            // 2-1. 텍스트 영역
+            const textDiv = document.createElement("div");
+            const dateStr = new Date(r.updatedAt).toLocaleString();
+            textDiv.innerHTML = `
+              <strong>${r.title}</strong>
+              <span style="font-size: 0.9em; color: var(--ink-muted); margin-top: 4px; display: block;">
+                ${dateStr}
+              </span>
+            `;
+
+            // 2-2. PDF 버튼
+            const pdfBtn = document.createElement("button");
+            pdfBtn.className = "btn ghost sm"; // 기존 스타일 활용
+            pdfBtn.textContent = "PDF 다운";
+            pdfBtn.title = "대화 내용 저장";
+            pdfBtn.style.marginLeft = "10px";
+            pdfBtn.style.flexShrink = "0"; // 버튼 줄어듦 방지
+
+            // 2-3. 버튼 클릭 이벤트
+            pdfBtn.addEventListener("click", (e) => {
+              e.stopPropagation(); // 부모 클릭 방지
+              // 전체 세션 데이터에서 해당 ID의 메시지 찾기
+              const fullSession = state.sessions[r.id];
+              if (fullSession) {
+                downloadChatPdf(fullSession);
+              } else {
+                // 만약 sessions에 데이터가 없다면(리스트만 로드된 경우 등) 처리
+                showToast(
+                  "대화 내용을 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
+                  "info"
+                );
+                // 필요하다면 여기서 API 호출 로직을 추가할 수 있습니다.
+              }
+            });
+
+            li.appendChild(textDiv);
+            li.appendChild(pdfBtn);
+            listContainer.appendChild(li);
+          });
         }
 
-        // 모달 제목은 "상담 내역"을 유지하고, 동적으로 생성된 콘텐츠를 표시
-        openDocModal("상담 내역", reportContent, "lg");
+        // 3. 모달 열기 (Node 객체 전달)
+        openDocModal("상담 내역", listContainer, "lg");
       } else {
         alert("상담 내역 (모달 로드 실패)");
       }
@@ -269,14 +373,15 @@ export function initMypageListeners() {
         // onConfirm을 async 함수로 변경
         onConfirm: async () => {
           try {
-            // 1. 서버에 전체 삭제 요청 (api.js 함수 호출)
+            // 1. 서버에 전체 삭제 요청
             await clearAllSessions();
 
-            // 2. (API 성공 시) 로컬 state 초기화
+            // 2. 로컬 state 초기화 (currentId가 null이 됨)
             Object.assign(state, createEmptyStore());
 
-            // 3. 서버에 새 채팅 세션 생성 요청
-            await createNewSession(); // (내부적으로 renderChat() 호출됨)
+            // 3. [수정] 강제 세션 생성 코드 삭제 -> 빈 화면만 렌더링
+            // await createNewSession();  <-- 이 줄을 삭제하거나 주석 처리하세요.
+            renderChat(); // <-- 대신 UI를 빈 상태로 갱신
 
             // 4. 토스트 표시
             showToast("대화 전체 비우기 완료", "success");
@@ -284,22 +389,6 @@ export function initMypageListeners() {
             console.error("대화 전체 삭제 실패:", err);
             showToast("대화 삭제에 실패했습니다.", "error");
           }
-        },
-      });
-    } else if (action === "wipe-local") {
-      Modal.open({
-        message: "로컬 저장소 사용자 데이터를 초기화할까요?",
-        okText: "초기화",
-        onConfirm: () => {
-          localStorage.removeItem(NICK_KEY);
-          localStorage.removeItem(PUSH_KEY);
-          localStorage.removeItem(RECENTS_KEY);
-          localStorage.removeItem(CHATS_KEY);
-          if (typeof updateNicknameDisplay === "function") {
-            updateNicknameDisplay();
-          }
-          showToast("로컬 데이터 초기화 완료", "success");
-          setTimeout(() => location.reload(), 1000); // 새로고침
         },
       });
     } else if (action === "open-withdrawal") {

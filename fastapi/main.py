@@ -23,16 +23,13 @@ from pydantic import BaseModel
 
 # --- 노트북에서 가져온 라이브러리 임포트 ---
 from fastapi.middleware.cors import CORSMiddleware
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.pipeline import Pipeline
 
 frontend_url = os.getenv("FRONTEND_URL")
 origins = [frontend_url]
 
 # --- FastAPI 앱 초기화 및 모델 로딩 ---
-all_models = load_all_models()
-simple_models = load_simple_models()
+all_models = models_load.load_all_models()
+simple_models = models_load.load_simple_models()
 
 # OpenAI 클라이언트 (OPENAI_API_KEY는 환경변수로)
 client = OpenAI()
@@ -76,6 +73,7 @@ def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
+
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
 async def handle_generate_response(request: QueryRequest):
@@ -91,10 +89,14 @@ async def handle_generate_response(request: QueryRequest):
             its_result,
             qa_result
         ) = await asyncio.gather(
-            asyncio.to_thread(predict_sentiment, query, all_models['model_A'], all_models['tokenizer_A']),
-            asyncio.to_thread(predict_context_kobert, query, all_models['model_B'], all_models['tokenizer_B']),
-            asyncio.to_thread(predict_its, query, all_models['model_C_intent'], all_models['model_C_topic'], all_models['model_C_situation']),
-            asyncio.to_thread(search_qa_faiss, query, all_models['db_D'], k=3)
+            # [수정] models_load.predict_sentiment 로 변경
+            asyncio.to_thread(models_load.predict_sentiment, query, all_models['model_A'], all_models['tokenizer_A']),
+            # [수정] models_load.predict_context_kobert 로 변경
+            asyncio.to_thread(models_load.predict_context_kobert, query, all_models['model_B'], all_models['tokenizer_B']),
+            # [수정] models_load.predict_its 로 변경
+            asyncio.to_thread(models_load.predict_its, query, all_models['model_C_intent'], all_models['model_C_topic'], all_models['model_C_situation']),
+            # [수정] models_load.search_qa_faiss 로 변경
+            asyncio.to_thread(models_load.search_qa_faiss, query, all_models['db_D'], k=3)
         )
 
         # (결과 정리)
@@ -127,7 +129,8 @@ async def handle_generate_response(request: QueryRequest):
         pred_t_val = results.get('its_classification', {}).get('topic')
         
         results['legal_search'] = await asyncio.to_thread(
-            search_legal_csv, query, pred_i_val, pred_t_val, all_models
+            # [수정] models_load.search_legal_csv 로 변경
+            models_load.search_legal_csv, query, pred_i_val, pred_t_val, all_models
         )
     except Exception as e:
         results['legal_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
@@ -256,7 +259,7 @@ async def handle_generate_response(request: QueryRequest):
         print(f"KeywordAnalysis 데이터 매핑 중 오류: {e}")
 
     # 3. 'CounsellingSession' 업데이트용 데이터 (마지막)
-    summary_title_val = "상담 내용" # 기본값
+    summary_title_val = "이혼 상담" # 기본값
     try:
         title_parts = []
         if situation_val and situation_val not in ['해당 없음', 'N/A', 'N/A (전처리 결과 없음)']:
@@ -326,7 +329,6 @@ async def simple_chat(request:SimpleChatRequest):
             "count_used":count,
             "limit": LIMIT_SIMPLE,
             "limit_reached":True,
-            "suggest_login":True,
         }
     
     query = request.query
@@ -335,7 +337,8 @@ async def simple_chat(request:SimpleChatRequest):
     context_conf = None # 신뢰도
     try:
         if simple_models.get('model_B'):
-            pred_b, conf_b, prob_non_div, prob_div = predict_context_kobert(query, simple_models['model_B'], simple_models['tokenizer_B'])
+            # [수정] models_load.predict_context_kobert 로 변경
+            pred_b, conf_b, prob_non_div, prob_div = models_load.predict_context_kobert(query, simple_models['model_B'], simple_models['tokenizer_B'])
             context_label = pred_b
             context_conf = conf_b
         else: print("간편 상담용 이혼 문맥 분류 모델 로딩 실패")
@@ -345,7 +348,8 @@ async def simple_chat(request:SimpleChatRequest):
     intent = topic = situation = None
     if simple_models.get('model_C_intent') and simple_models.get('model_C_topic') and simple_models.get('model_C_situation'):
         try:
-            intent, topic, situation = predict_its(query, simple_models['model_C_intent'], simple_models['model_C_topic'],
+            # [수정] models_load.predict_its 로 변경
+            intent, topic, situation = models_load.predict_its(query, simple_models['model_C_intent'], simple_models['model_C_topic'],
                 simple_models['model_C_situation']
             )
         except Exception as e :
@@ -419,7 +423,6 @@ async def simple_chat(request:SimpleChatRequest):
 
     new_count = data["count"]
     limit_reached = new_count >= LIMIT_SIMPLE
-    suggest_login = limit_reached or (new_count == LIMIT_SIMPLE - 1)
 
     return {
         "session_id" : session_id,
@@ -427,7 +430,6 @@ async def simple_chat(request:SimpleChatRequest):
         "count_used": new_count,
         "limit": LIMIT_SIMPLE,
         "limit_reached": limit_reached,
-        "suggest_login": suggest_login,
         "context": {
             "label": context_label,
             "confidence": context_conf,

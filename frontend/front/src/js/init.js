@@ -27,7 +27,6 @@ import { render, initLawyerPageListeners } from "./lawyer.js";
 let isLawyerPageInitialized = false;
 
 if (!document.getElementById("chatArea")) {
-  console.warn("Index page detected — init.js 실행 안 함");
   window.INIT_STOP = true;
 }
 

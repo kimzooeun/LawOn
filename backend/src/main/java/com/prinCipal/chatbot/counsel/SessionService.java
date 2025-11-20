@@ -20,6 +20,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -79,8 +80,24 @@ public class SessionService {
 		List<Map<String, Object>> recentsList = recentSessions.stream().map(session -> {
 			Map<String, Object> recent = new HashMap<>();
 			recent.put("id", session.getSessionId());
-			recent.put("title", session.getSummaryTitle());
-			recent.put("updatedAt", session.getLastMessageTime());
+
+			String title = session.getSummaryTitle();
+			// ⭐ 수정: 제목이 null이거나 비어있으면 "제목 없음"으로 대체
+			// 클라이언트에서 "새 대화"는 로딩으로 처리할 수 있도록 유지하거나,
+			// "새 대화"인 경우 클라이언트가 로딩을 표시하도록 협의합니다.
+			if (title == null || title.isEmpty() || title.equals("새 대화")) {
+			    title = "제목 생성 중..."; 
+			}
+	        recent.put("title", title); // 수정된 title 사용
+
+			// ⭐ 핵심 수정: LocalDateTime 객체를 JS가 인식하는 long 타임스탬프(밀리초)로 변환
+			long updatedAtMillis = session.getLastMessageTime()
+					.atZone(java.time.ZoneId.systemDefault()) // 서버의 기본 시간대로 ZoneId 설정
+					.toInstant() // Instant로 변환
+					.toEpochMilli(); // 밀리초(long)로 변환
+
+			recent.put("updatedAt", updatedAtMillis);
+
 			return recent;
 		}).collect(Collectors.toList());
 
@@ -92,13 +109,14 @@ public class SessionService {
 					sessionDetail.put("id", session.getSessionId());
 					sessionDetail.put("title", session.getSummaryTitle());
 
-					List<Map<String, Object>> messages = session.getContents().stream().map(content -> {
-						Map<String, Object> msg = new HashMap<>();
-						msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
-						msg.put("text", content.getContent());
-						msg.put("at", content.getCreatedAt());
-						return msg;
-					}).collect(Collectors.toList());
+					List<Map<String, Object>> messages = session.getContents().stream()
+							.sorted(Comparator.comparing(CounsellingContent::getCreatedAt)).map(content -> {
+								Map<String, Object> msg = new HashMap<>();
+								msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
+								msg.put("text", content.getContent());
+								msg.put("at", content.getCreatedAt());
+								return msg;
+							}).collect(Collectors.toList());
 
 					sessionDetail.put("messages", messages);
 					return sessionDetail;
@@ -122,34 +140,46 @@ public class SessionService {
 	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
 	public ChatResponseDto addMessage(ChatRequestDto requestDto, Member member) {
 
-		CounsellingContent userMessage;
-		Long sessionId;
+	    CounsellingContent userMessage;
+	    Long sessionId;
 
-		try {
-			// 👈 [수정] (A) DTO 사용
-			userMessage = saveUserMessageAndUpdateSession(requestDto, member);
-			sessionId = userMessage.getSession().getSessionId();
-		} catch (RuntimeException e) {
-			logger.error("사용자 메시지 저장 실패 (DB 조회 오류): {}", e.getMessage());
-			// 👈 [수정] (B) 프론트 응답 DTO 사용
-			return new ChatResponseDto("메시지 전송에 실패했습니다. (세션 오류)", requestDto.getSessionId().toString());
-		}
+	    try {
+	        // (A) 사용자 메시지 저장
+	        userMessage = saveUserMessageAndUpdateSession(requestDto, member);
+	        sessionId = userMessage.getSession().getSessionId();
 
-		FastApiResponseDto fastApiResponse;
-		try {
-			fastApiResponse = chatService.getFastApiResponse(requestDto);
+	    } catch (RuntimeException e) {
+	        logger.error("사용자 메시지 저장 실패 (DB 조회 오류): {}", e.getMessage());
+	        // 에러 시 제목은 null
+	        return new ChatResponseDto("메시지 전송에 실패했습니다. (세션 오류)", requestDto.getSessionId().toString(), null);
+	    }
 
-			saveBotResponseAndAnalysis(userMessage, fastApiResponse);
+	    FastApiResponseDto fastApiResponse;
 
-			// 👈 [수정] (B) 프론트 응답 DTO 사용
-			return new ChatResponseDto(fastApiResponse.getChatbotResponse().getContent(), sessionId.toString());
+	    try {
+	        // 1. FastAPI 호출
+	        fastApiResponse = chatService.getFastApiResponse(requestDto);
 
-		} catch (Exception e) {
-			logger.error("FastAPI 챗봇 응답 또는 저장 실패 (세션 ID: {}): {}", sessionId, e.getMessage());
-			// 👈 [수정] (B) 프론트 응답 DTO 사용
-			return new ChatResponseDto("죄송합니다. 봇 응답에 실패했습니다. (" + e.getMessage() + ")", sessionId.toString());
-		}
+	        // 2. 봇 응답 및 분석 내용 DB 저장
+	        saveBotResponseAndAnalysis(userMessage, fastApiResponse);
 
+	        // 3. 👈 [핵심 수정] 새 제목 가져오기
+	        String newTitle = null;
+	        if (fastApiResponse.getSessionUpdates() != null) {
+	            newTitle = fastApiResponse.getSessionUpdates().getSummaryTitle();
+	        }
+
+	        // 4. (B) 프론트 응답 DTO 생성 (제목 포함)
+	        return new ChatResponseDto(
+	                fastApiResponse.getChatbotResponse().getContent(),
+	                sessionId.toString(),
+	                newTitle // 👈 여기에 새 제목을 담아서 보냄
+	        );
+
+	    } catch (Exception e) {
+	        logger.error("FastAPI 챗봇 응답 또는 저장 실패 (세션 ID: {}): {}", sessionId, e.getMessage());
+	        return new ChatResponseDto("죄송합니다. 봇 응답에 실패했습니다. (" + e.getMessage() + ")", sessionId.toString(), null);
+	    }
 	}
 
 	
@@ -198,8 +228,8 @@ public class SessionService {
 
 		String newTitle = fastApiResponse.getSessionUpdates().getSummaryTitle();
 		if (newTitle != null && !newTitle.isEmpty()
-				&& (session.getSummaryTitle() == null || session.getSummaryTitle().equals("새 대화"))) {
-			session.updateSummaryTitle(newTitle);
+		        && (session.getSummaryTitle() == null || session.getSummaryTitle().equals("새 대화"))) {
+		    session.updateSummaryTitle(newTitle); // AI 제목으로 업데이트
 		}
 
 		sessionRepository.save(session);
@@ -217,6 +247,18 @@ public class SessionService {
 			logger.error("JSON 변환 실패", e);
 			return "{\"error\":\"JSON 변환 실패\"}";
 		}
+	}
+
+	// 사용자 전체 세션 삭제
+	@Transactional
+	public void deleteAllSessions(Member member) {
+		// 이 사용자의 모든 세션을 찾음
+		List<CounsellingSession> allSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
+
+		if (!allSessions.isEmpty()) {
+			sessionRepository.deleteAll(allSessions);
+		}
+
 	}
 
 }
