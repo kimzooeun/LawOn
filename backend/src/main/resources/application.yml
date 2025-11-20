@@ -112,12 +112,14 @@ app:
   backend:
     url: ${BACKEND_URL}
 
+file:
+  upload-dir: /app/uploads		
 # Health check, actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info			
   endpoint:
     health:
       show-details: always

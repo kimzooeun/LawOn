@@ -1,6 +1,5 @@
 import { TokenManager } from '/src/js/token.js';
 
-
 const ADMIN_API = "/api/admin";
 const SETTINGS_API_BASE = "/admin/settings";
 
@@ -38,7 +37,7 @@ function initTabs() {
 }
 
 // ======================================================
-// 🔐 비밀번호 변경 기능
+// 🔐 비밀번호 변경 기능 (수정됨)
 // ======================================================
 function initPasswordChange() {
   const btn = document.getElementById("pwChangeBtn");
@@ -56,8 +55,8 @@ function initPasswordChange() {
     if (!token) return showToast("인증 오류: 다시 로그인하세요.");
 
     try {
-      const res = await fetch(`${ADMIN_API}/change-password`, {
-        method: "POST",
+      const res = await fetch(`/api/admin/change-password`, {
+        method: "POST", // ✅ [수정] POST -> PUT 으로 변경 (백엔드와 일치시킴)
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -68,13 +67,21 @@ function initPasswordChange() {
         }),
       });
 
-      const data = await res.json();
+      // ✅ [수정] 백엔드가 단순 문자열(String)을 반환하므로 text()로 받음
+      const message = await res.text();
 
       if (!res.ok) {
-        return showToast(data.message || "비밀번호 변경 실패");
+        // 에러 메시지가 있으면 띄워줌 (예: "현재 비밀번호가 일치하지 않습니다.")
+        return showToast(message || "비밀번호 변경 실패");
       }
 
       showToast("비밀번호 변경 완료! 다시 로그인 해주세요.");
+      
+      // 2초 뒤 로그아웃 및 로그인 페이지로 이동
+      setTimeout(() => {
+          TokenManager.clearTokens();
+          window.location.href = "/admin/login.html";
+      }, 2000);
 
     } catch (err) {
       console.error(err);

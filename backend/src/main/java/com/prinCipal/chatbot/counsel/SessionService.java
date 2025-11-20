@@ -34,101 +34,87 @@ public class SessionService {
 
 	private final SessionRepository sessionRepository;
 	private final ContentRepository contentRepository;
-	private final KeywordRepository keywordAnalysisRepository; 
+	private final KeywordRepository keywordAnalysisRepository;
 	private final ChatService chatService;
-	private final ObjectMapper objectMapper; 
+	private final ObjectMapper objectMapper;
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionService.class);
 
 	/**
-     * 새 상담 세션 생성
-     */
-    @Transactional // 👈 [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
-    public CounsellingSession createSession(Member member) {
-        CounsellingSession session = CounsellingSession.builder()
-                .member(member)
-                .completionStatus(CompletionStatus.ONGOING)
-                .resumeToken(null)
-                .build();
-        
-        // 👈 [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
-        session.updateSummaryTitle("새 대화");
-        session.updateLastMessageTime(LocalDateTime.now());
-        
-        return sessionRepository.save(session);
-    }
+	 * 새 상담 세션 생성
+	 */
+	@Transactional // 👈 [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
+	public CounsellingSession createSession(Member member) {
+		CounsellingSession session = CounsellingSession.builder().member(member)
+				.completionStatus(CompletionStatus.ONGOING).resumeToken(null).build();
 
-    /**
-     * 세션 삭제 (소유권 확인)
-     */
-    @Transactional // 👈 [수정] 삭제도 트랜잭션으로 관리
-    public void deleteSession(Long sessionId, Member member) {
-        CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
-                .orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
-        
-        sessionRepository.delete(session);
-    }
+		// 👈 [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
+		session.updateSummaryTitle("새 대화");
+		session.updateLastMessageTime(LocalDateTime.now());
 
-    /**
-     * [추가] 사용자의 전체 채팅방/최근 목록 조회
-     */
-    @Transactional(readOnly = true) 
-    public Map<String, Object> getInitialDataForUser(Member member) {
-        Map<String, Object> initialData = new HashMap<>();
+		return sessionRepository.save(session);
+	}
 
-        // (findByMemberOrderByLastMessageTimeDesc가 fetch join을 사용한다고 가정)
-        List<CounsellingSession> recentSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
-        
-        List<Map<String, Object>> recentsList = recentSessions.stream()
-            .map(session -> {
-                Map<String, Object> recent = new HashMap<>();
-                recent.put("id", session.getSessionId()); 
-                recent.put("title", session.getSummaryTitle()); 
-                recent.put("updatedAt", session.getLastMessageTime()); 
-                return recent;
-            })
-            .collect(Collectors.toList());
-        
-        initialData.put("recents", recentsList);
+	/**
+	 * 세션 삭제 (소유권 확인)
+	 */
+	@Transactional // 👈 [수정] 삭제도 트랜잭션으로 관리
+	public void deleteSession(Long sessionId, Member member) {
+		CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
+				.orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
 
-        Map<Long, Object> sessionsMap = recentSessions.stream()
-            .collect(Collectors.toMap(
-                CounsellingSession::getSessionId, 
-                session -> {
-                    Map<String, Object> sessionDetail = new HashMap<>();
-                    sessionDetail.put("id", session.getSessionId());
-                    sessionDetail.put("title", session.getSummaryTitle());
-                    
-                    List<Map<String, Object>> messages = session.getContents().stream() 
-                        .map(content -> {
-                            Map<String, Object> msg = new HashMap<>();
-                            msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
-                            msg.put("text", content.getContent());
-                            msg.put("at", content.getCreatedAt()); 
-                            return msg;
-                        })
-                        .collect(Collectors.toList());
+		sessionRepository.delete(session);
+	}
 
-                    sessionDetail.put("messages", messages);
-                    return sessionDetail;
-                },
-                (existing, replacement) -> existing 
-            ));
+	/**
+	 * [추가] 사용자의 전체 채팅방/최근 목록 조회
+	 */
+	@Transactional(readOnly = true)
+	public Map<String, Object> getInitialDataForUser(Member member) {
+		Map<String, Object> initialData = new HashMap<>();
 
-        initialData.put("sessions", sessionsMap);
+		// (findByMemberOrderByLastMessageTimeDesc가 fetch join을 사용한다고 가정)
+		List<CounsellingSession> recentSessions = sessionRepository.findByMemberOrderByLastMessageTimeDesc(member);
 
-        Long currentId = recentsList.isEmpty() ? null : (Long) recentsList.get(0).get("id");
-        initialData.put("currentId", currentId);
-        
-        initialData.put("userId", member.getUserId());
-        
-        logger.info("📦 DB에서 생성된 초기 데이터 (사용자: {}): recents 개수 = {}, sessions 개수 = {}",
-                member.getNickname(), 
-                recentsList.size(),
-                sessionsMap.size(),
-        		member.getUserId());
-        return initialData;
-    }
+		List<Map<String, Object>> recentsList = recentSessions.stream().map(session -> {
+			Map<String, Object> recent = new HashMap<>();
+			recent.put("id", session.getSessionId());
+			recent.put("title", session.getSummaryTitle());
+			recent.put("updatedAt", session.getLastMessageTime());
+			return recent;
+		}).collect(Collectors.toList());
+
+		initialData.put("recents", recentsList);
+
+		Map<Long, Object> sessionsMap = recentSessions.stream()
+				.collect(Collectors.toMap(CounsellingSession::getSessionId, session -> {
+					Map<String, Object> sessionDetail = new HashMap<>();
+					sessionDetail.put("id", session.getSessionId());
+					sessionDetail.put("title", session.getSummaryTitle());
+
+					List<Map<String, Object>> messages = session.getContents().stream().map(content -> {
+						Map<String, Object> msg = new HashMap<>();
+						msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
+						msg.put("text", content.getContent());
+						msg.put("at", content.getCreatedAt());
+						return msg;
+					}).collect(Collectors.toList());
+
+					sessionDetail.put("messages", messages);
+					return sessionDetail;
+				}, (existing, replacement) -> existing));
+
+		initialData.put("sessions", sessionsMap);
+
+		Long currentId = recentsList.isEmpty() ? null : (Long) recentsList.get(0).get("id");
+		initialData.put("currentId", currentId);
+
+		initialData.put("userId", member.getUserId());
+
+		logger.info("📦 DB에서 생성된 초기 데이터 (사용자: {}): recents 개수 = {}, sessions 개수 = {}", member.getNickname(),
+				recentsList.size(), sessionsMap.size(), member.getUserId());
+		return initialData;
+	}
 
 	/**
 	 * [수정] 메시지 저장 및 봇 응답 처리
@@ -166,12 +152,11 @@ public class SessionService {
 
 	}
 
-	/**
-	 * [헬퍼 1] 사용자 메시지 저장
-	 */
+	
+	// [헬퍼 1] 사용자 메시지 저장
 	@Transactional
 	@CacheEvict(value = "initialData", key = "#member.userId")
-	// 👈 [수정] (A) DTO 사용
+	// DTO 사용
 	public CounsellingContent saveUserMessageAndUpdateSession(ChatRequestDto requestDto, Member member) {
 		Long sessionId = requestDto.getSessionId().longValue();
 
@@ -188,21 +173,19 @@ public class SessionService {
 		return userMessage;
 	}
 
-	/**
-	 * [헬퍼 2] 봇 메시지 및 키워드 저장
-	 */
+	// 봇 메시지 및 키워드 저장
 	@Transactional
 	@CacheEvict(value = "initialData", key = "#userMessage.session.member.userId")
 	public void saveBotResponseAndAnalysis(CounsellingContent userMessage, FastApiResponseDto fastApiResponse) {
 
 		CounsellingSession session = userMessage.getSession();
 
-		// 1. 봇 메시지 저장 (C) ChatbotResponseDto 사용
+		// 봇 메시지 저장 (C) ChatbotResponseDto 사용
 		CounsellingContent botMessage = CounsellingContent.builder().session(session).sender(Sender.CHATBOT)
 				.content(fastApiResponse.getChatbotResponse().getContent()).build();
 		contentRepository.save(botMessage);
 
-		// 2. 키워드 분석 저장 (C) KeywordAnalysisDto 사용
+		// 키워드 분석 저장 (C) KeywordAnalysisDto 사용
 		KeywordAnalysisDto analysisDto = fastApiResponse.getKeywordAnalysis();
 		KeywordAnalysis analysis = KeywordAnalysis.builder().session(session).content(userMessage)
 				.isDivorce(analysisDto.getIsDivorce()).emotionLabel(analysisDto.getEmotionLabel())
@@ -222,9 +205,8 @@ public class SessionService {
 		sessionRepository.save(session);
 	}
 
-	/**
-	 * Map을 JSON 문자열로 변환
-	 */
+	
+	// Map을 JSON 문자열로 변환 
 	private String convertMapToJsonString(Map<String, Object> data) {
 		try {
 			if (data == null) {
@@ -236,5 +218,5 @@ public class SessionService {
 			return "{\"error\":\"JSON 변환 실패\"}";
 		}
 	}
-	
+
 }

@@ -1,5 +1,6 @@
 package com.prinCipal.chatbot.admin;
 
+import com.prinCipal.chatbot.admin.AdminDto.ChangePasswordRequest;
 import com.prinCipal.chatbot.member.Member;
 
 import lombok.*;
@@ -17,6 +18,12 @@ public class AdminDto {
         dto.setNickname(m.getNickname());
         dto.setRole(m.getRole().name());
         return dto;
+    }
+    
+    @Data
+    public static class ChangePasswordRequest {
+        private String currentPassword; // 현재 비밀번호
+        private String newPassword;     // 바꿀 비밀번호
     }
 }
 

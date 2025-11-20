@@ -13,13 +13,13 @@ public class LawyerAdminController {
 
     private final LawyerService lawyerService;
 
-    /** 전체 변호사 조회 */
+    /* 전체 변호사 조회 */
     @GetMapping
     public ResponseEntity<List<Lawyer>> getAllLawyers() {
         return ResponseEntity.ok(lawyerService.getAllLawyers());
     }
 
-    /** 변호사 등록 (JSON) */
+    /* 변호사 등록 */
     @PostMapping
     public ResponseEntity<Lawyer> addLawyer(@RequestBody Lawyer lawyer) {
         System.out.println("변호사 등록 요청: " + lawyer.getName());

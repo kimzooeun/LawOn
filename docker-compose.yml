@@ -52,6 +52,7 @@ services:
       - .env
     restart: always
     volumes:
+      - ./uploads:/app/uploads
       - ./backend:/app
       - /app/build
       - gradle_cache:/home/gradle/.gradle
