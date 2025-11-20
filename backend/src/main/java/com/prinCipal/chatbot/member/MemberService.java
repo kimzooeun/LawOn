@@ -102,7 +102,6 @@ public class MemberService{
 	public void validatePassword(String password, String confirmPassword, String nickname, Map<String, String> errors) {
 		if(password == null || password.length() < 8) {
 			errors.put("password", "비밀번호는 최소 8자 이상이어야 합니다.");
-	        return;
 		}
 		
 		int kinds = 0;
@@ -143,21 +142,43 @@ public class MemberService{
 	public void registerUser(SignupRequest signUpRequest) {
 		Map<String, String> errors = new HashMap<>();
 		
-		// 아이디 검증(현 nickname 필드) 
-		validateLoginId(signUpRequest.getNickname(), errors);
+		// 필수값(공백) 체크 
+		String nickname = signUpRequest.getNickname();
+		String password = signUpRequest.getPassword();
+		String confirmPassword = signUpRequest.getConfirmPassword();
+				
+		if (nickname == null || nickname.trim().isEmpty()) {
+		   errors.put("nickname", "아이디를 입력해주세요.");
+		}
 		
-		// 비밀번호 검증
-		validatePassword(signUpRequest.getPassword(), signUpRequest.getConfirmPassword(), signUpRequest.getNickname(), errors);
+		if (password == null || password.trim().isEmpty()) {
+		   errors.put("password", "비밀번호를 입력해주세요.");
+		}
+		
+//		if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+//	        errors.put("confirmPassword", "비밀번호가 다릅니다.");
+//	    }
+		
+		
+		// 필수값 에러가 없는 필드만 상세 검증
+	    if (!errors.containsKey("nickname")) {
+	        validateLoginId(nickname, errors);
+	    }
+	    if (!errors.containsKey("password") && !errors.containsKey("confirmPassword")) {
+	        validatePassword(password, confirmPassword, nickname, errors);
+	    }
+	    
+	    
 		
 		if(!errors.isEmpty()) {
 			throw new SignupValidationException(errors);
 		}
 		
 		
-		if(signUpRequest.getNickname().equals("admin")) {
+		if(signUpRequest.getNickname().trim().toLowerCase().equals("admin")) {
 			Member member = Member.builder()
-			            .nickname(signUpRequest.getNickname())
-			            .displayName(signUpRequest.getNickname())
+			            .nickname(signUpRequest.getNickname().trim().toLowerCase())
+			            .displayName(signUpRequest.getNickname().trim().toLowerCase())
 			            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 			            .role(UserRole.ADMIN)
 			            .build();
@@ -165,8 +186,8 @@ public class MemberService{
 		}
 		else {
 			Member member = Member.builder()
-		            .nickname(signUpRequest.getNickname())
-		            .displayName(signUpRequest.getNickname())
+		            .nickname(signUpRequest.getNickname().trim().toLowerCase())
+		            .displayName(signUpRequest.getNickname().trim().toLowerCase())
 		            .password(passwordEncoder.encode(signUpRequest.getPassword()))
 		            .socialProvider("local")
 		            .role(UserRole.USER)

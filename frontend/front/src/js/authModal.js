@@ -24,6 +24,8 @@ let simpleSessionId = localStorage.getItem(SIMPLE_SESSION_KEY) || null;
 let inputDisabled = false;   // 입력 폼 막는 용 
 let historyLoaded = false;  // 히스토리 로딩 여부 
 
+
+
 // 맞춤형 상담 버튼 클릭 시 열기
 const customBtn = document.getElementById("btnCustom");
 if (customBtn) {
@@ -44,12 +46,6 @@ if (customBtn) {
 
 // 맞춤형 상담 모달 열기
 export function openAuthModal() {
-  // 포털로 이동
-  if (portalRoot && authOverlay && authModal) {
-    portalRoot.appendChild(authOverlay);
-    portalRoot.appendChild(authModal);
-  }
-
   portalRoot.style.pointerEvents = "auto";
   authModal.style.pointerEvents = "auto";
 
@@ -60,6 +56,18 @@ export function openAuthModal() {
   authModal.classList.add("is-open");
   authOverlay.classList.add("is-open");
   document.body.style.overflow = "hidden"; // 스크롤 방지
+
+  // 만약 기본 탭이 signupTab 이라면
+  const signupTabVisible = document.getElementById("signupTab")?.classList.contains("active");
+  if (signupTabVisible) {
+    bindSignupPasswordEvents();
+  }
+
+  const loginTabVisible = document.getElementById("loginTab")?.classList.contains("active");
+  if(loginTabVisible){
+    bindLoginEvents();
+  }
+
 }
 
 // 맞춤형 상담 모달 닫기
@@ -122,7 +130,38 @@ document.addEventListener("click", (e) => {
   } else {
     console.warn(`탭 콘텐츠를 찾을 수 없음: #${targetTab}Tab`);
   }
+
+
+  if(targetTab ==="signup"){
+    bindSignupPasswordEvents();  // 이벤트 바인딩은 reset 이후에 실행해야함 
+  }
+
+  if(targetTab ==="login"){
+    bindLoginEvents();  // 이벤트 바인딩은 reset 이후에 실행해야함 
+  }
 });
+
+function updateInputLogin(){
+  const nickname = document.getElementById("loginNickname").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  const loginSubmitBtn = document.querySelector("#loginForm .auth-submit-btn");
+
+  loginSubmitBtn.disabled = !(nickname && password);
+}
+
+
+function bindLoginEvents() {
+  const nicknameInput = document.getElementById("loginNickname");
+  const pwInput = document.getElementById("loginPassword");
+  const loginSubmitBtn = document.querySelector("#loginForm .auth-submit-btn");
+
+  if (!nicknameInput || !pwInput || !loginSubmitBtn) return;
+
+  nicknameInput.oninput = updateInputLogin;
+  pwInput.oninput = updateInputLogin;
+
+  updateInputLogin();
+}
 
 //-----------------------------------------------------------------------------
 // 로그인 폼 제출
@@ -130,13 +169,6 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     e.preventDefault();
     const nickname = document.getElementById("loginNickname").value;
     const password = document.getElementById("loginPassword").value;
-
-    if (!nickname || !password) {
-      const errDiv = document.getElementById("login-error-message");
-      errDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
-      errDiv.classList.add("show");
-      return;
-    }
 
     try {
       const response = await fetch("/api/login", {
@@ -278,6 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById(`error-${id}`);
         if (el) el.innerText = "";
       });
+      resetAuthForms();
     });
   }
 
@@ -291,6 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById(`error-${id}`);
         if (el) el.innerText = "";
       });
+      resetAuthForms();
     });
   }
 
@@ -300,12 +334,167 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("tab-signup")?.classList.remove("active");
     document.getElementById("loginTab")?.classList.add("active");
     document.getElementById("signupTab")?.classList.remove("active");
-
-    resetAuthForms();
   };
 });
 
+function updatePasswordMatchUI() {
+  const nickname = document.getElementById("nickname").value.trim();
+  const pwInput = document.querySelector("#signupTab #password");
+  const pwCheckInput = document.querySelector("#signupTab #confirmPassword");
+  const pwCheckError = document.querySelector("#signupTab #error-confirmPassword");
+  const signupSubmitBtn = document.querySelector("#signupForm .auth-submit-btn");
+
+  const pw = pwInput.value;
+  const pw2 = pwCheckInput.value;
+
+  pwInput.classList.remove("is-valid", "is-invalid");
+  pwCheckInput.classList.remove("is-valid", "is-invalid");
+  pwCheckError.classList.remove("text-success", "text-danger");
+  pwCheckError.innerText = "";
+  
+  if(!pw && !pw2){
+    // 아무것도 안들어오면 UI도 안 띄움
+  } else if (pw !== pw2) {
+    pwInput.classList.add("is-invalid");
+    pwCheckInput.classList.add("is-invalid");
+    pwCheckError.classList.add("text-danger");
+    pwCheckError.innerText = "비밀번호가 일치하지 않습니다.";
+    signupSubmitBtn.disabled = true;  // 불일치면 무조건 비활성화
+    return;
+  } else if(pw === pw2) {
+  pwInput.classList.add("is-valid");
+  pwCheckInput.classList.add("is-valid");
+  pwCheckError.classList.add("text-success");
+  pwCheckError.innerText = "비밀번호가 일치합니다.";
+  }
+
+
+   // 버튼 활성화는 nickname까지 포함
+  const allFilled = nickname && pw && pw2;
+  const pwMatch = pw === pw2;
+
+  signupSubmitBtn.disabled = !(allFilled && pwMatch);
+}
+
+
+function updatePasswordStrengthUI() {
+  const pwInput = document.querySelector("#signupTab #password");
+  const strengthBox = document.querySelector("#signupTab #password-strength");
+  const strengthBar = document.querySelector("#signupTab #password-strength-bar");
+  const strengthText = document.querySelector("#signupTab #password-strength-text");
+
+  if (!pwInput || !strengthBox || !strengthBar || !strengthText) return;
+
+  const pw = pwInput.value;
+  const info = passwordStrength(pw);
+
+  strengthBox.setAttribute("data-level", info.level || "empty");
+
+  if (!pw) {
+    strengthBar.style.width = "0%";
+    strengthText.textContent = "";
+    return;
+  }
+
+  strengthBar.style.width = info.width + "%";
+  strengthText.textContent = `비밀번호 강도: ${info.label}`;
+}
+
+
+// 비밀번호 강도 설정 UI
+function passwordStrength(pw){
+  const strengthBox = document.getElementById("password-strength");
+  const strengthBar = document.getElementById("password-strength-bar");
+  const strengthText = document.getElementById("password-strength-text");
+
+  const COMMON_PATTERNS = ["1234", "123456", "abcd", "qwerty", "password"];
+
+
+  // 아무것도 안썻을때, 강도 UI 통째로 숨김
+  if(!pw || pw.length === 0){
+    strengthBox.classList.remove("show");
+    strengthBox.dataset.level = "empty";
+    strengthBar.style.width = "0%";
+    strengthText.textContent = "비밀번호를 입력해주세요";
+    return { level: "empty", width: 0, label: "" }; 
+  }
+
+
+  // 한글자라도 쓰기 시작하면 보임
+  strengthBox.classList.add("show");
+  let score = 0;
+
+  if(pw.length >= 8) score +=1 ;
+  if (pw.length >= 12) score+=1;
+
+  const hasUpper =  /[A-Z]/.test(pw);
+  const hasLower = /[a-z]/.test(pw);
+  const hasDigit = /[0-9]/.test(pw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(pw);
+
+  let kinds = 0;
+  if (hasUpper) kinds++;
+  if (hasLower) kinds++;
+  if (hasDigit) kinds++;
+  if (hasSpecial) kinds++;
+
+
+
+  const lowerPw = pw.toLowerCase();
+  let hasCommon = COMMON_PATTERNS.some((p) => lowerPw.includes(p));
+  const repeated = /(.)\1{3,}/.test(pw); // 같은 문자 4번 이상 연속
+
+  if (hasCommon || repeated) {
+    return { level: "weak", score: 0, label: "약함", width: 25 };
+  }
+
+
+  if (pw.length >= 10 && kinds >= 3) {
+    return { level: "strong", label: "강함", width: 100 };
+  } 
+  if (pw.length >= 8 && kinds >= 2)  {
+    return { level: "medium", label: "보통", width: 60 };
+  } 
+  return { level: "weak", label: "약함", width: 25 };
+}
+
+
+
+
+
+
+function bindSignupPasswordEvents() {
+  console.log("bindSignupPasswordEvents 호출됨");
+  const nicknameInput = document.getElementById("nickname");
+  const pwInput = document.querySelector("#signupTab #password");
+  const pwCheckInput = document.querySelector("#signupTab #confirmPassword");
+
+  if (!nicknameInput || !pwInput || !pwCheckInput) return;
+
+  nicknameInput.oninput = () => {
+    updatePasswordMatchUI();
+  };
+
+  pwInput.oninput = () => {
+    updatePasswordMatchUI();
+    updatePasswordStrengthUI();
+  };
+
+  pwCheckInput.oninput = () => {
+    updatePasswordMatchUI();
+  };
+
+  // 초기 상태
+  updatePasswordMatchUI();
+  updatePasswordStrengthUI();
+}
+
+
+
+
+
 function resetAuthForms() {
+    console.log("resetAuthForms 호출됨");
   // 모든 폼 리셋
   document.getElementById("loginForm")?.reset();
   document.getElementById("signupForm")?.reset();

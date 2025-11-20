@@ -2,10 +2,11 @@ import os
 import re
 import joblib
 import torch
+import json
 import torch.nn as nn
 import pandas as pd
 
-from transformers import BertTokenizer, BertModel, AutoTokenizer
+from transformers import BertTokenizer, BertModel, AutoModel,AutoTokenizer
 from konlpy.tag import Okt
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -27,11 +28,43 @@ MODEL_PATH_C_INTENT = os.path.join(BASE_PATH, "intent_model_hybrid.joblib")
 MODEL_PATH_C_TOPIC = os.path.join(BASE_PATH, "topic_best.joblib")
 MODEL_PATH_C_SITUATION = os.path.join(BASE_PATH, "situation_model_v3_halving_best_10_31.joblib")
 
+# kobert된 의도/주제/상황 모델
+SITUATION_MODEL_PATH = os.path.join(BASE_PATH, "best_kobert_situation_new.pt")
+INTENT_MODEL_PATH    = os.path.join(BASE_PATH, "best_kobert_intent.pt")
+TOPIC_MODEL_PATH     = os.path.join(BASE_PATH, "best_kobert_topic_new.pt")
+
+
+# ---- 의도/주제/상황 라벨 로드 ----
+id2situ = json.load(os.path.join(BASE_PATH, open("id2situ.json", "r", encoding="utf-8")))
+id2intent = json.load(open("id2intent.json", "r", encoding="utf-8"))
+id2topic = json.load(open("id2topic.json", "r", encoding="utf-8"))
+
+# --- 의도/주제/상황 라벨 로드 ----
+SITU_LABEL_PATH   = os.path.join(BASE_PATH, "id2situ.json")
+INTENT_LABEL_PATH = os.path.join(BASE_PATH, "id2intent.json")
+TOPIC_LABEL_PATH  = os.path.join(BASE_PATH, "id2topic.json")
+
+with open(SITU_LABEL_PATH, "r", encoding="utf-8") as f:
+    id2situ = json.load(f)
+
+with open(INTENT_LABEL_PATH, "r", encoding="utf-8") as f:
+    id2intent = json.load(f)
+
+with open(TOPIC_LABEL_PATH, "r", encoding="utf-8") as f:
+    id2topic = json.load(f)
+
+
+
 FAISS_INDEX_PATH_D = os.path.join(BASE_PATH, "law_faiss_index")
 EMBEDDING_MODEL_D = "jhgan/ko-sroberta-multitask"
 
 PRECEDENT_CSV_PATH_EF = os.path.join(BASE_PATH, "판례_라벨2.csv")
 LAWBOOK_CSV_PATH_EF = os.path.join(BASE_PATH, "민법_소제목.csv")
+
+
+
+
+
 
 
 # [A] 감정 분류 설정
@@ -108,6 +141,7 @@ def predict_context_kobert(text, model, tokenizer):
     prob_non_div = probs[0][0].item()
     prob_div = probs[0][1].item()
     return result, confidence, prob_non_div, prob_div
+
 
 
 # [C] 의도/주제/상황 설정
@@ -203,6 +237,221 @@ def predict_its(text, model_intent, model_topic, model_situation):
         pred_situation = pred_situation_ml
     return pred_intent, pred_topic, pred_situation
 
+
+
+# 부정행위 키워드
+AFFAIR_PATTERN = r"(제3자|상간|상간녀|상간남|외도|불륜|부정행위|간통|내연|바람|상간자|불륜상대|유부남|유부녀)"
+
+# 부정행위면 안 어울리는 토픽들
+TOPIC_FORCE_NONE = ["양육비", "재산분할", "면접교섭권", "양육권"]
+
+def fix_situation(raw_situation, text, topic_raw=None):
+    text = str(text)
+
+    # ---------------------------
+    # 0) 부정행위 키워드가 확실히 있는 경우 → 무조건 부정행위
+    # ---------------------------
+    if re.search(AFFAIR_PATTERN, text):
+        return "부정행위"
+
+    # ---------------------------
+    # 1) 토픽 기반 방어 로직
+    #   - 양육비/재산분할/양육권/면접교섭권이면 웬만하면 상황=해당 없음
+    # ---------------------------
+    if topic_raw in TOPIC_FORCE_NONE:
+        return "해당 없음"
+
+    # ---------------------------
+    # 2) 부정행위로 예측되었는데, 텍스트에 부정행위 관련 단어가 하나도 없으면 → 해당 없음으로 다운
+    # ---------------------------
+    if raw_situation == "부정행위" and not re.search(AFFAIR_PATTERN, text):
+        return "해당 없음"
+
+    # ---------------------------
+    # 3) 폭력/학대 → 부당대우
+    # ---------------------------
+    if re.search(r"(폭행|폭력|상습폭행|가정폭력|욕설|모욕|언어폭력|정서적 폭력|협박|위협|구타|때렸|맞았|멱살|손찌검|고함)", text):
+        return "부당대우"
+
+    # ---------------------------
+    # 4) 경제적 사유
+    # ---------------------------
+    if re.search(r"(생활비|돈|수입|지출|빚|채무|카드값|대출|도박|경제적|가정경제|재산 은닉)", text):
+        return "경제적 사유"
+
+    # ---------------------------
+    # 5) 악의의 유기 (집 나감, 연락두절, 별거 등)
+    # ---------------------------
+    if re.search(r"(집[을 ]나가|집 나간지|연락두절|연락이 안 되|연락이 안되|집에 안 들어오|별거|가출|버리고 갔|떠났)", text):
+        return "악의의 유기"
+
+    # ---------------------------
+    # 6) 가족 간 갈등 (시댁/처가/부모/친정 등)
+    # ---------------------------
+    if re.search(r"(시댁|시어머니|시아버지|시부모|시누이|시가|처가|장모|장인|친정|부모님|부모 간섭|가족 문제|고부갈등|장서갈등)", text):
+        return "가족 간 갈등"
+
+    # ---------------------------
+    # 7) 성격 차이 / 불화
+    # ---------------------------
+    if re.search(r"(성격 차이|성격이 안 맞|성격이 안맞|성격이 달라|대화가 안 되|소통이 안 되|불화|맨날 싸우|자주 싸우|다툼|의견 차이|정이 식었|무관심|냉전|대화 단절)", text):
+        return "성격 차이/불화"
+
+    # ---------------------------
+    # 8) 사실혼
+    # ---------------------------
+    if re.search(r"(사실혼|사실상 부부|혼인신고 안 했|혼인신고 안했|혼인신고하지 않|동거남|동거녀|법적 혼인 아님)", text):
+        return "사실혼"
+
+    # ---------------------------
+    # 9) 혼인파탄 (섹스리스 포함)
+    # ---------------------------
+    if re.search(r"(혼인파탄|결혼생활이 깨졌|관계가 완전히 끝|재결합 불가|이혼 외에는 방법이 없|섹스리스|성관계가 없|부부관계가 없|잠자리를 안 하|부부관계 거부|성관계 거부)", text):
+        return "혼인파탄"
+
+    # ---------------------------
+    # 10) 유책배우자 (내가 외도/폭력 등 가해자)
+    # ---------------------------
+    if re.search(r"(제가|내가|본인).*(외도|불륜|폭행|폭력|잘못|유책|가해자|책임)", text):
+        return "유책배우자"
+
+    # ---------------------------
+    # 11) 협의이혼
+    # ---------------------------
+    if re.search(r"(협의이혼|합의이혼|서로 합의해서 이혼|서로 이혼하기로|좋게 이혼|원만하게 이혼|합의서)", text):
+        return "협의이혼"
+
+    # ---------------------------
+    # 12) 혼인취소
+    # ---------------------------
+    if re.search(r"(혼인취소|혼인 취소|혼인 무효|사기결혼|속아서 결혼|강제로 결혼|위장 결혼|혼인 파기)", text):
+        return "혼인취소"
+
+    # ---------------------------
+    # 13) 그 외에는 모델 예측 그대로
+    # ---------------------------
+    return raw_situation
+
+
+# ---------------------------
+# INTENT 후처리 보정
+# ---------------------------    
+def fix_intent(raw_intent, text):
+    text = str(text)
+
+    # ---------------------------
+    # 1) 제3자/부정행위 → 제재·구제수단 / 증거·입증 / 법률·판례 쪽이 자연스러움
+    # ---------------------------
+    if re.search(r"(제3자|상간|상간녀|상간남|부정행위|외도|불륜|간통|내연)", text):
+        if raw_intent not in ["제재·구제수단", "증거·입증", "법률·판례"]:
+            return "제재·구제수단"
+        return raw_intent
+
+    # ---------------------------
+    # 2) 기간·시효
+    # ---------------------------
+    if re.search(r"(시효|소멸시효|기간|기한$|시한|언제부터|언제까지|몇년|몇 년|만료|시효 완성|시효 중단)", text):
+        return "기간·시효"
+
+    # ---------------------------
+    # 3) 금액·산정
+    # ---------------------------
+    if re.search(r"(얼마|얼마나|액수|금액|산정|비율|퍼센트|몇 대 몇|몇대몇|계산|금전적 규모)", text):
+        return "금액·산정"
+
+    # ---------------------------
+    # 4) 절차·방법
+    # ---------------------------
+    if re.search(r"(절차|방법|어떻게 하|어떻게 진행|어디에 신청|신청 방법|준비해야 할|어디서부터|순서|단계|접수하|제기하|진행되나요)", text):
+        return "절차·방법"
+
+    # ---------------------------
+    # 5) 증거·입증
+    # ---------------------------
+    if re.search(r"(증거|입증|입증해야|어떻게 입증|무엇으로 증명|증명해야|카톡|카카오톡|녹음|영상|사진|자료|소명)", text):
+        return "증거·입증"
+
+    # ---------------------------
+    # 6) 법률·판례 / 법적 근거
+    # ---------------------------
+    if re.search(r"(민법 제\d+조|민법 제\s*\d+조|법조문|조문|법률상|판례|대법원 판결|법적 근거|근거 규정|규정하고 있)", text):
+        return "법률·판례"
+
+    # ---------------------------
+    # 7) 개념·범위·기준
+    # ---------------------------
+    if re.search(r"(의미|정의|개념|범위|기준|요건|구성요건|어디까지 인정|어디까지 포함|판단 기준)", text):
+        return "개념·범위·기준"
+
+    # ---------------------------
+    # 8) 가능 여부 판단
+    # ---------------------------
+    if re.search(r"(가능한가요|가능한지|할 수 있나요|될까요|되나요|인정되나요|청구할 수 있나요|책임이 있나요|성립하나요|성립되나요)", text):
+        return "가능 여부 판단"
+
+    # ---------------------------
+    # 9) 제재·구제수단 (처벌/청구/제재 관련)
+    # ---------------------------
+    if re.search(r"(손해배상|위자료 청구|배상 청구|청구하고 싶|소송 제기|고소|고발|처벌|제재|제재를 가하|징계)", text):
+        if raw_intent not in ["제재·구제수단", "증거·입증"]:
+            return "제재·구제수단"
+    
+
+    return raw_intent
+
+
+def load_single_model(path: str, num_classes: int):
+    model = KoBERTClassifier(num_classes=num_classes).to(device)
+    model.load_state_dict(torch.load(path, map_location=device))
+    model.eval()
+    return model
+
+
+# 공통 예측함수
+def predict_single(model,text, id2label, tokenizer):
+    enc = tokenizer(text, return_tensors="pt", truncation=True,
+                    padding="max_length", max_length=128)
+    input_ids = enc["input_ids"].to(device)
+    mask = enc["attention_mask"].to(device)
+
+    with torch.no_grad():
+        logits = model(input_ids, mask)
+        probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
+
+    idx = int(probs.argmax())
+    conf = float(probs[idx])
+
+    key = str(idx) if str(idx) in id2label else idx
+
+    return id2label[key], conf
+
+
+def predict_full(text, models):
+    tokenizer = models["tokenizer_KOBERT"]
+    situ_model =  models['model_KOBERT_situation']
+    intent_model =  models['model_KOBERT_intent']
+    topic_model = models['model_KOBERT_topic']
+
+    raw_situ, conf_situ   = predict_single(situ_model, text, id2situ, tokenizer)
+    raw_int,  conf_int    = predict_single(intent_model, text, id2intent, tokenizer)
+    raw_topic, conf_topic = predict_single(topic_model, text, id2topic, tokenizer)
+
+    final_situ = fix_situation(raw_situ, text, raw_topic)
+    final_intent = fix_intent(raw_int, text)
+
+    return {
+        "input": text,
+        "its": {
+            "situation": final_situ,
+            "intent": final_intent,
+            "topic": raw_topic,
+        },
+        "raw": {
+            "situation": {"raw": raw_situ, "final": final_situ, "conf": conf_situ},
+            "intent": {"raw": raw_int, "final": final_intent, "conf": conf_int},
+            "topic": {"raw": raw_topic, "conf": conf_topic}
+        }
+    }
 
 
 # --- [D] 질의응답 검색 모델 정의  ---
@@ -357,6 +606,27 @@ def load_all_models():
         print(f"  [C] 의도/주제/상황 모델 로딩 실패: {e}")
         models.update({'model_C_intent': None, 'model_C_topic': None, 'model_C_situation': None})
     
+ 
+    # 새 KOBERT 의도/주제/상황 
+    try:
+        print(" KOBERT 업데이트 의도/주제/상황 모델 로딩 중...")
+        models['tokenizer_KOBERT'] = AutoTokenizer.from_pretrained(MODEL_NAME_B, trust_remote_code=True)
+
+        num_situ = len(id2situ)
+        num_intent = len(id2intent)
+        num_topic = len(id2topic)
+
+        models['model_KOBERT_situation'] = load_single_model(SITUATION_MODEL_PATH, num_situ)
+        models['model_KOBERT_intent'] = load_single_model(INTENT_MODEL_PATH, num_intent)
+        models['model_KOBERT_topic'] = load_single_model(TOPIC_MODEL_PATH, num_topic)
+        print("  [KOBERT ITS] 완료.")
+    except Exception as e:
+        print(f"  [KOBERT ITS] 로딩 실패: {e}")
+        models['model_KOBERT_situation'] = None
+        models['model_KOBERT_intent'] = None
+        models['model_KOBERT_topic'] = None
+
+
     # [D] FAISS
     try:
         print("  [D] 질의응답 (FAISS) DB 로딩 중...")
@@ -386,15 +656,6 @@ def load_all_models():
 
 def load_simple_models():
     models = {}
-    
-    # [STT] Whisper 모델 로딩 (제거)
-    # try:
-    #     print("  [STT] Whisper 모델 로딩 중 (base)...")
-    #     models['stt_model'] = whisper.load_model("base")
-    #     print("  [STT] 완료.")
-    # except Exception as e:
-    #     print(f"  [STT] Whisper 모델 로딩 실패: {e}"); models['stt_model'] = None
-
     # [B] 문맥 분류
     try:
         print("  [B] 문맥 분류 모델 로딩 중...")
