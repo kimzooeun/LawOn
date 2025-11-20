@@ -33,36 +33,35 @@ export let state = createEmptyStore(); // 일단 빈 상태로 시작
 
 export async function loadInitialData() {
   try {
+    // 1. [중요] 데이터를 갱신하기 전에, 사용자가 현재 보고 있던 방 ID를 기억해둡니다.
+    //    - 새로고침 직후: null
+    //    - 채팅 중: "session_123" 등
+    const viewingId = state.currentId;
+
     const dataFromServer = await getInitialData();
 
-    // [수정] 기존 state를 유지하면서 업데이트 (현재 보고 있는 방 유지를 위해)
-    const oldCurrentId = state.currentId;
-
+    // 2. 서버 데이터를 state에 병합합니다.
+    //    (이때 서버가 준 최신 currentId가 state에 덮어씌워질 수 있습니다.)
     Object.assign(state, dataFromServer);
 
-    // [수정] 만약 이전에 보고 있던 방이 여전히 존재한다면 ID 유지
-    if (oldCurrentId && state.sessions[oldCurrentId]) {
-      state.currentId = oldCurrentId;
+    // 3. [핵심 로직] 화면 유지 vs 빈 화면 결정
+    if (viewingId && state.sessions[viewingId]) {
+      // 상황 A: 사용자가 채팅방을 보고 있었고(viewingId 존재),
+      //         서버에서 받아온 최신 목록에도 그 방이 존재함(state.sessions에 있음).
+      // 결론: 폴링 중이므로 보던 화면을 그대로 유지합니다.
+      state.currentId = viewingId;
     } else {
+      // 상황 B: 새로고침 했거나(viewingId가 null),
+      //         보고 있던 방이 서버에서 삭제됨.
+      // 결론: 빈 화면(null)으로 설정합니다.
       state.currentId = null;
     }
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);
-    // showToast("데이터 로드에 실패했습니다.", "error");
-    // 실패 시 로컬스토리지 (선택적)
-    // const localData = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-    // if (localData) Object.assign(state, localData);
   } finally {
-    // [수정 전] 최근 대화가 있으면 자동으로 첫 번째 방을 선택하던 로직
-    // if (!state.currentId && state.recents.length > 0) {
-    //   state.currentId = state.recents[0].id;
-    // }
-
-    // [수정 후] 자동 선택 로직 제거 -> 항상 빈 화면(currentId = null) 유지
-    // (만약 state.currentId에 값이 있다면 null로 초기화해서 확실하게 빈 화면을 보여줄 수도 있습니다)
-    state.currentId = null;
-
-    renderChat(); // init.js에서 호출하던 것을 여기로 이동
+    // 4. UI 렌더링
+    // 주의: 여기에 'state.currentId = null' 같은 코드가 절대 있으면 안 됩니다.
+    renderChat();
   }
 }
 

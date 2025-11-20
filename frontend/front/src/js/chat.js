@@ -353,39 +353,35 @@ export function renderChat() {
     const div = document.createElement("div");
     div.className = "msg " + (m.role === "user" ? "user" : "bot");
 
-    // -------------------------------------------------------
-    // [수정] 수직 정렬용 래퍼 (Bubble + Button을 감쌈)
-    // -------------------------------------------------------
     const contentWrapper = document.createElement("div");
     contentWrapper.style.display = "flex";
     contentWrapper.style.flexDirection = "column";
-    contentWrapper.style.gap = "8px"; // 말풍선과 버튼 사이 간격
-    // 사용자면 오른쪽 정렬, 봇이면 왼쪽 정렬
+    contentWrapper.style.gap = "8px";
     contentWrapper.style.alignItems =
       m.role === "user" ? "flex-end" : "flex-start";
 
-    // (1) 말풍선 (Bubble)
+    // (1) 말풍선
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     const textP = document.createElement("p");
     textP.textContent = m.text;
     bubble.appendChild(textP);
-
-    // 래퍼에 말풍선 먼저 추가
     contentWrapper.appendChild(bubble);
 
-    // (2) 카드형 버튼 (조건부 추가)
-    // 상황 1: 5분 경고 -> "상담 종료"
-    if (
-      m.text.includes("5분 뒤 상담이 자동으로 종료됩니다") ||
-      m.text.includes("상담을 종료하시려면")
-    ) {
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "card-actions"; // CSS에 있는 클래스
+    // (2) 카드형 버튼 (안전장치 추가)
+    // m.text가 존재할 때만 includes 검사를 수행합니다.
+    if (m.text) {
+      // 상황 1: 경고 메시지
+      if (
+        m.text.includes("5분 뒤 상담이") ||
+        m.text.includes("상담을 종료하시려면")
+      ) {
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "card-actions";
 
-      const btnEl = document.createElement("button");
-      btnEl.className = "card-btn";
-      btnEl.innerHTML = `
+        const btnEl = document.createElement("button");
+        btnEl.className = "card-btn";
+        btnEl.innerHTML = `
             <div class="card-btn-icon">🛑</div>
             <div class="card-btn-content">
                 <span class="card-btn-title">상담 종료하기</span>
@@ -393,24 +389,22 @@ export function renderChat() {
             </div>
             <div class="card-btn-arrow">›</div>
         `;
-      btnEl.onclick = () => handleEndSessionAction(sess.id);
-      actionsDiv.appendChild(btnEl);
+        btnEl.onclick = () => handleEndSessionAction(sess.id);
+        actionsDiv.appendChild(btnEl);
+        contentWrapper.appendChild(actionsDiv);
+      }
 
-      // 래퍼에 버튼 추가 (말풍선 아래에 뜸)
-      contentWrapper.appendChild(actionsDiv);
-    }
+      // 상황 2: 종료 메시지
+      if (
+        m.text.includes("상담이 종료되었습니다") ||
+        m.text.includes("상담 재시작")
+      ) {
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "card-actions";
 
-    // 상황 2: 타임아웃 -> "상담 재시작"
-    if (
-      m.text.includes("상담이 종료되었습니다") ||
-      m.text.includes("상담 재시작")
-    ) {
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "card-actions";
-
-      const btnEl = document.createElement("button");
-      btnEl.className = "card-btn";
-      btnEl.innerHTML = `
+        const btnEl = document.createElement("button");
+        btnEl.className = "card-btn";
+        btnEl.innerHTML = `
             <div class="card-btn-icon">🔄</div>
             <div class="card-btn-content">
                 <span class="card-btn-title">상담 재시작하기</span>
@@ -418,14 +412,12 @@ export function renderChat() {
             </div>
             <div class="card-btn-arrow">›</div>
         `;
-      btnEl.onclick = () => handleRestartSessionAction(sess.id);
-      actionsDiv.appendChild(btnEl);
-
-      // 래퍼에 버튼 추가
-      contentWrapper.appendChild(actionsDiv);
+        btnEl.onclick = () => handleRestartSessionAction(sess.id);
+        actionsDiv.appendChild(btnEl);
+        contentWrapper.appendChild(actionsDiv);
+      }
     }
 
-    // 최종적으로 래퍼를 메시지 div에 추가
     div.appendChild(contentWrapper);
     msgs.appendChild(div);
   });

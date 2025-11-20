@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import org.springframework.data.repository.query.Param; 
+import org.springframework.data.repository.query.Param;
 
 import com.prinCipal.chatbot.admin.CounselLogDto;
 import com.prinCipal.chatbot.member.Member;
@@ -28,24 +28,12 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
 
 	Collection<CounselLogDto> findTop20ByOrderByStartTimeDesc();
 	
-	/**
-     * 1. 경고 대상 조회
-     * 조건:
-     * - 상태가 'ONGOING' (진행 중)
-     * - 경고를 아직 안 보냄 (warningSent = false)
-     * - 마지막 메시지 시간이 기준 시간(time)보다 '이전' (lastMessageTime < time)
-     */
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.warningSent = false AND s.lastMessageTime <= :time")
+	// 1. 경고 대상 조회 (Enum 경로 명시)
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = com.prinCipal.chatbot.counsel.CompletionStatus.ONGOING AND s.warningSent = false AND s.lastMessageTime <= :time")
     List<CounsellingSession> findSessionsForWarning(@Param("time") LocalDateTime time);
 
-    /**
-     * 2. 타임아웃 대상 조회
-     * 조건:
-     * - 상태가 'ONGOING' (진행 중)
-     * - (경고 발송 여부와 상관없이)
-     * - 마지막 메시지 시간이 기준 시간(time)보다 '이전' (lastMessageTime < time)
-     */
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.lastMessageTime <= :time")
+    // 2. 타임아웃 대상 조회 (Enum 경로 명시)
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = com.prinCipal.chatbot.counsel.CompletionStatus.ONGOING AND s.lastMessageTime <= :time")
     List<CounsellingSession> findSessionsForTimeout(@Param("time") LocalDateTime time);
     
 }
