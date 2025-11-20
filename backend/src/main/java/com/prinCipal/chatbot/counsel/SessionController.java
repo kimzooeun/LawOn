@@ -29,10 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class SessionController {
 
 	private final SessionService sessionService;
-
-	/**
-	 * 1. 초기 데이터 로드 (GET /api/chats)
-	 */
+	 
 	@GetMapping("/chats")
 	public ResponseEntity<?> getInitialData(@AuthenticationPrincipal CustomOAuth2User customUser) {
 		if (customUser == null) {
@@ -46,10 +43,7 @@ public class SessionController {
 		Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
 		return ResponseEntity.ok(initialData);
 	}
-
-	/**
-	 * 2. 새 세션 생성 (POST /api/sessions)
-	 */
+	 
 	@PostMapping("/sessions")
 	public ResponseEntity<?> createSession(@AuthenticationPrincipal CustomOAuth2User customUser) {
 
@@ -60,19 +54,13 @@ public class SessionController {
 		Member tempMember = customUser.getMember();
 
 		CounsellingSession newSession = sessionService.createSession(tempMember);
-
-		// (참고) 이 DTO가 필요합니다.
 		SessionCreationResponse response = SessionCreationResponse.builder().id(newSession.getSessionId()).title("새 대화")
 				.messages(Collections.emptyList()).build();
 
 		return ResponseEntity.ok(response);
 	}
 
-	/**
-	 * 3. 채팅 메시지 전송 (POST /api/chat)
-	 */
 	@PostMapping("/chat")
-	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
 	public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto,
 			@AuthenticationPrincipal CustomOAuth2User customUser) {
 
@@ -82,7 +70,6 @@ public class SessionController {
 		}
 
 		ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
-
 		return ResponseEntity.ok(response);
 	}
 	
