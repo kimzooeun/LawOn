@@ -132,7 +132,15 @@ public class SessionService {
 					sessionDetail.put("title", session.getSummaryTitle());
 
 					List<Map<String, Object>> messages = session.getContents().stream()
-							.sorted(Comparator.comparing(CounsellingContent::getCreatedAt)).map(content -> {
+							// [수정 전] 시간만 보고 정렬 (시간 같으면 순서 엉망됨)
+	                        // .sorted(Comparator.comparing(CounsellingContent::getCreatedAt))
+	                        
+	                        // [수정 후] 1순위: 시간, 2순위: ID (번호)
+	                        // 시간이 같더라도 ID가 69인(사용자) 것이 70인(봇) 것보다 먼저 나옴
+	                        .sorted(Comparator.comparing(CounsellingContent::getCreatedAt)
+	                                .thenComparing(CounsellingContent::getContentId))
+							
+							.map(content -> {
 								Map<String, Object> msg = new HashMap<>();
 								msg.put("role", content.getSender() == Sender.PERSON ? "user" : "bot");
 								msg.put("text", content.getContent());
@@ -236,10 +244,6 @@ public class SessionService {
                     .content(requestDto.getUserMessage())
                     .build();
             contentRepository.save(userMessage);
-            
-	         // 봇 메시지 시간 강제 조정 (순서 꼬임 방지)
-	         // 봇 메시지 생성 시간을 사용자 메시지보다 조금 뒤로 설정하기 위해 Thread.sleep 사용 권장
-	         try { Thread.sleep(50); } catch (InterruptedException e) {}
 
             // 3. 봇 메시지 저장
             CounsellingContent botMessage = CounsellingContent.builder()

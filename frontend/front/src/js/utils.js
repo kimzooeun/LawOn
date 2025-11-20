@@ -45,10 +45,15 @@ export async function loadInitialData() {
     // const localData = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     // if (localData) Object.assign(state, localData);
   } finally {
-    // 3. 데이터 로드가 완료된 후 채팅방 렌더링
-    if (!state.currentId && state.recents.length > 0) {
-      state.currentId = state.recents[0].id;
-    }
+    // [수정 전] 최근 대화가 있으면 자동으로 첫 번째 방을 선택하던 로직
+    // if (!state.currentId && state.recents.length > 0) {
+    //   state.currentId = state.recents[0].id;
+    // }
+
+    // [수정 후] 자동 선택 로직 제거 -> 항상 빈 화면(currentId = null) 유지
+    // (만약 state.currentId에 값이 있다면 null로 초기화해서 확실하게 빈 화면을 보여줄 수도 있습니다)
+    state.currentId = null;
+
     renderChat(); // init.js에서 호출하던 것을 여기로 이동
   }
 }
