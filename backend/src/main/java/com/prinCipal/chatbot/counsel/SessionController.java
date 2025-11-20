@@ -162,7 +162,27 @@ public class SessionController {
 		
 		}
 		
-	
+	/**
+     * 4. 상담 수동 종료 (POST /api/sessions/{id}/end)
+     */
+    @PostMapping("/sessions/{id}/end")
+    public ResponseEntity<?> endSession(@PathVariable Long id, @AuthenticationPrincipal CustomOAuth2User customUser) {
+        if (customUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        
+        sessionService.endSessionManually(id, customUser.getMember());
+        return ResponseEntity.ok("상담이 종료되었습니다.");
+    }
+
+    /**
+     * 5. 상담 재시작 (POST /api/sessions/{id}/restart)
+     */
+    @PostMapping("/sessions/{id}/restart")
+    public ResponseEntity<?> restartSession(@PathVariable Long id, @AuthenticationPrincipal CustomOAuth2User customUser) {
+         if (customUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        sessionService.restartSessionManually(id, customUser.getMember());
+        return ResponseEntity.ok("상담이 재개되었습니다.");
+    }
 	
 	
 	
