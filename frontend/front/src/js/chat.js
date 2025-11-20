@@ -115,8 +115,16 @@ export async function addMessage(role, text) {
         sess.messages.push(botMessageData);
       }
 
+      // if (botResponse && botResponse.newTitle) {
+      //   sess.title = botResponse.newTitle;
+      // }
+
+      // 대화 제목 자동 설정 로직 개선
       if (botResponse && botResponse.newTitle) {
-        sess.title = botResponse.newTitle;
+        // 메시지가 2개 이하(첫 턴)일 때만 제목 적용
+        if (sess.messages.length <= 2) {
+          sess.title = botResponse.newTitle;
+        }
       }
 
       // 6. 최종 화면 렌더링 (봇 메시지 포함)
@@ -133,70 +141,40 @@ export async function addMessage(role, text) {
   }
 }
 
-// ---- 메시지 ----
-// export async function addMessage(role, text) {
-//   const sess = current();
-//   if (!sess) return;
-
-//   const messageData = { role, text, at: Date.now() };
-//   sess.messages.push(messageData); // (일단 화면에 그리기 위해 state에 추가)
-
-//   // (낙관적 UI) 먼저 화면에 그리고
-//   renderChat();
-
-//   // [핵심] 사용자가 보낸 메시지일 때만 서버에 전송 (봇 메시지는 안 보냄)
-//   if (role === "user") {
-//     const currentUserId = localStorage.getItem(USER_ID_KEY);
-
-//     if (!currentUserId) {
-//       sess.messages.pop();
-//       renderChat();
-//       redirectToLogin();
-//       return;
-//     }
-
-//     try {
-//       const botResponse = await saveMessage(
-//         sess.id,
-//         currentUserId, // 👈 (수정) 동적 ID 사용
-//         messageData
-//       );
-
-//       // 2. (중요) 서버가 반환한 봇 응답을 state에 추가
-//       if (botResponse && botResponse.text) {
-//         const botMessageData = {
-//           role: "bot",
-//           text: botResponse.text,
-//           at: Date.now(),
-//         };
-//         sess.messages.push(botMessageData);
-//       }
-
-//       // 3. ⭐ [수정] 서버가 새 제목을 주면 state 즉시 반영 (주석 해제 및 수정)
-//       if (botResponse && botResponse.newTitle) {
-//         sess.title = botResponse.newTitle;
-//         // state.sessions[sess.id].title = botResponse.newTitle; // 안전하게 원본 참조 업데이트
-//       }
-
-//       // 4. 봇 응답이 추가된 상태로 화면 다시 렌더링
-//       renderChat();
-//       archiveCurrent();
-//     } catch (err) {
-//       console.error("메시지 저장/봇 응답 실패:", err);
-//       showToast("메시지 전송 실패", "error");
-//     }
-//   }
-// }
-
 // ---- 최근 저장 ----
 export function archiveCurrent() {
   const sess = current();
   if (!sess || !sess.messages.length) return;
+
+  const lastMsg = sess.messages[sess.messages.length - 1];
+
+  // 1. 현재 사이드바(recents)에 저장된 이 방의 정보를 먼저 찾습니다.
+  const existing = state.recents.find((r) => r.id === sess.id);
+
+  // 2. 시간 결정 로직 개선
+  // 우선 기존 목록에 있던 시간을 기본값으로 둡니다. (단순 이동 시 시간 변경 방지)
+  let time = existing ? existing.updatedAt : null;
+
+  // 3. 만약 '방금' 대화를 나눠서 lastMsg에 'at' 속성(프론트에서 생성한 시간)이 있다면
+  // 그 시간으로 갱신합니다. (새로운 대화가 발생했을 때만 시간 업데이트)
+  if (lastMsg.at) {
+    time = lastMsg.at;
+  }
+  // 4. 만약 기존 시간도 없고, 방금 보낸 메시지도 아니라면(새로고침 후 첫 로드 등)
+  // DB 데이터의 시간 필드를 찾아보고, 정 없으면 현재 시간을 씁니다.
+  else if (!time) {
+    time =
+      lastMsg.createdAt ||
+      lastMsg.created_at ||
+      lastMsg.timestamp ||
+      Date.now();
+  }
+
   state.recents = state.recents.filter((r) => r.id !== sess.id);
   state.recents.unshift({
     id: sess.id,
     title: sess.title,
-    updatedAt: Date.now(),
+    updatedAt: time, // 결정된 시간 적용
   });
   renderRecents();
 }
@@ -269,8 +247,12 @@ export function renderRecents() {
 
     // 1. r.updatedAt 값을 Date 객체로 변환 시도
     const dateObj = new Date(r.updatedAt);
-    const dateString =
-      dateObj.getTime() > 0 ? dateObj.toLocaleString() : "시간 정보 없음"; // Invalid Date일 경우 대체
+    // [수정] Date 객체가 유효한지 확인: getTime() 결과가 NaN이 아니어야 함
+    const isValidDate = !isNaN(dateObj.getTime());
+
+    const dateString = isValidDate
+      ? dateObj.toLocaleString()
+      : "시간 정보 없음"; // 👈 유효성 검사 통과 시에만 변환
 
     li.innerHTML = `
       <div class="recent-item">
@@ -281,7 +263,7 @@ export function renderRecents() {
         <button class="recent-delete" title="삭제"><span class="delete-icon">X</span></button>
       </div>`;
     li.querySelector(".recent-text").addEventListener("click", () => {
-      archiveCurrent(); // 현재 채팅 저장
+      // archiveCurrent(); // 현재 채팅 저장
       state.currentId = r.id; // 새 세션 ID로 변경
       // saveStore(state);
       renderChat(); // 채팅 내용 다시 그리기
@@ -371,24 +353,4 @@ export async function handleSend(e) {
   // 1. 사용자 메시지를 먼저 추가 (API 호출 포함)
   await addMessage("user", text); // await 추가
   input.value = "";
-
-  // 2. 봇 응답 시뮬레이션
-  // setTimeout(async () => {
-  //   // async 추가
-  //   const botResponseText = "네, 재산분할 관련해서 말씀이시군요...";
-  //   const newTitleFromLLM = "이혼 재산분할 상담";
-
-  //   // 3. 봇 메시지 추가 (API 호출 포함)
-  //   await addMessage("bot", botResponseText); // await 추가
-
-  //   // 4. 제목 덮어쓰기 (이 로직은 서버로 이동하는 것이 좋음)
-  //   const sess = current();
-  //   if (sess) {
-  //     sess.title = newTitleFromLLM;
-  //     // [변경] 제목 변경 API 호출 (예: await api.updateSessionTitle(sess.id, newTitleFromLLM))
-  //   }
-
-  //   // 5. 사이드바 새로고침 (API 호출이 성공하면 archiveCurrent는 DB 조회를 다시 하도록 변경)
-  //   archiveCurrent(); // 이 함수도 내부적으로 API를 호출하도록 수정 필요
-  // }, 300);
 }
