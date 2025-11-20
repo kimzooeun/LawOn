@@ -9,10 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.repository.query.Param; 
+
 import com.prinCipal.chatbot.admin.CounselLogDto;
 import com.prinCipal.chatbot.member.Member;
-
-import io.lettuce.core.dynamic.annotation.Param;
 
 @Repository
 public interface SessionRepository extends JpaRepository<CounsellingSession, Long> {
@@ -28,12 +28,24 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
 
 	Collection<CounselLogDto> findTop20ByOrderByStartTimeDesc();
 	
-	// 경고 대상 조회: 진행 중(ONGOING) + 경고 안 보냄(false) + 마지막 대화가 5분 전
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.warningSent = false AND s.lastMessageTime < :targetTime")
-    List<CounsellingSession> findSessionsForWarning(@Param("targetTime") LocalDateTime targetTime);
+	/**
+     * 1. 경고 대상 조회
+     * 조건:
+     * - 상태가 'ONGOING' (진행 중)
+     * - 경고를 아직 안 보냄 (warningSent = false)
+     * - 마지막 메시지 시간이 기준 시간(time)보다 '이전' (lastMessageTime < time)
+     */
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.warningSent = false AND s.lastMessageTime <= :time")
+    List<CounsellingSession> findSessionsForWarning(@Param("time") LocalDateTime time);
 
-    // 종료 대상 조회: 진행 중(ONGOING) + 마지막 대화가 10분 전 (경고 여부 상관X)
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.lastMessageTime < :targetTime")
-    List<CounsellingSession> findSessionsForTimeout(@Param("targetTime") LocalDateTime targetTime);
+    /**
+     * 2. 타임아웃 대상 조회
+     * 조건:
+     * - 상태가 'ONGOING' (진행 중)
+     * - (경고 발송 여부와 상관없이)
+     * - 마지막 메시지 시간이 기준 시간(time)보다 '이전' (lastMessageTime < time)
+     */
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = 'ONGOING' AND s.lastMessageTime <= :time")
+    List<CounsellingSession> findSessionsForTimeout(@Param("time") LocalDateTime time);
     
 }

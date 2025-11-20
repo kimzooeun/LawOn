@@ -33,14 +33,22 @@ export let state = createEmptyStore(); // 일단 빈 상태로 시작
 
 export async function loadInitialData() {
   try {
-    const dataFromServer = await getInitialData(); // 1. API 호출
+    const dataFromServer = await getInitialData();
 
-    console.log("[Debug] 서버로부터 받은 초기 데이터:", dataFromServer);
+    // [수정] 기존 state를 유지하면서 업데이트 (현재 보고 있는 방 유지를 위해)
+    const oldCurrentId = state.currentId;
 
-    Object.assign(state, dataFromServer); // 2. 전역 state에 덮어쓰기
+    Object.assign(state, dataFromServer);
+
+    // [수정] 만약 이전에 보고 있던 방이 여전히 존재한다면 ID 유지
+    if (oldCurrentId && state.sessions[oldCurrentId]) {
+      state.currentId = oldCurrentId;
+    } else {
+      state.currentId = null;
+    }
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);
-    showToast("데이터 로드에 실패했습니다.", "error");
+    // showToast("데이터 로드에 실패했습니다.", "error");
     // 실패 시 로컬스토리지 (선택적)
     // const localData = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     // if (localData) Object.assign(state, localData);

@@ -3,8 +3,14 @@
 // (세션/메시지 관리, 최근 대화, 삭제, 렌더링)
 // ===================================
 
-import { showToast, state, qs, Modal } from "./utils.js";
-import { createSession, saveMessage, deleteSession } from "./api.js";
+import { showToast, state, qs, Modal, loadInitialData } from "./utils.js";
+import {
+  createSession,
+  saveMessage,
+  deleteSession,
+  endSession,
+  restartSession,
+} from "./api.js";
 import { showPage } from "./init.js";
 
 const USER_ID_KEY = "todak_user_id";
@@ -18,6 +24,34 @@ function redirectToLogin() {
     // index.html 또는 / 등 실제 로그인 페이지 주소로 변경하세요.
     window.location.href = "/";
   }, 2100);
+}
+
+// [추가] 폴링을 위한 인터벌 ID 저장소
+let pollingInterval = null;
+
+// [추가] 폴링 시작 함수 (init.js나 createNewSession 등에서 호출 필요, 혹은 renderChat 내부에서 관리)
+export function startPolling() {
+  if (pollingInterval) return; // 이미 돌고 있으면 패스
+
+  // 5초마다 데이터 동기화
+  pollingInterval = setInterval(async () => {
+    // 현재 채팅방이 열려있을 때만 데이터 갱신
+    if (
+      state.currentId &&
+      !document.getElementById("chatArea").classList.contains("hidden")
+    ) {
+      await loadInitialData();
+      // renderChat은 loadInitialData 안에서 호출됨
+    }
+  }, 5000);
+}
+
+// [추가] 폴링 중지 (페이지 이동 시 등)
+export function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
 }
 
 // ---- 세션 ----
@@ -298,39 +332,107 @@ export function renderChat() {
   msgs.innerHTML = "";
   const sess = current();
 
+  // 1. 빈 화면 처리
   if (!sess || !sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
-    // 1. 템플릿 가져오기
     const template = document.getElementById("emptyChatTemplate");
     if (template) {
-      // 2. 템플릿 복제 및 내용 채우기
       const clone = template.content.cloneNode(true);
       clone.querySelector(".empty-hint-nickname").textContent =
         nick || "게스트";
-      // 3. 삽입
       msgs.appendChild(clone);
     } else {
-      // (템플릿 실패 시 예비용)
-      msgs.innerHTML = `<div class="empty-hint"><p>안녕하세요, ${
-        nick || "게스트"
-      }님</p></div>`;
+      msgs.innerHTML = `<div class="empty-hint"><p>안녕하세요, ${nick}님</p></div>`;
     }
-
-    renderRecents(); // 최근 목록은 갱신
+    renderRecents();
     return;
   }
 
+  // 2. 메시지 루프
   sess.messages.forEach((m) => {
     const div = document.createElement("div");
     div.className = "msg " + (m.role === "user" ? "user" : "bot");
+
+    // -------------------------------------------------------
+    // [수정] 수직 정렬용 래퍼 (Bubble + Button을 감쌈)
+    // -------------------------------------------------------
+    const contentWrapper = document.createElement("div");
+    contentWrapper.style.display = "flex";
+    contentWrapper.style.flexDirection = "column";
+    contentWrapper.style.gap = "8px"; // 말풍선과 버튼 사이 간격
+    // 사용자면 오른쪽 정렬, 봇이면 왼쪽 정렬
+    contentWrapper.style.alignItems =
+      m.role === "user" ? "flex-end" : "flex-start";
+
+    // (1) 말풍선 (Bubble)
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    bubble.textContent = m.text;
-    div.appendChild(bubble);
+    const textP = document.createElement("p");
+    textP.textContent = m.text;
+    bubble.appendChild(textP);
+
+    // 래퍼에 말풍선 먼저 추가
+    contentWrapper.appendChild(bubble);
+
+    // (2) 카드형 버튼 (조건부 추가)
+    // 상황 1: 5분 경고 -> "상담 종료"
+    if (
+      m.text.includes("5분 뒤 상담이 자동으로 종료됩니다") ||
+      m.text.includes("상담을 종료하시려면")
+    ) {
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "card-actions"; // CSS에 있는 클래스
+
+      const btnEl = document.createElement("button");
+      btnEl.className = "card-btn";
+      btnEl.innerHTML = `
+            <div class="card-btn-icon">🛑</div>
+            <div class="card-btn-content">
+                <span class="card-btn-title">상담 종료하기</span>
+                <span class="card-btn-subtitle">대화를 지금 바로 끝냅니다</span>
+            </div>
+            <div class="card-btn-arrow">›</div>
+        `;
+      btnEl.onclick = () => handleEndSessionAction(sess.id);
+      actionsDiv.appendChild(btnEl);
+
+      // 래퍼에 버튼 추가 (말풍선 아래에 뜸)
+      contentWrapper.appendChild(actionsDiv);
+    }
+
+    // 상황 2: 타임아웃 -> "상담 재시작"
+    if (
+      m.text.includes("상담이 종료되었습니다") ||
+      m.text.includes("상담 재시작")
+    ) {
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "card-actions";
+
+      const btnEl = document.createElement("button");
+      btnEl.className = "card-btn";
+      btnEl.innerHTML = `
+            <div class="card-btn-icon">🔄</div>
+            <div class="card-btn-content">
+                <span class="card-btn-title">상담 재시작하기</span>
+                <span class="card-btn-subtitle">이어서 계속 대화합니다</span>
+            </div>
+            <div class="card-btn-arrow">›</div>
+        `;
+      btnEl.onclick = () => handleRestartSessionAction(sess.id);
+      actionsDiv.appendChild(btnEl);
+
+      // 래퍼에 버튼 추가
+      contentWrapper.appendChild(actionsDiv);
+    }
+
+    // 최종적으로 래퍼를 메시지 div에 추가
+    div.appendChild(contentWrapper);
     msgs.appendChild(div);
   });
+
   msgs.scrollTop = msgs.scrollHeight;
   renderRecents();
+  startPolling(); // 폴링 시작 확인
 }
 
 // ---- 전송 ----
@@ -342,15 +444,36 @@ export async function handleSend(e) {
 
   let sess = current();
   if (!sess) {
-    // 2. 👈 [추가] 세션이 없으면 (첫 메시지) -> 새로 생성
-    const success = await createNewSession(); // DB에 세션 생성
-    if (!success) {
-      // (createNewSession 내부에서 이미 에러 토스트를 띄움)
-      return; // 세션 생성 실패 시 중단
-    }
+    const success = await createNewSession();
+    if (!success) return;
   }
 
-  // 1. 사용자 메시지를 먼저 추가 (API 호출 포함)
-  await addMessage("user", text); // await 추가
+  await addMessage("user", text);
   input.value = "";
+}
+
+// [추가] 상담 종료 핸들러
+async function handleEndSessionAction(sessionId) {
+  if (!confirm("정말로 상담을 종료하시겠습니까?")) return;
+
+  try {
+    await endSession(sessionId); // api.js 호출
+    showToast("상담이 종료되었습니다.", "success");
+    await loadInitialData(); // 상태 갱신
+  } catch (err) {
+    console.error(err);
+    showToast("상담 종료 처리 실패", "error");
+  }
+}
+
+// [추가] 상담 재시작 핸들러
+async function handleRestartSessionAction(sessionId) {
+  try {
+    await restartSession(sessionId); // api.js 호출
+    showToast("상담이 재개되었습니다.", "success");
+    await loadInitialData(); // 상태 갱신
+  } catch (err) {
+    console.error(err);
+    showToast("상담 재시작 실패", "error");
+  }
 }
