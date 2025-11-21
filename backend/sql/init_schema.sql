@@ -35,7 +35,7 @@ CREATE TABLE counselling_session (
     end_time DATETIME DEFAULT NULL,						-- 상담 종료 시간
     last_message_time DATETIME DEFAULT NULL,  			-- 마지막 메세지 시간
     
-
+    warning_sent BOOLEAN DEFAULT FALSE,					-- 5분 경고 확인
     -- 세션 길이 (챗봇 메시지 시각 → 타임아웃 판단 가능)
     duration_sec INT GENERATED ALWAYS AS (
         CASE
