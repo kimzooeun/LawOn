@@ -43,7 +43,7 @@ CREATE TABLE counselling_session (
                 THEN TIMESTAMPDIFF(SECOND, start_time, end_time)
             ELSE NULL
         END
-    ) STORED
+    ) STORED,
 
 
     completion_status ENUM('ONGOING', 'COMPLETED', 'TIMEOUT') DEFAULT 'ONGOING' NOT NULL, 		-- 상담 진행 상태 (시작, 종료, 타임아웃)
@@ -132,24 +132,22 @@ CREATE TABLE lawyers(
     office VARCHAR(100) DEFAULT NULL,                   -- 소속 로펌/사무실명
     officeLocation VARCHAR(100) DEFAULT NULL,           -- 사무실 위치
 
-    imageUrl VARCHAR(255) DEFAULT NULL,                 -- 프로필 이미지 URL
-)
+    imageUrl VARCHAR(255) DEFAULT NULL                 -- 프로필 이미지 URL
+);
 
 
-- 시스템 설정 테이블 (SystemSetting 엔티티)
+-- 시스템 설정 테이블 (SystemSetting 엔티티)
 CREATE TABLE system_settings(
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    keyName VARCHAR(100) NOT NULL UNIQUE,               -- 설정 키 (예: THEME, AUTO_BACKUP 등)
-    value TEXT DEFAULT NULL                             -- 설정 값 (JSON/String 등 자유롭게)
-)
+    id BIGINT AUTO_INCREMENT PRIMARY KEY
+);
 
 
-- 시스템 통계 테이블(SystemStat 엔티티)
+-- 시스템 통계 테이블(SystemStat 엔티티)
 CREATE TABLE system_status(
     -- @Id만 있고 @GeneratedValue 없음 → 애플리케이션에서 id 직접 관리 (보통 1 고정)
     id BIGINT NOT NULL PRIMARY KEY,
     total_counsel_count BIGINT DEFAULT 0                -- 전체 상담 건수
-)
+);
 
 
 -- 인덱스 구성 
