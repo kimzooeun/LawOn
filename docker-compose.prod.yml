@@ -51,7 +51,6 @@ services:
       start_period : 5s
     volumes:
       - ./models:/app/models
-      - ./hf_cache:/root/.cache/huggingface
   redis:
     image: redis:7
     command: redis-server --appendonly yes
