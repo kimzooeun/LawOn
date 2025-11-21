@@ -5,6 +5,7 @@ import uuid
 import redis
 import traceback
 import uvicorn
+import asyncio
 # stt tts 추가 및 튜닝 관련 임포트
 import numpy as np
 import soundfile as sf
@@ -18,11 +19,13 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 import models_load
 from pydub import AudioSegment               
 from fastapi.responses import StreamingResponse  
-                                       
+
 from pydantic import BaseModel
 
 # --- 노트북에서 가져온 라이브러리 임포트 ---
 from fastapi.middleware.cors import CORSMiddleware
+
+
 
 frontend_url = os.getenv("FRONTEND_URL")
 origins = [frontend_url]
@@ -93,8 +96,8 @@ async def handle_generate_response(request: QueryRequest):
             asyncio.to_thread(models_load.predict_sentiment, query, all_models['model_A'], all_models['tokenizer_A']),
             # [수정] models_load.predict_context_kobert 로 변경
             asyncio.to_thread(models_load.predict_context_kobert, query, all_models['model_B'], all_models['tokenizer_B']),
-            # [수정] models_load.predict_its 로 변경
-            asyncio.to_thread(models_load.predict_its, query, all_models['model_C_intent'], all_models['model_C_topic'], all_models['model_C_situation']),
+            # [수정] models_load.predict_full로 변경
+            asyncio.to_thread(models_load.predict_full, query, all_models),  # 전체 모델 dict를 통째로 넘김
             # [수정] models_load.search_qa_faiss 로 변경
             asyncio.to_thread(models_load.search_qa_faiss, query, all_models['db_D'], k=3)
         )
@@ -106,8 +109,15 @@ async def handle_generate_response(request: QueryRequest):
         pred_b, conf_b, prob_non_div, prob_div = context_result
         results['context'] = {"prediction": pred_b, "confidence": conf_b, "prob_non_divorce": prob_non_div, "prob_divorce": prob_div}
 
-        pred_i, pred_t, pred_s = its_result
-        results['its_classification'] = {"intent": pred_i, "topic": pred_t, "situation": pred_s}
+        # pred_i, pred_t, pred_s = its_result
+        # results['its_classification'] = {"intent": pred_i, "topic": pred_t, "situation": pred_s}
+
+        its_final = its_result.get("its", {})
+        results['its_classification'] = {
+            "intent": its_final.get("intent"),
+            "topic": its_final.get("topic"),
+            "situation": its_final.get("situation"),
+        }
 
         results['qa_search'] = qa_result
 
@@ -346,15 +356,17 @@ async def simple_chat(request:SimpleChatRequest):
 
     # [C] 의도/주제/상황 분류 (이혼 질문일 때 활용)
     intent = topic = situation = None
-    if simple_models.get('model_C_intent') and simple_models.get('model_C_topic') and simple_models.get('model_C_situation'):
+    if simple_models.get('model_KOBERT_situation') and simple_models.get('model_KOBERT_intent') and simple_models.get('model_KOBERT_topic'):
         try:
-            # [수정] models_load.predict_its 로 변경
-            intent, topic, situation = models_load.predict_its(query, simple_models['model_C_intent'], simple_models['model_C_topic'],
-                simple_models['model_C_situation']
-            )
+            # [수정] models_load.predict_full 로 변경
+            its_result = models_load.predict_full(query, simple_models)
+            intent = its_result["its"]["intent"]
+            topic = its_result["its"]["topic"]
+            situation = its_result["its"]["situation"]
         except Exception as e :
             print("의도/주제/상황 분류 모델 예측 중 오류 발생 : ", e)
-    
+
+
     # 이혼 여부에 따라 OpenAI 호출 여부 결정
     # context_label == 이혼 + 신뢰도 0.5 이상일때만 llm 사용 
     use_LLM = False

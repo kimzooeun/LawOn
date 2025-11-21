@@ -728,8 +728,8 @@ header .container {
 /* 모달: 포털 안에서 z-index 2 (오버레이 위) */
 .auth-modal {
   width: 400px !important;        
-  height: 550px !important;       
-  max-height: none !important;    
+  height: 660px !important;  
+  max-height: 90vh !important;  
   overflow: hidden !important;    
   position: fixed;
   top: 50%;
@@ -929,9 +929,10 @@ header .container {
   display: none;
   color: #c42424;
   font-size: 14px;
-  text-align: center;
-  padding: 5px;
-  margin-bottom: -10px;
+  text-align: left;
+  padding: 8px 0 0; 
+  margin-left: 5px;
+  line-height: 1.5;   
 }
 
 /* 보이기 상태 */
@@ -939,6 +940,69 @@ header .container {
 .text-danger.show {
   display: block;
 }
+
+
+.text-success {
+  color: #2f9e44;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+
+
+.password-strength {
+  display: none;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+/* JS에서 show 클래스 붙이면 나타남 */
+.password-strength.show {
+  display: block;
+}
+
+
+/* 막대기 배경 */
+.password-strength .strength-bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* 채워지는 부분 */
+.password-strength .bar-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* 설명 텍스트 */
+.password-strength .strength-text {
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* 단계별 색 */
+.password-strength[data-level="weak"] .bar-fill {
+  background-color: #e03131; 
+}
+
+.password-strength[data-level="medium"] .bar-fill {
+  background-color: #fab005; 
+}
+
+.password-strength[data-level="strong"] .bar-fill {
+  background-color: #2f9e44; 
+}
+
+.password-strength[data-level="empty"] .bar-fill {
+  background-color: transparent;
+}
+
 
 
 /* 회원가입 성공 토스트 css */
@@ -966,7 +1030,7 @@ header .container {
 }
 
 
-/* 제출 버튼 */
+/* 회원가입 버튼 */
 .auth-submit-btn {
   padding: 14px;
   background: #1c1c1c;
@@ -979,6 +1043,8 @@ header .container {
   transition: all 0.3s;
   margin-top: 8px;
 }
+
+
 .auth-submit-btn:hover {
   background: #2d2d2d;
   transform: translateY(-2px);
@@ -987,6 +1053,17 @@ header .container {
 .auth-submit-btn:active {
   transform: translateY(0);
 }
+
+
+/* 회원가입 버튼 비활성화 상태 */
+.auth-submit-btn:disabled {
+  background: #b5b5b5;
+  color: #eee;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 
 /* 하단 링크 */
 .auth-links {
