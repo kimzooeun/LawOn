@@ -4,7 +4,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile.prod
-    image: finalproject-backend-prod
+    image: finalproject-backend
     container_name: finalproject-backend
     env_file:
       - .env.prod
@@ -25,9 +25,6 @@ services:
       start_period: 90s
     volumes:
       - ./uploads:/app/uploads
-      - ./backend:/app
-      - /app/build
-      - gradle_cache:/home/gradle/.gradle
     depends_on:
       fastapi:
         condition: service_started
