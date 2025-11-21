@@ -453,6 +453,35 @@ async def simple_chat(request:SimpleChatRequest):
         },
     }
 
+@app.get("/simple-chat/history")
+async def get_simple_chat_history(session_id: str):
+    redis_key = f"simple:session:{session_id}"
+    
+    # Redis에서 데이터 조회
+    data_str = redis_client.get(redis_key)
+    
+    if data_str:
+        data = json.loads(data_str)
+        count = data.get("count", 0)
+        limit_reached = count >= LIMIT_SIMPLE
+        
+        return {
+            "history": data.get("history", []),
+            "count": count,
+            "limit": LIMIT_SIMPLE,
+            "limit_reached": limit_reached,
+            "suggest_login": limit_reached  # 5회 넘었으면 로그인 유도
+        }
+    else:
+        # Redis에 세션 정보가 없으면 빈 값 반환
+        return {
+            "history": [],
+            "count": 0,
+            "limit": LIMIT_SIMPLE,
+            "limit_reached": False,
+            "suggest_login": False
+        }
+
 # 정민 추가 
 # STT (Whisper) - 음성 → 텍스트
 async def run_stt_memory(audio_file: UploadFile):
