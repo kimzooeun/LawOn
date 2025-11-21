@@ -26,7 +26,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update         # (update → none 으로 고정, MySQL일 때만 적용)
+      ddl-auto: none         # (update → none 으로 고정, MySQL일 때만 적용)
     properties:
       hibernate:
         show_sql: true
@@ -116,8 +116,7 @@ app:
   backend:
     url: ${BACKEND_URL}
 
-file:
-  upload-dir: /app/uploads		
+
 # Health check, actuator 설정
 management:
   endpoints:
