@@ -29,8 +29,8 @@ spring:
       ddl-auto: update         # (update → none 으로 고정, MySQL일 때만 적용)
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
         naming:
           physical-strategy: com.prinCipal.chatbot.config.SnakeCaseNamingStrategy
 
