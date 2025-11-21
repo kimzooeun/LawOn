@@ -272,6 +272,15 @@ public class SessionService {
 
             // 5. 세션 업데이트 (시간, 제목)
             session.updateLastMessageTime(LocalDateTime.now());
+            
+            // 안전장치: 메시지가 저장된다면, 세션 상태는 무조건 '진행 중'이어야 함
+            if (session.getCompletionStatus() != CompletionStatus.ONGOING) {
+                session.updateStatus(CompletionStatus.ONGOING);
+                session.updateendTime(null);      // 종료 시간 삭제
+                session.updateWarningSent(false); // 경고 초기화
+                logger.info("⚠️ 종료된 세션에 메시지가 감지되어 상태를 ONGOING으로 자동 복구했습니다. (Session ID: {})", sessionId);
+            }
+            
             String newTitle = fastApiResponse.getSessionUpdates().getSummaryTitle();
             
             // 제목이 없거나 '새 대화'일 때만 업데이트

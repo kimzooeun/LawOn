@@ -127,6 +127,20 @@ export async function addMessage(role, text) {
       return;
     }
 
+    // ▼ [추가] 상담이 종료된 상태(end_time 있음)라면 메시지 전송 전 '자동 재시작' 수행
+    if (sess.end_time || sess.endTime) {
+      try {
+        await restartSession(sess.id); // API 호출
+        // 로컬 상태 갱신: 종료 시간 제거 (이후 메시지는 재시작 호출 안 함)
+        sess.end_time = null;
+        sess.endTime = null;
+        showToast("상담이 재개되었습니다.", "success");
+      } catch (err) {
+        console.error("자동 재시작 실패:", err);
+        // 재시작 실패 시에도 일단 메시지 전송 시도 (또는 여기서 return 처리 가능)
+      }
+    }
+
     // 2. [추가] API 호출 전 로딩 말풍선 붙이기
     const msgsContainer = qs("#messages");
     const loadingEl = createLoadingBubble();
