@@ -287,7 +287,6 @@
   margin-top: 8px;
   flex-wrap: wrap;
 
-  width: 100%;
   max-width: 100%; /* 기존 75% -> 100%로 변경 */
   box-sizing: border-box;
 }
@@ -304,7 +303,6 @@
 
   /* min-width는 유지하되, flex: 1 덕분에 위 container 너비만큼 늘어납니다 */
   min-width: 180px;
-  flex: 1;
 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
