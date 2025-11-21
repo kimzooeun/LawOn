@@ -1,4 +1,4 @@
-<!DOCTYPE html> <!--사용안할 가능성 매우 큼 -->
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +7,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../images/black.png?v=2">
   <link rel="stylesheet" href="css/logs.css" />
   <link rel="stylesheet" href="css/admin.css?v=1">
-
 </head>
 
 <body>
@@ -27,12 +26,12 @@
     <section class="log-filter">
       <h2>상담 내역 검색</h2>
       <div class="filter-box">
-        <input type="text" id="searchInput" placeholder="사용자명, 상담주제, 키워드 검색..." />
+        <input type="text" id="searchInput" placeholder="사용자명(닉네임)" />
         <select id="statusFilter">
           <option value="전체">상태: 전체</option>
           <option value="진행 중">진행 중</option>
           <option value="완료">완료</option>
-          <option value="중단">중단</option>
+          <option value="중단">종료</option>
         </select>
         <button id="searchBtn">검색</button>
       </div>
@@ -51,14 +50,13 @@
               <th>상태</th>
             </tr>
           </thead>
-          <tbody>
-            <tr><td colspan="7" style="text-align:center;">상담 데이터를 불러오는 중...</td></tr>
+          <tbody id="logsTableBody">
+            <tr><td colspan="5" style="text-align:center;">상담 데이터를 불러오는 중...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- 상담 내용 상세 모달 -->
     <div id="logModal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
@@ -72,13 +70,11 @@
     © 2025 TodakTodak Admin Panel
   </footer>
 
-  <!-- 1) TokenManager 먼저 로드 -->
   <script type="module" src="/src/js/token.js"></script>
-  <!-- 2) 관리자용 fetch 인터셉트 적용 -->
   <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
-  <!-- 3) 마지막에 페이지 스크립트 실행 -->
-  <script type="module" src="/admin/js/log.js"></script>
-
+  
+  <script type="module" src="/admin/js/logs.js"></script>
+  <script type="module" src="/admin/js/admin-logout.js"></script>
 
 </body>
 </html>

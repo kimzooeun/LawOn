@@ -21,7 +21,9 @@ const NICK_KEY = "todak_nickname";
 // 세션 관리용 변수
 const SIMPLE_SESSION_KEY = 'simpleChatSessionId';
 let simpleSessionId = localStorage.getItem(SIMPLE_SESSION_KEY) || null;
-let inputDisabled = false;
+let inputDisabled = false;   // 입력 폼 막는 용 
+let historyLoaded = false;  // 히스토리 로딩 여부 
+
 
 
 // 맞춤형 상담 버튼 클릭 시 열기
@@ -44,12 +46,6 @@ if (customBtn) {
 
 // 맞춤형 상담 모달 열기
 export function openAuthModal() {
-  // 포털로 이동
-  if (portalRoot && authOverlay && authModal) {
-    portalRoot.appendChild(authOverlay);
-    portalRoot.appendChild(authModal);
-  }
-
   portalRoot.style.pointerEvents = "auto";
   authModal.style.pointerEvents = "auto";
 
@@ -60,6 +56,18 @@ export function openAuthModal() {
   authModal.classList.add("is-open");
   authOverlay.classList.add("is-open");
   document.body.style.overflow = "hidden"; // 스크롤 방지
+
+  // 만약 기본 탭이 signupTab 이라면
+  const signupTabVisible = document.getElementById("signupTab")?.classList.contains("active");
+  if (signupTabVisible) {
+    bindSignupPasswordEvents();
+  }
+
+  const loginTabVisible = document.getElementById("loginTab")?.classList.contains("active");
+  if(loginTabVisible){
+    bindLoginEvents();
+  }
+
 }
 
 // 맞춤형 상담 모달 닫기
@@ -122,7 +130,38 @@ document.addEventListener("click", (e) => {
   } else {
     console.warn(`탭 콘텐츠를 찾을 수 없음: #${targetTab}Tab`);
   }
+
+
+  if(targetTab ==="signup"){
+    bindSignupPasswordEvents();  // 이벤트 바인딩은 reset 이후에 실행해야함 
+  }
+
+  if(targetTab ==="login"){
+    bindLoginEvents();  // 이벤트 바인딩은 reset 이후에 실행해야함 
+  }
 });
+
+function updateInputLogin(){
+  const nickname = document.getElementById("loginNickname").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  const loginSubmitBtn = document.querySelector("#loginForm .auth-submit-btn");
+
+  loginSubmitBtn.disabled = !(nickname && password);
+}
+
+
+function bindLoginEvents() {
+  const nicknameInput = document.getElementById("loginNickname");
+  const pwInput = document.getElementById("loginPassword");
+  const loginSubmitBtn = document.querySelector("#loginForm .auth-submit-btn");
+
+  if (!nicknameInput || !pwInput || !loginSubmitBtn) return;
+
+  nicknameInput.oninput = updateInputLogin;
+  pwInput.oninput = updateInputLogin;
+
+  updateInputLogin();
+}
 
 //-----------------------------------------------------------------------------
 // 로그인 폼 제출
@@ -130,13 +169,6 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     e.preventDefault();
     const nickname = document.getElementById("loginNickname").value;
     const password = document.getElementById("loginPassword").value;
-
-    if (!nickname || !password) {
-      const errDiv = document.getElementById("login-error-message");
-      errDiv.innerText = "아이디와 비밀번호를 모두 입력해주세요.";
-      errDiv.classList.add("show");
-      return;
-    }
 
     try {
       const response = await fetch("/api/login", {
@@ -278,6 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById(`error-${id}`);
         if (el) el.innerText = "";
       });
+      resetAuthForms();
     });
   }
 
@@ -291,6 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById(`error-${id}`);
         if (el) el.innerText = "";
       });
+      resetAuthForms();
     });
   }
 
@@ -300,12 +334,167 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("tab-signup")?.classList.remove("active");
     document.getElementById("loginTab")?.classList.add("active");
     document.getElementById("signupTab")?.classList.remove("active");
-
-    resetAuthForms();
   };
 });
 
+function updatePasswordMatchUI() {
+  const nickname = document.getElementById("nickname").value.trim();
+  const pwInput = document.querySelector("#signupTab #password");
+  const pwCheckInput = document.querySelector("#signupTab #confirmPassword");
+  const pwCheckError = document.querySelector("#signupTab #error-confirmPassword");
+  const signupSubmitBtn = document.querySelector("#signupForm .auth-submit-btn");
+
+  const pw = pwInput.value;
+  const pw2 = pwCheckInput.value;
+
+  pwInput.classList.remove("is-valid", "is-invalid");
+  pwCheckInput.classList.remove("is-valid", "is-invalid");
+  pwCheckError.classList.remove("text-success", "text-danger");
+  pwCheckError.innerText = "";
+  
+  if(!pw && !pw2){
+    // 아무것도 안들어오면 UI도 안 띄움
+  } else if (pw !== pw2) {
+    pwInput.classList.add("is-invalid");
+    pwCheckInput.classList.add("is-invalid");
+    pwCheckError.classList.add("text-danger");
+    pwCheckError.innerText = "비밀번호가 일치하지 않습니다.";
+    signupSubmitBtn.disabled = true;  // 불일치면 무조건 비활성화
+    return;
+  } else if(pw === pw2) {
+  pwInput.classList.add("is-valid");
+  pwCheckInput.classList.add("is-valid");
+  pwCheckError.classList.add("text-success");
+  pwCheckError.innerText = "비밀번호가 일치합니다.";
+  }
+
+
+   // 버튼 활성화는 nickname까지 포함
+  const allFilled = nickname && pw && pw2;
+  const pwMatch = pw === pw2;
+
+  signupSubmitBtn.disabled = !(allFilled && pwMatch);
+}
+
+
+function updatePasswordStrengthUI() {
+  const pwInput = document.querySelector("#signupTab #password");
+  const strengthBox = document.querySelector("#signupTab #password-strength");
+  const strengthBar = document.querySelector("#signupTab #password-strength-bar");
+  const strengthText = document.querySelector("#signupTab #password-strength-text");
+
+  if (!pwInput || !strengthBox || !strengthBar || !strengthText) return;
+
+  const pw = pwInput.value;
+  const info = passwordStrength(pw);
+
+  strengthBox.setAttribute("data-level", info.level || "empty");
+
+  if (!pw) {
+    strengthBar.style.width = "0%";
+    strengthText.textContent = "";
+    return;
+  }
+
+  strengthBar.style.width = info.width + "%";
+  strengthText.textContent = `비밀번호 강도: ${info.label}`;
+}
+
+
+// 비밀번호 강도 설정 UI
+function passwordStrength(pw){
+  const strengthBox = document.getElementById("password-strength");
+  const strengthBar = document.getElementById("password-strength-bar");
+  const strengthText = document.getElementById("password-strength-text");
+
+  const COMMON_PATTERNS = ["1234", "123456", "abcd", "qwerty", "password"];
+
+
+  // 아무것도 안썻을때, 강도 UI 통째로 숨김
+  if(!pw || pw.length === 0){
+    strengthBox.classList.remove("show");
+    strengthBox.dataset.level = "empty";
+    strengthBar.style.width = "0%";
+    strengthText.textContent = "비밀번호를 입력해주세요";
+    return { level: "empty", width: 0, label: "" }; 
+  }
+
+
+  // 한글자라도 쓰기 시작하면 보임
+  strengthBox.classList.add("show");
+  let score = 0;
+
+  if(pw.length >= 8) score +=1 ;
+  if (pw.length >= 12) score+=1;
+
+  const hasUpper =  /[A-Z]/.test(pw);
+  const hasLower = /[a-z]/.test(pw);
+  const hasDigit = /[0-9]/.test(pw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(pw);
+
+  let kinds = 0;
+  if (hasUpper) kinds++;
+  if (hasLower) kinds++;
+  if (hasDigit) kinds++;
+  if (hasSpecial) kinds++;
+
+
+
+  const lowerPw = pw.toLowerCase();
+  let hasCommon = COMMON_PATTERNS.some((p) => lowerPw.includes(p));
+  const repeated = /(.)\1{3,}/.test(pw); // 같은 문자 4번 이상 연속
+
+  if (hasCommon || repeated) {
+    return { level: "weak", score: 0, label: "약함", width: 25 };
+  }
+
+
+  if (pw.length >= 10 && kinds >= 3) {
+    return { level: "strong", label: "강함", width: 100 };
+  } 
+  if (pw.length >= 8 && kinds >= 2)  {
+    return { level: "medium", label: "보통", width: 60 };
+  } 
+  return { level: "weak", label: "약함", width: 25 };
+}
+
+
+
+
+
+
+function bindSignupPasswordEvents() {
+  console.log("bindSignupPasswordEvents 호출됨");
+  const nicknameInput = document.getElementById("nickname");
+  const pwInput = document.querySelector("#signupTab #password");
+  const pwCheckInput = document.querySelector("#signupTab #confirmPassword");
+
+  if (!nicknameInput || !pwInput || !pwCheckInput) return;
+
+  nicknameInput.oninput = () => {
+    updatePasswordMatchUI();
+  };
+
+  pwInput.oninput = () => {
+    updatePasswordMatchUI();
+    updatePasswordStrengthUI();
+  };
+
+  pwCheckInput.oninput = () => {
+    updatePasswordMatchUI();
+  };
+
+  // 초기 상태
+  updatePasswordMatchUI();
+  updatePasswordStrengthUI();
+}
+
+
+
+
+
 function resetAuthForms() {
+    console.log("resetAuthForms 호출됨");
   // 모든 폼 리셋
   document.getElementById("loginForm")?.reset();
   document.getElementById("signupForm")?.reset();
@@ -371,6 +560,8 @@ function openChat() {
   chatOverlay.classList.add('is-open');
   document.body.classList.add('chat-open');
   chatInput.focus();
+
+  loadSimpleChatHistory();  // 히스토리 복원 
 }
 
 // 간편 상담 채팅 닫기
@@ -449,6 +640,58 @@ async function sendMessage() {
 }
 
 
+// 간편 상담 모달 열면 히스토리 복원 요청 함수
+async function loadSimpleChatHistory() {
+  if(!simpleSessionId) return ;   // 세션 없으면 return 
+  if(historyLoaded) return; // 이미 한번 true 되면 즉, 한 번 불렀으면 또 안함
+  historyLoaded = true;
+
+  try{
+    const response = await fetch(`/simple-chat/history?session_id=${encodeURIComponent(simpleSessionId)}`);
+
+    if(!response.ok){
+      console.warn('간편 상담 히스토리 fetch 실패', response.status);
+      return;
+    }
+
+    const data = await response.json();
+
+    // 세션 만료된 경우 (Redis TTL 지나서 없어진 경우)
+    if (data.session_expired){
+      localStorage.removeItem(SIMPLE_SESSION_KEY);
+      simpleSessionId = null;
+
+      // 채팅창 비우고, 안내 메시지 띄움
+      if (chatBody) {
+        chatBody.innerHTML ='';
+        addMessage('이전에 진행하셨던 간편 상담 기록은 만료되어 새로 시작됩니다.\n새로운 질문을 남겨주시면 도와드릴게요! 무엇이 궁금하신가요? 😊', 'bot');
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        inputDisabled = false; // 입력 가능 상태로 초기화
+        if(chatInput) chatInput.disabled = false;
+        if(chatSendBtn) chatSendBtn.disabled = false;
+        return;
+      }
+    }
+
+    const history = data.history || [];
+
+    history.forEach((item) => {
+      if(item.user){
+        addMessage(item.user, 'user');
+      }
+      if (item.bot){
+        addMessage(item.bot, 'bot');
+      }
+    });
+
+    updateChatState(data);
+  } catch(err){
+    console.err('히스토리 로딩 중 에러', err);
+  }
+}
+
+
 // 간편 상담 상태 업데이트 함수
 function updateChatState(data){
   // limit_reached면 입력 막음 (5번째 질문 이후)
@@ -460,11 +703,7 @@ function updateChatState(data){
 
   // 회원가입 유도 
   if (chatLoginBanner){
-    if (data.suggest_login && data.limit_reached){
-      chatLoginBanner.style.display='block';
-    } else{
-      chatLoginBanner.style.display = 'none';
-    }    
+    chatLoginBanner.style.display= data.limit_reached ? 'block' : 'none';
   } 
 }
 
@@ -473,6 +712,8 @@ if(chatGoSignup){
     openSignupModal();
   })
 }
+
+
 
 // 간편 상담 메시지 추가 함수
 function addMessage(text, type) {

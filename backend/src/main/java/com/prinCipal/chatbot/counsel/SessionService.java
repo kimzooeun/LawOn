@@ -450,9 +450,8 @@ public class SessionService {
 //		sessionRepository.save(session);
 //	}
 
-	/**
-	 * Map을 JSON 문자열로 변환
-	 */
+	
+	// Map을 JSON 문자열로 변환 
 	private String convertMapToJsonString(Map<String, Object> data) {
 		try {
 			if (data == null) {

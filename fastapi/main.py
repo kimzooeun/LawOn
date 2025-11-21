@@ -4,19 +4,28 @@ import json
 import uuid
 import redis
 import traceback
-import asyncio
-from typing import Optional
-from openai import OpenAI
-import models_load 
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import uvicorn
-# import whisper # STT 모델 (제거)
-# import shutil # STT 임시파일 (제거)
+import asyncio
+# stt tts 추가 및 튜닝 관련 임포트
+import numpy as np
+import soundfile as sf
+import noisereduce as nr
+# tts 추가
+import aiofiles
+import io
+from typing import List,Optional
+from openai import OpenAI
+from fastapi import FastAPI, HTTPException, UploadFile, File 
+import models_load
+from pydub import AudioSegment               
+from fastapi.responses import StreamingResponse  
+
+from pydantic import BaseModel
 
 # --- 노트북에서 가져온 라이브러리 임포트 ---
 from fastapi.middleware.cors import CORSMiddleware
+
+
 
 frontend_url = os.getenv("FRONTEND_URL")
 origins = [frontend_url]
@@ -87,8 +96,8 @@ async def handle_generate_response(request: QueryRequest):
             asyncio.to_thread(models_load.predict_sentiment, query, all_models['model_A'], all_models['tokenizer_A']),
             # [수정] models_load.predict_context_kobert 로 변경
             asyncio.to_thread(models_load.predict_context_kobert, query, all_models['model_B'], all_models['tokenizer_B']),
-            # [수정] models_load.predict_its 로 변경
-            asyncio.to_thread(models_load.predict_its, query, all_models['model_C_intent'], all_models['model_C_topic'], all_models['model_C_situation']),
+            # [수정] models_load.predict_full로 변경
+            asyncio.to_thread(models_load.predict_full, query, all_models),  # 전체 모델 dict를 통째로 넘김
             # [수정] models_load.search_qa_faiss 로 변경
             asyncio.to_thread(models_load.search_qa_faiss, query, all_models['db_D'], k=3)
         )
@@ -100,8 +109,15 @@ async def handle_generate_response(request: QueryRequest):
         pred_b, conf_b, prob_non_div, prob_div = context_result
         results['context'] = {"prediction": pred_b, "confidence": conf_b, "prob_non_divorce": prob_non_div, "prob_divorce": prob_div}
 
-        pred_i, pred_t, pred_s = its_result
-        results['its_classification'] = {"intent": pred_i, "topic": pred_t, "situation": pred_s}
+        # pred_i, pred_t, pred_s = its_result
+        # results['its_classification'] = {"intent": pred_i, "topic": pred_t, "situation": pred_s}
+
+        its_final = its_result.get("its", {})
+        results['its_classification'] = {
+            "intent": its_final.get("intent"),
+            "topic": its_final.get("topic"),
+            "situation": its_final.get("situation"),
+        }
 
         results['qa_search'] = qa_result
 
@@ -323,7 +339,6 @@ async def simple_chat(request:SimpleChatRequest):
             "count_used":count,
             "limit": LIMIT_SIMPLE,
             "limit_reached":True,
-            "suggest_login":True,
         }
     
     query = request.query
@@ -341,15 +356,17 @@ async def simple_chat(request:SimpleChatRequest):
 
     # [C] 의도/주제/상황 분류 (이혼 질문일 때 활용)
     intent = topic = situation = None
-    if simple_models.get('model_C_intent') and simple_models.get('model_C_topic') and simple_models.get('model_C_situation'):
+    if simple_models.get('model_KOBERT_situation') and simple_models.get('model_KOBERT_intent') and simple_models.get('model_KOBERT_topic'):
         try:
-            # [수정] models_load.predict_its 로 변경
-            intent, topic, situation = models_load.predict_its(query, simple_models['model_C_intent'], simple_models['model_C_topic'],
-                simple_models['model_C_situation']
-            )
+            # [수정] models_load.predict_full 로 변경
+            its_result = models_load.predict_full(query, simple_models)
+            intent = its_result["its"]["intent"]
+            topic = its_result["its"]["topic"]
+            situation = its_result["its"]["situation"]
         except Exception as e :
             print("의도/주제/상황 분류 모델 예측 중 오류 발생 : ", e)
-    
+
+
     # 이혼 여부에 따라 OpenAI 호출 여부 결정
     # context_label == 이혼 + 신뢰도 0.5 이상일때만 llm 사용 
     use_LLM = False
@@ -418,7 +435,6 @@ async def simple_chat(request:SimpleChatRequest):
 
     new_count = data["count"]
     limit_reached = new_count >= LIMIT_SIMPLE
-    suggest_login = limit_reached
 
     return {
         "session_id" : session_id,
@@ -426,7 +442,6 @@ async def simple_chat(request:SimpleChatRequest):
         "count_used": new_count,
         "limit": LIMIT_SIMPLE,
         "limit_reached": limit_reached,
-        "suggest_login": suggest_login,
         "context": {
             "label": context_label,
             "confidence": context_conf,
@@ -438,9 +453,97 @@ async def simple_chat(request:SimpleChatRequest):
         },
     }
 
+# 정민 추가 
+# STT (Whisper) - 음성 → 텍스트
+async def run_stt_memory(audio_file: UploadFile):
+    # 메모리로 읽기
+    raw_data = await audio_file.read()
 
-# 간편 상담의 과거 대화 내역을 불러오는 
-# @app.get("/simple-chat/history")
-# async def get_simple_chat_history(session_id: str):
+    print("파일 이름:", audio_file.filename)
+    print("파일 사이즈:", len(raw_data))
+    # pysub으로 불러오기
+    audio = AudioSegment.from_file(io.BytesIO(raw_data), format="webm")
 
+    wav_buf = io.BytesIO()
+    audio.set_frame_rate(16000).set_channels(1).export(
+        wav_buf, 
+        format="wav"
+    )    
+    wav_buf.seek(0)
 
+    # 2) Whisper 호출
+    transcription = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=("audio.wav", wav_buf, "audio/wav"),
+        response_format="text",
+        language="ko"
+    )
+    return transcription
+
+@app.post("/stt")
+async def stt_endpoint(audio_file: UploadFile = File(...), sensitivity: float = 1.0, noise_reduction: bool = False, auto_gain: bool = False):
+    try:
+        text = await run_stt_memory(audio_file)
+        return {"text": text}
+    except Exception as e:
+        print("STT 오류:", e)
+        return {"error": str(e)}
+
+#  TTS (GPT-4o-mini-tts) - 텍스트 → 음성
+class TTSRequest(BaseModel):
+    text: str
+
+@app.post("/tts")
+async def tts_endpoint(req: TTSRequest):
+    try:
+        speech = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice="alloy",
+            input=req.text
+        )
+
+        audio_bytes = speech.read()
+
+        return StreamingResponse(
+            io.BytesIO(audio_bytes),
+            media_type="audio/mpeg"
+        )
+
+    except Exception as e:
+        print("TTS 오류:", e)
+        return {"error": str(e)}
+
+# voice-chat (음성 전체 파이프라인)
+# STT → generate-response → TTS
+
+@app.post("/voice-chat")
+async def voice_chat(audio_file: UploadFile = File(...)):
+    try:
+        # 1) STT
+        user_text = await run_stt_memory(audio_file)
+        print("🎤 사용자 음성 → 텍스트:", user_text)
+
+        # 2) generate-response 호출 (내부 함수처럼 직접 실행)
+        req = QueryRequest(query=user_text)
+        result = await handle_generate_response(req)
+
+        bot_text = result["chatbotResponse"]["content"]
+        print("🤖 챗봇 답변:", bot_text)
+
+        # 3) TTS
+        speech = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice="alloy",
+            input=bot_text
+        )
+        audio_bytes = speech.read()
+
+        return {
+            "sttText": user_text,
+            "botText": bot_text,
+            "audioHex": audio_bytes.hex()   # 프론트가 재생하려면 base64도 가능
+        }
+
+    except Exception as e:
+        print("voice-chat 오류:", e)
+        return {"error": str(e)}

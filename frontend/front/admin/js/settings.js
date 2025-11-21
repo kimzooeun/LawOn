@@ -1,12 +1,9 @@
 import { TokenManager } from '/src/js/token.js';
 
-
 const ADMIN_API = "/api/admin";
 const SETTINGS_API_BASE = "/admin/settings";
 
-// ======================================================
 // DOM READY
-// ======================================================
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initPasswordChange();
@@ -14,9 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initSystemButtons();
 });
 
-// ======================================================
-// 🔹 탭 버튼
-// ======================================================
+// 탭 버튼
+
 function initTabs() {
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
@@ -37,9 +33,8 @@ function initTabs() {
   tabBtns[0]?.click();
 }
 
-// ======================================================
-// 🔐 비밀번호 변경 기능
-// ======================================================
+// 비밀번호 변경 기능 (수정됨)
+
 function initPasswordChange() {
   const btn = document.getElementById("pwChangeBtn");
   if (!btn) return;
@@ -56,7 +51,7 @@ function initPasswordChange() {
     if (!token) return showToast("인증 오류: 다시 로그인하세요.");
 
     try {
-      const res = await fetch(`${ADMIN_API}/change-password`, {
+      const res = await fetch(`/api/admin/change-password`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -68,13 +63,20 @@ function initPasswordChange() {
         }),
       });
 
-      const data = await res.json();
+      const message = await res.text();
 
       if (!res.ok) {
-        return showToast(data.message || "비밀번호 변경 실패");
+        // 에러 메시지가 있으면 띄워줌 (예: "현재 비밀번호가 일치하지 않습니다.")
+        return showToast(message || "비밀번호 변경 실패");
       }
 
       showToast("비밀번호 변경 완료! 다시 로그인 해주세요.");
+      
+      // 2초 뒤 로그아웃 및 로그인 페이지로 이동
+      setTimeout(() => {
+          TokenManager.clearTokens();
+          window.location.href = "/admin/login.html";
+      }, 2000);
 
     } catch (err) {
       console.error(err);
@@ -83,9 +85,8 @@ function initPasswordChange() {
   });
 }
 
-// ======================================================
-// 🔔 알림 설정
-// ======================================================
+// 알림 설정
+
 function initNotifySettings() {
   document.querySelectorAll("#notify input[type='checkbox']").forEach((chk) => {
     chk.addEventListener("change", async (e) => {
@@ -105,9 +106,7 @@ function initNotifySettings() {
   });
 }
 
-// ======================================================
-// ⚙️ 시스템 버튼
-// ======================================================
+// 시스템 버튼
 function initSystemButtons() {
   const backupBtn = document.getElementById("backupBtn");
   const resetBtn = document.getElementById("resetBtn");
@@ -129,9 +128,7 @@ function initSystemButtons() {
   });
 }
 
-// ======================================================
-// 🔧 서버 Key-Value 설정 저장
-// ======================================================
+// 서버 Key-Value 설정 저장
 async function updateSetting(key, value) {
   try {
     const res = await fetch(
@@ -146,9 +143,7 @@ async function updateSetting(key, value) {
   }
 }
 
-// ======================================================
-// 🍞 토스트 메시지
-// ======================================================
+// 토스트 메시지
 function showToast(msg) {
   let toast = document.getElementById("toast");
 

@@ -2,4 +2,5 @@ package com.prinCipal.chatbot.admin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SystemStatRepository extends JpaRepository<SystemStat, Long> {}
+public interface SystemStatRepository extends JpaRepository<SystemStat, Long> {
+}

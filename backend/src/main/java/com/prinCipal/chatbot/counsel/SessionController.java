@@ -33,7 +33,7 @@ public class SessionController {
 
 	private final SessionService sessionService;
 	private final StringRedisTemplate stringRedisTemplate;
-    private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
 	/**
 	 * 1. 초기 데이터 로드 (GET /api/chats)
@@ -51,10 +51,7 @@ public class SessionController {
 		Map<String, Object> initialData = sessionService.getInitialDataForUser(member);
 		return ResponseEntity.ok(initialData);
 	}
-
-	/**
-	 * 2. 새 세션 생성 (POST /api/sessions)
-	 */
+	 
 	@PostMapping("/sessions")
 	public ResponseEntity<?> createSession(@AuthenticationPrincipal CustomOAuth2User customUser) {
 
@@ -65,14 +62,12 @@ public class SessionController {
 		Member tempMember = customUser.getMember();
 
 		CounsellingSession newSession = sessionService.createSession(tempMember);
-
-		// (참고) 이 DTO가 필요합니다.
 		SessionCreationResponse response = SessionCreationResponse.builder().id(newSession.getSessionId()).title("새 대화")
 				.messages(Collections.emptyList()).build();
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@PostMapping("/chat")
 	public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto,
 	        @AuthenticationPrincipal CustomOAuth2User customUser) {
@@ -81,12 +76,13 @@ public class SessionController {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 	                .body(new ChatResponseDto("로그인이 필요합니다.", null, null));
 	    }
-
+    
 	    // [변경] addMessage -> processChat 호출
 	    // 내부에서 Redis 체크 -> (없으면 FastAPI) -> Async DB 저장 -> 응답 반환 순으로 동작
 	    ChatResponseDto response = sessionService.processChat(requestDto, customUser.getMember());
 
 	    return ResponseEntity.ok(response);
+
 	}
 
 //	/**

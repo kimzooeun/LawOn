@@ -109,6 +109,80 @@ CREATE TABLE crisis_alert (
 );
 
 
+-- 변호사 정보 테이블
+CREATE TABLE lawyers(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(50) NOT NULL,                          -- 변호사 이름
+    gender VARCHAR(10) DEFAULT NULL,                    -- 성별 (M/F/기타 문자열)
+
+    detailSpecialty VARCHAR(200) DEFAULT NULL,          -- 세부 전문 분야
+    description VARCHAR(1000) DEFAULT NULL,             -- 소개/설명
+
+    contact VARCHAR(50) DEFAULT NULL,                   -- 연락처
+    office VARCHAR(100) DEFAULT NULL,                   -- 소속 로펌/사무실명
+    officeLocation VARCHAR(100) DEFAULT NULL,           -- 사무실 위치
+
+    imageUrl VARCHAR(255) DEFAULT NULL                 -- 프로필 이미지 URL
+);
+
+
+-- 시스템 설정 테이블 (SystemSetting 엔티티)
+CREATE TABLE system_settings(
+    id BIGINT AUTO_INCREMENT PRIMARY KEY
+);
+
+
+-- 시스템 통계 테이블(SystemStat 엔티티)
+CREATE TABLE system_status(
+    -- @Id만 있고 @GeneratedValue 없음 → 애플리케이션에서 id 직접 관리 (보통 1 고정)
+    id BIGINT NOT NULL PRIMARY KEY,
+    total_counsel_count BIGINT DEFAULT 0                -- 전체 상담 건수
+);
+
+
+-- 인덱스 구성 
+-- user_id + start time DESC -> 사용자 상담 이력 보기 복합 인덱스로 잡아서 정렬 비용 커버 
+CREATE INDEX idx_session_user_start 
+    ON counselling_session (user_id, start_time DESC);
+
+-- 관리자 대시보드에서, 타임아웃/진행중/완료 필터링하면서 시간 순 정렬 -> 복합 인덱스 최적화 필요 
+CREATE INDEX idx_session_status_start 
+    ON counselling_session (completion_status, start_time DESC);
+
+-- 상담 메시지, 즉 상담 콘텐츠 테이블은 개수가 제일 빨리 쌓이니까 
+CREATE INDEX idx_content_session_created
+    ON counselling_content (session_id, created_at);
+
+-- 키워드 분석 테이블 > 세션별 분석 조회, 메시지별 분석 조회, 위기 탐지
+-- 메시지 -> 분석 1:1 조회에서 절대적으로 사용 
+CREATE INDEX idx_analysis_content
+    ON keyword_analysis (content_id);
+
+-- 세션 전체 분석 조회할 때 사용됨
+CREATE INDEX idx_analysis_session 
+    ON keyword_analysis (session_id);
+
+-- 관리자 페이지에서 키워드 분석 테이블에서의 alert_triggered = TRUE 일때, 확인 할 수도 있음
+CREATE INDEX idx_analysis_alert 
+    ON keyword_analysis (alert_triggered, analysis_time);
+
+-- 위기 알림
+
+CREATE INDEX idx_alert_user_created 
+    ON crisis_alert (user_id, created_at DESC);
+
+CREATE INDEX idx_alert_status_created 
+    ON crisis_alert (alert_status, created_at DESC);
+
+CREATE INDEX idx_alert_severity_created 
+    ON crisis_alert (alert_severity, created_at DESC);
+
+CREATE INDEX idx_alert_session 
+    ON crisis_alert (session_id);
+
+
+
 SET FOREIGN_KEY_CHECKS=1;
 
 -- 1번 테스트 사용자 추가

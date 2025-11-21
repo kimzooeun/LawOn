@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,13 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.security.access.AccessDeniedException;
 
-import com.prinCipal.chatbot.exception.LoginFailedException;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import com.prinCipal.chatbot.security.JwtTokenProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 
@@ -35,13 +33,9 @@ public class MemberApiController {
 	private final MemberService memberService;
 	private final JwtTokenProvider jwtTokenProvider;
 	
-	
-  
-	
-	
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest){
+	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest){
 			this.memberService.registerUser(signUpRequest);
 			return ResponseEntity.ok(Map.of("status", "success", "message", "회원가입 성공"));
 	}

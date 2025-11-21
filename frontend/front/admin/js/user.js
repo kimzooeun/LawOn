@@ -28,22 +28,26 @@ async function loadMembers() {
     }
 
     const members = await res.json();
-
+    
     tbody.innerHTML = "";
-
+    
     members.forEach(m => {
       const tr = document.createElement("tr");
+
+      // 핵심 수정 부분: 변수명(camelCase)과 (snake_case)를 둘 다 확인
+      const createdDate = m.createdAt || m.created_at;
+      const updatedDate = m.updatedAt || m.updated_at;
+      const withdrawDate = m.withdrawDate || m.withdraw_date;
 
       tr.innerHTML = `
         <td>${m.userId}</td>
         <td>${m.nickname || '-'}</td>
-        <td>${m.displayName || '-'}</td>
         <td>${m.role || '-'}</td>
         <td>${m.socialProvider || '-'}</td>
         <td>${m.socialId || '-'}</td>
-        <td>${m.createdAt ? formatDate(m.createdAt) : '-'}</td>
-        <td>${m.updatedAt ? formatDate(m.updatedAt) : '-'}</td>
-        <td>${m.withdrawDate ? formatDate(m.withdrawDate) : '-'}</td>
+        <td>${formatDate(createdDate)}</td>
+        <td>${formatDate(updatedDate)}</td>
+        <td>${formatDate(withdrawDate)}</td>
       `;
 
       tbody.appendChild(tr);
@@ -55,8 +59,30 @@ async function loadMembers() {
   }
 }
 
-function formatDate(dateString) {
-  const d = new Date(dateString);
-  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')} `
-       + `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+// 날짜 포맷팅 헬퍼 함수 (YYYY-MM-DD HH:MM 형식)
+function formatDate(dateInput) {
+  if (!dateInput) return '-';
+
+  let date;
+
+  // 1. 만약 배열로 들어오면 ([2025, 11, 18, 21, 30]) Date 객체로 변환
+  if (Array.isArray(dateInput)) {
+    const [y, M, d, h, m, s] = dateInput;
+    date = new Date(y, M - 1, d, h || 0, m || 0, s || 0);
+  } else {
+    // 2. 문자열이나 일반 Date 객체일 때
+    date = new Date(dateInput);
+  }
+  
+  // 날짜 변환 실패 시 (NaN 방지)
+  if (isNaN(date.getTime())) return '-';
+
+  // YYYY-MM-DD HH:MM 형식으로 직접 조합
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hour}:${minute}`;
 }

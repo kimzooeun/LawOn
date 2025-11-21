@@ -22,4 +22,7 @@ COPY ./models_load.py .
 
 # 6. 서버 실행 (Konlpy를 위해 JAVA_HOME 설정 유지)
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
+
+# 7. mp3, m4a, ogg 같은 파일 받을 때 내부적으로 ffmpeg 사용
+RUN apt-get update && apt-get install -y ffmpeg
