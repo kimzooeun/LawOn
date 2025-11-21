@@ -43,7 +43,7 @@ export function startPolling() {
       await loadInitialData();
       // renderChat은 loadInitialData 안에서 호출됨
     }
-  }, 5000);
+  }, 10000);
 }
 
 // [추가] 폴링 중지 (페이지 이동 시 등)
@@ -103,6 +103,12 @@ export async function addMessage(role, text) {
   const sess = current();
   if (!sess) return;
 
+  // [수정 1] 메시지 전송 시작 시 폴링 중단 (화면 깜빡임 방지)
+  stopPolling();
+
+  // [수정 1] 전송 상태 잠금 시작 (이게 켜져 있으면 loadInitialData가 데이터를 덮어쓰지 않음)
+  state.isSending = true;
+
   const messageData = { role, text, at: Date.now() };
   sess.messages.push(messageData);
 
@@ -116,7 +122,8 @@ export async function addMessage(role, text) {
     if (!currentUserId) {
       sess.messages.pop();
       renderChat();
-      redirectToLogin(); // chat.js 내부에 선언된 함수라고 가정
+      redirectToLogin();
+      startPolling(); // [수정] 로그인 이동 전 폴링 재개
       return;
     }
 
@@ -165,13 +172,20 @@ export async function addMessage(role, text) {
       renderChat();
       archiveCurrent();
     } catch (err) {
-      // 에러 발생 시에도 로딩바 제거
       if (loadingEl && loadingEl.parentNode) {
         loadingEl.parentNode.removeChild(loadingEl);
       }
       console.error("메시지 저장/봇 응답 실패:", err);
       showToast("메시지 전송 실패", "error");
+    } finally {
+      // [수정 2] 처리가 끝나면(성공하든 실패하든) 잠금 해제 및 폴링 재개
+      state.isSending = false;
+      startPolling();
     }
+  } else {
+    // user가 아닌 경우
+    state.isSending = false; // 혹시 모르니 해제
+    startPolling();
   }
 }
 

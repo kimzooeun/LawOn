@@ -25,43 +25,64 @@ export function applySidebarCollapsed(collapsed) {
 
 // == 비어있는 스토어 ==
 export function createEmptyStore() {
-  return { recents: [], sessions: {}, currentId: null };
+  return { recents: [], sessions: {}, currentId: null, isSending: false }; // 👈 isSending 추가
 }
 
 // ---- 스토리지 로드/저장 ----
 export let state = createEmptyStore(); // 일단 빈 상태로 시작
 
 export async function loadInitialData() {
+  // [수정 1] 전송 중이면 아예 시작도 하지 않음
+  if (state.isSending) return;
+
   try {
-    // 1. [중요] 데이터를 갱신하기 전에, 사용자가 현재 보고 있던 방 ID를 기억해둡니다.
-    //    - 새로고침 직후: null
-    //    - 채팅 중: "session_123" 등
+    // 1. 사용자가 현재 보고 있던 방 ID 기억
     const viewingId = state.currentId;
 
     const dataFromServer = await getInitialData();
 
-    // 2. 서버 데이터를 state에 병합합니다.
-    //    (이때 서버가 준 최신 currentId가 state에 덮어씌워질 수 있습니다.)
+    // [수정 2] 데이터를 받아왔더라도, 그 사이에 전송이 시작됐다면 덮어쓰기 금지 (핵심!)
+    if (state.isSending) return;
+
+    // [수정 핵심] 서버 DB 지연으로 인해, 현재 보고 있는 방(viewingId)이
+    // dataFromServer.sessions 목록에 없을 수 있습니다.
+    // 이 경우 로컬에 있는 세션 데이터를 보존해서 빈 화면이 되는 것을 막습니다.
+    if (viewingId && state.sessions[viewingId]) {
+      // 서버에서 온 데이터에 내 방이 없으면?
+      if (!dataFromServer.sessions[viewingId]) {
+        // 방금 만든 세션이라 서버에 아직 반영 안 된 것으로 간주하고 로컬 데이터 끼워넣기
+        dataFromServer.sessions[viewingId] = state.sessions[viewingId];
+
+        // 만약 recents(최근 목록)에도 없다면 끼워넣기 (선택 사항)
+        const inRecents = dataFromServer.recents.find(
+          (r) => r.id === viewingId
+        );
+        if (!inRecents) {
+          dataFromServer.recents.unshift({
+            id: viewingId,
+            title: state.sessions[viewingId].title || "새 대화",
+            updatedAt: Date.now(),
+          });
+        }
+      }
+    }
+
+    // 2. 서버 데이터를 state에 병합
     Object.assign(state, dataFromServer);
 
-    // 3. [핵심 로직] 화면 유지 vs 빈 화면 결정
+    // 3. 화면 유지 vs 빈 화면 결정
     if (viewingId && state.sessions[viewingId]) {
-      // 상황 A: 사용자가 채팅방을 보고 있었고(viewingId 존재),
-      //         서버에서 받아온 최신 목록에도 그 방이 존재함(state.sessions에 있음).
-      // 결론: 폴링 중이므로 보던 화면을 그대로 유지합니다.
       state.currentId = viewingId;
     } else {
-      // 상황 B: 새로고침 했거나(viewingId가 null),
-      //         보고 있던 방이 서버에서 삭제됨.
-      // 결론: 빈 화면(null)으로 설정합니다.
       state.currentId = null;
     }
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);
   } finally {
-    // 4. UI 렌더링
-    // 주의: 여기에 'state.currentId = null' 같은 코드가 절대 있으면 안 됩니다.
-    renderChat();
+    // [수정 3] 전송 중이 아닐 때만 렌더링 (선택 사항이나 안전을 위해)
+    if (!state.isSending) {
+      renderChat();
+    }
   }
 }
 
