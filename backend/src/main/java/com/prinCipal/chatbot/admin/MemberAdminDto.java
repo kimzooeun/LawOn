@@ -10,27 +10,18 @@ import com.prinCipal.chatbot.member.Member;
 @AllArgsConstructor
 public class MemberAdminDto {
 
-    private Long userId;
-    private String nickname;
-    private String displayName;
-    private String role;
-    private String socialProvider;
-    private String socialId;
-    private String profileImageUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+	private Long userId;
+	private String nickname;
+	private String displayName;
+	private String role;
+	private String socialProvider;
+	private String socialId;
+	private String profileImageUrl;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 
-    public static MemberAdminDto from(Member m) {
-        return new MemberAdminDto(
-            m.getUserId(),
-            m.getNickname(),
-            m.getDisplayName(),
-            m.getRole().name(),
-            m.getSocialProvider(),
-            m.getSocialId(),
-            m.getProfileImageUrl(),
-            m.getCreatedAt(),
-            m.getUpdatedAt()
-        );
-    }
+	public static MemberAdminDto from(Member m) {
+		return new MemberAdminDto(m.getUserId(), m.getNickname(), m.getDisplayName(), m.getRole().name(),
+				m.getSocialProvider(), m.getSocialId(), m.getProfileImageUrl(), m.getCreatedAt(), m.getUpdatedAt());
+	}
 }

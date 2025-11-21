@@ -1,7 +1,5 @@
-// ===================================
 // 3. Whisper STT
 // (음성 녹음, 서버 전송, 텍스트 변환)
-// ===================================
 
 import { showToast, STT_ENDPOINT } from "./utils.js";
 
@@ -71,7 +69,7 @@ async function startRecording() {
         const blob = new Blob(audioChunks, { type: mime });
 
         const fd = new FormData();
-        fd.append("file", blob, `speech.${ext}`);
+        fd.append("audio_file", blob, `speech.webm`);
 
         showToast("🎧 음성 인식 중...", "info", 3000);
 

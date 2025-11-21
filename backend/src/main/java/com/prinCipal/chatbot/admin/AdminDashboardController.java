@@ -13,15 +13,15 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 public class AdminDashboardController {
 
-    private final AdminDashboardService adminDashboardService;
+	private final AdminDashboardService adminDashboardService;
 
-   @GetMapping("/summary")
-    public ResponseEntity<Map<String, Long>> getSummary() {
-        return ResponseEntity.ok(adminDashboardService.getDashboardSummary());
-    }
-   
-   @GetMapping("/logs")
-   public ResponseEntity<List<CounselLogDto>> getLogs() {
-       return ResponseEntity.ok(adminDashboardService.getRecentLogs());
-   }
+	@GetMapping("/summary")
+	public ResponseEntity<Map<String, Long>> getSummary() {
+		return ResponseEntity.ok(adminDashboardService.getDashboardSummary());
+	}
+
+	@GetMapping("/logs")
+	public ResponseEntity<List<CounselLogDto>> getLogs() {
+		return ResponseEntity.ok(adminDashboardService.getRecentLogs());
+	}
 }
