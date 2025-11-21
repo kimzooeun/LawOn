@@ -4,8 +4,10 @@ FROM python:3.11-slim
 # 2. 시스템 의존성 설치 (Java for Konlpy)
 # 'openjdk-17-jdk-headless' 대신 'default-jdk-headless'를 사용하여 호환성 문제 해결
 RUN apt-get update && \
-    apt-get install -y default-jdk-headless curl && \
-    apt-get clean && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg \
+        curl \
+    && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # 3. 작업 디렉토리 설정
@@ -20,9 +22,7 @@ COPY ./main.py .
 COPY ./models /app/models
 COPY ./models_load.py .
 
-# 6. 서버 실행 (Konlpy를 위해 JAVA_HOME 설정 유지)
+# 6. 서버 실행
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
 
-# 7. mp3, m4a, ogg 같은 파일 받을 때 내부적으로 ffmpeg 사용
-RUN apt-get update && apt-get install -y ffmpeg

@@ -125,14 +125,14 @@ CREATE TABLE lawyers(
     name VARCHAR(50) NOT NULL,                          -- 변호사 이름
     gender VARCHAR(10) DEFAULT NULL,                    -- 성별 (M/F/기타 문자열)
 
-    detailSpecialty VARCHAR(200) DEFAULT NULL,          -- 세부 전문 분야
+    detail_specialty VARCHAR(200) DEFAULT NULL,          -- 세부 전문 분야
     description VARCHAR(1000) DEFAULT NULL,             -- 소개/설명
 
     contact VARCHAR(50) DEFAULT NULL,                   -- 연락처
     office VARCHAR(100) DEFAULT NULL,                   -- 소속 로펌/사무실명
-    officeLocation VARCHAR(100) DEFAULT NULL,           -- 사무실 위치
+    office_location VARCHAR(100) DEFAULT NULL,           -- 사무실 위치
 
-    imageUrl VARCHAR(255) DEFAULT NULL                 -- 프로필 이미지 URL
+    image_url VARCHAR(255) DEFAULT NULL                 -- 프로필 이미지 URL
 );
 
 
