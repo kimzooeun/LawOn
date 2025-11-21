@@ -37,6 +37,5 @@ httpx==0.27.2
 # 감도 튜닝 - 정민 추가
 pydub
 noisereduce
-numpy
 soundfile
 aiofiles
