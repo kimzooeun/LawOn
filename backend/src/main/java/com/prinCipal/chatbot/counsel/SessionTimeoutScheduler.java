@@ -56,17 +56,18 @@ public class SessionTimeoutScheduler {
 //        }
 //    }
     
- // 5초마다 실행 (테스트용)
-    @Scheduled(fixedRate = 5000)
+    // 30초마다
+    @Scheduled(fixedRate = 30000)
     @Transactional // 전체 작업에 트랜잭션 유지 (데이터 정합성)
     public void checkSessionTimeouts() {
         LocalDateTime now = LocalDateTime.now();
         
-        // [테스트 설정]
-        // 1. 경고 기준: 마지막 대화로부터 10초 지남
-        LocalDateTime warningTime = now.minusSeconds(10); 
-        // 2. 종료 기준: 마지막 대화로부터 20초 지남 (경고 후 10초 더 지남)
-        LocalDateTime terminationTime = now.minusSeconds(20); 
+        // [시간 설정 변경]
+        // 1. 경고 기준: 마지막 대화로부터 1분 지남
+        LocalDateTime warningTime = now.minusMinutes(1); 
+        
+        // 2. 종료 기준: 마지막 대화로부터 3분 지남 (경고 후 2분 더 지남)
+        LocalDateTime terminationTime = now.minusMinutes(3); 
 
         // 이번 턴에 처리된 세션 ID 저장 (중복 처리 방지)
         Set<Long> processedSessionIds = new HashSet<>();
@@ -75,7 +76,6 @@ public class SessionTimeoutScheduler {
         // 1. [경고 단계]
         // ==========================================
         try {
-            // Enum 파라미터로 전달
             List<CounsellingSession> warningTargets = sessionRepository.findSessionsForWarning(
                     CompletionStatus.ONGOING, warningTime);
             
@@ -87,7 +87,7 @@ public class SessionTimeoutScheduler {
                     sessionRepository.save(session);
                     
                     processedSessionIds.add(session.getSessionId());
-                    logger.info("⚠️ 세션 ID {} : 경고 발송 완료", session.getSessionId());
+                    logger.info("⚠️ 세션 ID {} : 1분 경과 경고 발송 완료", session.getSessionId());
                 } catch (Exception e) {
                     logger.error("세션 ID {} 경고 처리 중 오류: {}", session.getSessionId(), e.getMessage());
                 }
@@ -116,7 +116,7 @@ public class SessionTimeoutScheduler {
                     session.updateendTime(now);
                     sessionRepository.save(session);
                     
-                    logger.info("🛑 세션 ID {} : 타임아웃 자동 종료 완료", session.getSessionId());
+                    logger.info("🛑 세션 ID {} : 3분 경과 타임아웃 자동 종료 완료", session.getSessionId());
                 } catch (Exception e) {
                     logger.error("세션 ID {} 종료 처리 중 오류: {}", session.getSessionId(), e.getMessage());
                 }
