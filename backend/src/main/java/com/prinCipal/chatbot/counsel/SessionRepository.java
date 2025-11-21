@@ -28,13 +28,12 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
 
 	Collection<CounselLogDto> findTop20ByOrderByStartTimeDesc();
 	
-	// 1. 경고 대상 조회 (Enum 경로 명시)
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = com.prinCipal.chatbot.counsel.CompletionStatus.ONGOING AND s.warningSent = false AND s.lastMessageTime <= :time")
-    List<CounsellingSession> findSessionsForWarning(@Param("time") LocalDateTime time);
+	// 1. 경고 대상 조회
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = :status AND s.warningSent = false AND s.lastMessageTime <= :time")
+    List<CounsellingSession> findSessionsForWarning(@Param("status") CompletionStatus status, @Param("time") LocalDateTime time);
 
-    // 2. 타임아웃 대상 조회 (수정 권장)
-    // 경고 메시지를 받은 적이 있는(warningSent = true) 세션만 종료 대상으로 선정
-    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = com.prinCipal.chatbot.counsel.CompletionStatus.ONGOING AND s.warningSent = true AND s.lastMessageTime <= :time")
-    List<CounsellingSession> findSessionsForTimeout(@Param("time") LocalDateTime time);
+    // 2. 타임아웃 대상 조회
+    @Query("SELECT s FROM CounsellingSession s WHERE s.completionStatus = :status AND s.warningSent = true AND s.lastMessageTime <= :time")
+    List<CounsellingSession> findSessionsForTimeout(@Param("status") CompletionStatus status, @Param("time") LocalDateTime time);
     
 }

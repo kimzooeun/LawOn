@@ -56,60 +56,73 @@ public class SessionTimeoutScheduler {
 //        }
 //    }
     
- // 👉 [수정] 5초마다 실행 (빠른 감지 위해)
- // 5초마다 실행
-    @Scheduled(fixedRate = 5000) 
-    @Transactional
+ // 5초마다 실행 (테스트용)
+    @Scheduled(fixedRate = 5000)
+    @Transactional // 전체 작업에 트랜잭션 유지 (데이터 정합성)
     public void checkSessionTimeouts() {
         LocalDateTime now = LocalDateTime.now();
         
-        // 테스트용 설정
+        // [테스트 설정]
+        // 1. 경고 기준: 마지막 대화로부터 10초 지남
         LocalDateTime warningTime = now.minusSeconds(10); 
+        // 2. 종료 기준: 마지막 대화로부터 20초 지남 (경고 후 10초 더 지남)
         LocalDateTime terminationTime = now.minusSeconds(20); 
 
-        // [핵심 수정 1] 이번 실행 회차에서 처리된 세션 ID를 담을 그릇
-        // 경고를 보낸 세션을 바로 종료시키지 않기 위함
+        // 이번 턴에 처리된 세션 ID 저장 (중복 처리 방지)
         Set<Long> processedSessionIds = new HashSet<>();
 
         // ==========================================
         // 1. [경고 단계]
         // ==========================================
-        List<CounsellingSession> warningTargets = sessionRepository.findSessionsForWarning(warningTime);
-        
-        if (!warningTargets.isEmpty()) {
-            logger.info("🔍 경고 대상 세션 {}개 발견", warningTargets.size());
-        }
-
-        for (CounsellingSession session : warningTargets) {
-            saveSystemMessage(session, "5분 뒤 상담이 자동으로 종료됩니다. 상담을 종료하시려면 “상담 종료”를 눌러주세요.");
+        try {
+            // Enum 파라미터로 전달
+            List<CounsellingSession> warningTargets = sessionRepository.findSessionsForWarning(
+                    CompletionStatus.ONGOING, warningTime);
             
-            session.updateWarningSent(true);
-            sessionRepository.save(session);
-            
-            // [핵심 수정 2] 처리 명단에 등록
-            processedSessionIds.add(session.getSessionId());
-            
-            logger.info("⚠️ 세션 ID {} : 5분 경고 발송 완료", session.getSessionId());
+            for (CounsellingSession session : warningTargets) {
+                try {
+                    saveSystemMessage(session, "5분 뒤 상담이 자동으로 종료됩니다. 상담을 종료하시려면 “상담 종료”를 눌러주세요.");
+                    
+                    session.updateWarningSent(true);
+                    sessionRepository.save(session);
+                    
+                    processedSessionIds.add(session.getSessionId());
+                    logger.info("⚠️ 세션 ID {} : 경고 발송 완료", session.getSessionId());
+                } catch (Exception e) {
+                    logger.error("세션 ID {} 경고 처리 중 오류: {}", session.getSessionId(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("경고 대상 조회 중 오류 발생", e);
         }
 
         // ==========================================
         // 2. [종료 단계]
         // ==========================================
-        List<CounsellingSession> timeoutTargets = sessionRepository.findSessionsForTimeout(terminationTime);
+        try {
+            List<CounsellingSession> timeoutTargets = sessionRepository.findSessionsForTimeout(
+                    CompletionStatus.ONGOING, terminationTime);
 
-        for (CounsellingSession session : timeoutTargets) {
-            // [핵심 수정 3] 방금 경고를 보낸 세션이라면 이번 턴에서는 종료 패스 (다음 5초 뒤에 처리)
-            if (processedSessionIds.contains(session.getSessionId())) {
-                continue;
+            for (CounsellingSession session : timeoutTargets) {
+                try {
+                    // 방금 경고를 보낸 세션이면 이번 턴 종료 패스
+                    if (processedSessionIds.contains(session.getSessionId())) {
+                        continue;
+                    }
+
+                    saveSystemMessage(session, "상담이 종료되었습니다. 이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
+                    
+                    session.updateStatus(CompletionStatus.TIMEOUT);
+                    session.updateendTime(now);
+                    sessionRepository.save(session);
+                    
+                    logger.info("🛑 세션 ID {} : 타임아웃 자동 종료 완료", session.getSessionId());
+                } catch (Exception e) {
+                    logger.error("세션 ID {} 종료 처리 중 오류: {}", session.getSessionId(), e.getMessage());
+                }
             }
-
-            saveSystemMessage(session, "상담이 종료되었습니다. 이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
-            
-            session.updateStatus(CompletionStatus.TIMEOUT);
-            session.updateendTime(now);
-            sessionRepository.save(session);
-            
-            logger.info("🛑 세션 ID {} : 타임아웃 자동 종료 처리 완료", session.getSessionId());
+        } catch (Exception e) {
+            logger.error("종료 대상 조회 중 오류 발생", e);
         }
     }
 
@@ -117,9 +130,10 @@ public class SessionTimeoutScheduler {
     private void saveSystemMessage(CounsellingSession session, String text) {
         CounsellingContent systemMsg = CounsellingContent.builder()
                 .session(session)
-                .sender(Sender.CHATBOT) // 챗봇이 말한 것으로 처리
+                .sender(Sender.CHATBOT)
                 .content(text)
                 .build();
         contentRepository.save(systemMsg);
     }
+
 }
