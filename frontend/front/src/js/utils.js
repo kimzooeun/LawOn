@@ -23,31 +23,64 @@ export function applySidebarCollapsed(collapsed) {
 
 // == 비어있는 스토어 ==
 export function createEmptyStore() {
-  return { recents: [], sessions: {}, currentId: null };
+  return { recents: [], sessions: {}, currentId: null, isSending: false }; // 👈 isSending 추가
 }
 
 // ---- 스토리지 로드/저장 ----
 export let state = createEmptyStore(); // 일단 빈 상태로 시작
 
 export async function loadInitialData() {
+  // [수정 1] 전송 중이면 아예 시작도 하지 않음
+  if (state.isSending) return;
+
   try {
-    const dataFromServer = await getInitialData(); // 1. API 호출
+    // 1. 사용자가 현재 보고 있던 방 ID 기억
+    const viewingId = state.currentId;
 
-    console.log("[Debug] 서버로부터 받은 초기 데이터:", dataFromServer);
+    const dataFromServer = await getInitialData();
 
-    Object.assign(state, dataFromServer); // 2. 전역 state에 덮어쓰기
+    // [수정 2] 데이터를 받아왔더라도, 그 사이에 전송이 시작됐다면 덮어쓰기 금지 (핵심!)
+    if (state.isSending) return;
+
+    // [수정 핵심] 서버 DB 지연으로 인해, 현재 보고 있는 방(viewingId)이
+    // dataFromServer.sessions 목록에 없을 수 있습니다.
+    // 이 경우 로컬에 있는 세션 데이터를 보존해서 빈 화면이 되는 것을 막습니다.
+    if (viewingId && state.sessions[viewingId]) {
+      // 서버에서 온 데이터에 내 방이 없으면?
+      if (!dataFromServer.sessions[viewingId]) {
+        // 방금 만든 세션이라 서버에 아직 반영 안 된 것으로 간주하고 로컬 데이터 끼워넣기
+        dataFromServer.sessions[viewingId] = state.sessions[viewingId];
+
+        // 만약 recents(최근 목록)에도 없다면 끼워넣기 (선택 사항)
+        const inRecents = dataFromServer.recents.find(
+          (r) => r.id === viewingId
+        );
+        if (!inRecents) {
+          dataFromServer.recents.unshift({
+            id: viewingId,
+            title: state.sessions[viewingId].title || "새 대화",
+            updatedAt: Date.now(),
+          });
+        }
+      }
+    }
+
+    // 2. 서버 데이터를 state에 병합
+    Object.assign(state, dataFromServer);
+
+    // 3. 화면 유지 vs 빈 화면 결정
+    if (viewingId && state.sessions[viewingId]) {
+      state.currentId = viewingId;
+    } else {
+      state.currentId = null;
+    }
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);
-    showToast("데이터 로드에 실패했습니다.", "error");
-    // 실패 시 로컬스토리지 (선택적)
-    // const localData = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-    // if (localData) Object.assign(state, localData);
   } finally {
-    // 3. 데이터 로드가 완료된 후 채팅방 렌더링
-    if (!state.currentId && state.recents.length > 0) {
-      state.currentId = state.recents[0].id;
+    // [수정 3] 전송 중이 아닐 때만 렌더링 (선택 사항이나 안전을 위해)
+    if (!state.isSending) {
+      renderChat();
     }
-    renderChat(); // init.js에서 호출하던 것을 여기로 이동
   }
 }
 
