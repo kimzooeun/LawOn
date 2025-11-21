@@ -11,22 +11,20 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.ArrayList;
 
-
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminLogController {
 
 	private final CounselService counselService;
-	
+
 	@GetMapping("/logs")
-    public ResponseEntity<java.util.List<CounselLogDto>> getCounselLogs(
-    		@RequestParam(required = false) String username,
-            @RequestParam(required = false) String status
-    		
-    		) {
-		java.util.List<CounselLogDto> logs = counselService.findAllAdminLogs(username, status); 
-        
-        return ResponseEntity.ok(logs);
-    }
+	public ResponseEntity<java.util.List<CounselLogDto>> getCounselLogs(@RequestParam(required = false) String username,
+			@RequestParam(required = false) String status
+
+	) {
+		java.util.List<CounselLogDto> logs = counselService.findAllAdminLogs(username, status);
+
+		return ResponseEntity.ok(logs);
+	}
 }

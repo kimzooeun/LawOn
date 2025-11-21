@@ -1,10 +1,6 @@
-/* =======================================
-   토닥토닥이 어드민 - 공통 전역 스타일 (admin.css)
-   ======================================= */
+/* admin.css */
 
-/* -------------------------------
-   1. 기본 변수 및 색상 팔레트
--------------------------------- */
+/* -- 1. 기본 변수 및 색상 팔레트 -- */
 :root {
   --primary-color: #ff4da0;        /* 메인 포인트 핑크 */
   --primary-hover: #e74393;
@@ -20,9 +16,7 @@
   --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* -------------------------------
-   2. 기본 세팅
--------------------------------- */
+/* -- 2. 기본 세팅 -- */
 html, body {
   font-family: 'Noto Sans KR', sans-serif;
   background-color: var(--bg-color);
@@ -62,9 +56,7 @@ button {
   transition: 0.2s;
 }
 
-/* -------------------------------
-   3. 헤더 (모든 페이지 공통)
--------------------------------- */
+/* -- False 헤더 (모든 페이지 공통) -- */
 .admin-header {
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
@@ -121,9 +113,7 @@ button {
   background-color: var(--primary-hover);
 }
 
-/* -------------------------------
-   4. 메인 공통 레이아웃
--------------------------------- */
+/* -- 4. 메인 공통 레이아웃 -- */
 .dashboard {
   max-width: 1200px;
   margin: 40px auto;
@@ -148,9 +138,7 @@ section h2 {
   padding: 20px;
 }
 
-/* -------------------------------
-   5. 입력폼 / 인풋
--------------------------------- */
+/* -- 5. 입력폼 / 인풋 -- */
 input[type="text"],
 input[type="password"],
 input[type="email"],
@@ -194,9 +182,7 @@ input:focus, select:focus {
   background-color: #d93c3c;
 }
 
-/* -------------------------------
-   6. 테이블 기본 구조
--------------------------------- */
+/* -- 6. 테이블 기본 구조 -- */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -222,9 +208,7 @@ tr:hover {
   background-color: #fff6fb;
 }
 
-/* -------------------------------
-   7. 공통 버튼 그룹
--------------------------------- */
+/* -- 7. 공통 버튼 그룹 -- */
 .btn-action {
   border: none;
   border-radius: 6px;
@@ -240,9 +224,7 @@ tr:hover {
 .btn-action.delete { background-color: #ff4d4d; }
 .btn-action:hover { opacity: 0.9; }
 
-/* -------------------------------
-   8. 카드 / 섹션 공통
--------------------------------- */
+/* -- 카드 / 섹션 공통 -- */
 .card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -250,9 +232,6 @@ tr:hover {
   padding: 20px;
 }
 
-/* -------------------------------
-   9. 푸터
--------------------------------- */
 .admin-footer {
   text-align: center;
   color: #777;
@@ -260,9 +239,7 @@ tr:hover {
   margin: 60px 0 20px;
 }
 
-/* -------------------------------
-   10. 반응형
--------------------------------- */
+/* -- 10. 반응형 -- */
 @media (max-width: 768px) {
   .admin-header {
     flex-direction: column;

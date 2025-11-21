@@ -11,15 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadCounselLogs();
 
-  // ▼▼▼ [추가] 검색 이벤트 리스너 등록 ▼▼▼
+  // 검색 이벤트 리스너 등록
     document.getElementById("searchBtn").addEventListener("click", () => {
         loadCounselLogs(true); // 검색 버튼 클릭 시 true 전달
     });
 });
 
-// -------------------------------
 // 상담 로그 목록 로딩 (검색 조건 추가)
-// -------------------------------
 // isSearch: 검색 버튼 클릭 여부 (새로운 쿼리를 보낼 때 사용)
 async function loadCounselLogs(isSearch = false) { 
     const token = TokenManager.getAccessToken();
@@ -48,23 +46,21 @@ async function loadCounselLogs(isSearch = false) {
 
     try {
         const res = await fetch(url, {
-            // ... (기존 fetch 설정 유지) ...
+            // (기존 fetch 설정 유지)
         });
 
-        // ... (기존 에러 처리 로직 유지) ...
+        // (기존 에러 처리 로직 유지)
         
         const logs = await res.json();
         renderLogs(logs);
 
     } catch (err) {
         console.error("상담 로그 로딩 오류:", err);
-        // ... (오류 메시지 처리 유지) ...
+        // (오류 메시지 처리 유지)
     }
 }
 
-// -------------------------------
 // 상담 로그 UI 렌더링
-// -------------------------------
 function renderLogs(logs) {
   const table = document.getElementById("logsTableBody");
   

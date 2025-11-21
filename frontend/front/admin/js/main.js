@@ -2,11 +2,8 @@ import { TokenManager } from '/src/js/token.js';
 
 const DASHBOARD_API = "/api/admin/dashboard";
 
-// ===============================
-// 🔥 1. 페이지 초기화 및 네비게이션
-// ===============================
+// 1. 페이지 초기화 및 네비게이션
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ main.js 로드됨");
 
   // 1) 토큰 체크
   const token = TokenManager.getAccessToken();
@@ -61,7 +58,6 @@ function setupNavigation() {
 }
 
 function initializeMainPage() {
-  console.log("🚀 관리자 메인 페이지 데이터 로딩 시작...");
   loadDashboardSummary();
   loadDashboardLogs();
 }
@@ -79,9 +75,8 @@ async function safeJson(res) {
   }
 }
 
-// ===============================
-// 📊 2. 상단 요약 데이터 로딩
-// ===============================
+
+// 2. 상단 요약 데이터 로딩
 async function loadDashboardSummary() {
   const token = TokenManager.getAccessToken();
 
@@ -102,8 +97,6 @@ async function loadDashboardSummary() {
       console.error("요약 데이터 파싱 오류");
       return;
     }
-    
-    console.log("📊 요약 데이터 수신:", data);
     applySummaryData(data);
 
   } catch (err) {
@@ -128,9 +121,8 @@ function applySummaryData(data) {
   if (lawEl) lawEl.textContent = data.totalLawyers ?? "-";
 }
 
-// ======================================================
-// 📋 3. 최근 상담 로그 로드 (핵심 수정 부분)
-// ======================================================
+
+// 3. 최근 상담 로그 로드 (핵심 수정 부분)
 async function loadDashboardLogs() {
   const tbody = document.getElementById("logTableBody");
   
@@ -160,13 +152,11 @@ async function loadDashboardLogs() {
 
     // 2. 데이터 받기
     const logs = await res.json();
-    console.log("📋 로그 데이터 수신:", logs);
 
     // 3. 화면에 뿌리기
     applyLogData(logs, tbody);
 
   } catch (err) {
-    console.error("❌ 로그 로드 에러:", err);
     tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>데이터를 불러올 수 없습니다.<br>(콘솔 확인 필요)</td></tr>";
   }
 }
@@ -186,7 +176,7 @@ function applyLogData(logs, tbody) {
     const statusLabel = log.status === 'ONGOING' ? '진행중' : '종료';
     const statusClass = log.status === 'ONGOING' ? 'status-ongoing' : 'status-completed';
 
-    // 🚨 HTML 헤더(사용자, 시작시간, 종료시간, 상태)에 맞춰 4개 컬럼만 생성
+    // HTML 헤더(사용자, 시작시간, 종료시간, 상태)에 맞춰 4개 컬럼만 생성
     tr.innerHTML = `
       <td>${log.nickname || "(알수없음)"}</td>
       <td>${log.startTime}</td>

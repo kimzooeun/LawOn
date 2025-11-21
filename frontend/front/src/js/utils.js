@@ -1,13 +1,11 @@
-// ===================================
 // 1. 상태 & 유틸
 // (전역 변수, 스토리지, 모달, 토스트, 닉네임)
-// ===================================
 
 import { getInitialData } from "./api.js";
 import { renderChat } from "./chat.js";
 
 export const STORE_KEY = "todak_chats_v1";
-export const STT_ENDPOINT = "/stt";
+export const STT_ENDPOINT = `${import.meta.env.VITE_FASTAPI_URL}/stt`;
 export const AUTO_SEND_STT = true;
 
 // 간단한 쿼리 셀렉터 유틸

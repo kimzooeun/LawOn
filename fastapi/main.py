@@ -15,7 +15,7 @@ import io
 from typing import List,Optional
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, UploadFile, File 
-from models_load import (predict_sentiment, predict_context_kobert,predict_its,search_qa_faiss,search_legal_csv, load_simple_models, load_all_models) 
+import models_load
 from pydub import AudioSegment               
 from fastapi.responses import StreamingResponse  
                                        
@@ -443,80 +443,35 @@ async def simple_chat(request:SimpleChatRequest):
 
 # 정민 추가 
 # STT (Whisper) - 음성 → 텍스트
-# 감도 튜닝 추가 - AGC(Audio Gain Control) 추가 + 노이즈 제거
-# 위스퍼 자체에 자동 감도조절, 노이즈 제거 기능이 없기 때문에 성능을 높이기 위해
-def apply_agc(audio: AudioSegment, target_rms_db: float = -20.0):
-    """
-    target_rms_db: 목표 RMS(dB) (기본: -20dB 정도가 Whisper에 최적) 
-    """
-    # 현재 RM(소리 크기) 계산
-    rms = audio.rms
-    if rms == 0:
-        return audio
-    current_rms_db = 20 * np.log10(rms)
-
-    # 필요한 gain 계산
-    gain_db = target_rms_db - current_rms_db
-
-    # gain 적용
-    return audio.apply_gain(gain_db)
-
-async def run_stt_memory(audio_file: UploadFile, sensitivity: float = 1.5, noise_reduction: bool = True, auto_gain: bool = True):
-    """
-    sensitive : 감도(볼륨) 조정
-    1.0 = 기본
-    1.5 = 50% 증가
-    2.0 = 2배 확대
-
-    noise_reduction: True = 주변 소음 감소
-    """
+async def run_stt_memory(audio_file: UploadFile):
     # 메모리로 읽기
     raw_data = await audio_file.read()
 
-    
-
+    print("파일 이름:", audio_file.filename)
+    print("파일 사이즈:", len(raw_data))
     # pysub으로 불러오기
-    audio = AudioSegment.from_file(io.BytesIO(raw_data))
+    audio = AudioSegment.from_file(io.BytesIO(raw_data), format="webm")
 
-    # AGC 자동 감도 조절
-    if auto_gain:
-        audio = apply_agc(audio)
-    
-    # 추가 감도 튜닝
-    if sensitivity != 1.0:
-        audio = audio.apply_gain(10 * np.log10(sensitivity))
-
-    # 노이즈 제거
-    if noise_reduction:
-        samples = np.array(audio.get_array_of_samples()).astype(np.float32)
-        reduced = nr.reduce_noise(y=samples, sr=audio.frame_rate)
-
-        wav_buf = io.BytesIO()
-        sf.write(wav_buf, reduced, audio.frame_rate, format='WAV')
-        wav_buf.seek(0)
-
-    else:
-        wav_buf = io.BytesIO()
-        audio.export(wav_buf, format="wav")    
-        wav_buf.seek(0)
+    wav_buf = io.BytesIO()
+    audio.set_frame_rate(16000).set_channels(1).export(
+        wav_buf, 
+        format="wav"
+    )    
+    wav_buf.seek(0)
 
     # 2) Whisper 호출
     transcription = client.audio.transcriptions.create(
         model="whisper-1",
         file=("audio.wav", wav_buf, "audio/wav"),
-        response_format="text"
+        response_format="text",
+        language="ko"
     )
-
     return transcription
 
 @app.post("/stt")
-async def stt_endpoint(audio_file: UploadFile = File(...), sensitivity: float = 1.0, noise_reduction: bool = True, auto_gain: bool = True):
-    """
-    sensitivity (float): 감도 튜닝 값
-    noise_reduction (bool): 노이즈 제거 여부
-    """
+async def stt_endpoint(audio_file: UploadFile = File(...), sensitivity: float = 1.0, noise_reduction: bool = False, auto_gain: bool = False):
     try:
-        text = await run_stt_memory(audio_file, sensitivity=sensitivity, noise_reduction=noise_reduction, auto_gain=auto_gain)
+        text = await run_stt_memory(audio_file)
         return {"text": text}
     except Exception as e:
         print("STT 오류:", e)
