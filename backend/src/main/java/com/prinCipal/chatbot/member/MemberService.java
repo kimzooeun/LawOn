@@ -81,6 +81,8 @@ public class MemberService{
 		
 		String id = nickname.trim().toLowerCase();
 		
+		if(id.equals("admin")) return;
+		
 		if(!LOGIN_ID_PATTERN.matcher(id).matches()) {
 			errors.put("nickname", "아이디는 영문 소문자로 시작하고, 영문 소문자와 숫자로 6~20자여야 합니다.");
 			return;
@@ -155,9 +157,6 @@ public class MemberService{
 		   errors.put("password", "비밀번호를 입력해주세요.");
 		}
 		
-//		if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
-//	        errors.put("confirmPassword", "비밀번호가 다릅니다.");
-//	    }
 		
 		
 		// 필수값 에러가 없는 필드만 상세 검증
