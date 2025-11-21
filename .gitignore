@@ -39,6 +39,7 @@ bin/
 .settings/
 .classpath
 .project
+uploads/
 
 # IntelliJ
 .idea/
