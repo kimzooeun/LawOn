@@ -247,7 +247,8 @@ export async function deleteRecent(id) {
         renderChat();
       } else {
         // 새 채팅방 생성 (페이지 리로드 대신 createNewSession 호출)
-        await createNewSession(); // await 추가
+        // await createNewSession(); // await 추가
+        renderChat();
       }
     } else {
       renderRecents();
