@@ -36,7 +36,7 @@ services:
   fastapi:
     build: 
       context: ./fastapi
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     image: finalproject-fastapi
     container_name: finalproject-fastapi
     ports:
