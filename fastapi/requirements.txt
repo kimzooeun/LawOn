@@ -24,7 +24,6 @@ joblib
 
 # Data & Utils
 pandas
-konlpy
 
 # Database
 redis==5.0.1
