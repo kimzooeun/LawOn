@@ -24,6 +24,4 @@ public class SystemSetting {
     @Column(columnDefinition = "TEXT")
     private String value;
 
-    // 마지막 변경 시각
-    private String updatedAt;
 }

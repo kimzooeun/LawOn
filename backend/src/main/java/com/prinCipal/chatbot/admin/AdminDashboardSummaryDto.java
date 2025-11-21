@@ -7,10 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class DashboardSummaryDto {
+public class AdminDashboardSummaryDto {
     private Long chatTotalCount;
     private Long chatTodayCount;
     private Long nicknameCount;
     private Long lawyerCount;
-    
 }

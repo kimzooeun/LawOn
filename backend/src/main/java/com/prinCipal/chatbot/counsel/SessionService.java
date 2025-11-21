@@ -182,12 +182,11 @@ public class SessionService {
 	    }
 	}
 
-	/**
-	 * [헬퍼 1] 사용자 메시지 저장
-	 */
+	
+	// [헬퍼 1] 사용자 메시지 저장
 	@Transactional
 	@CacheEvict(value = "initialData", key = "#member.userId")
-	// 👈 [수정] (A) DTO 사용
+	// DTO 사용
 	public CounsellingContent saveUserMessageAndUpdateSession(ChatRequestDto requestDto, Member member) {
 		Long sessionId = requestDto.getSessionId().longValue();
 
@@ -204,21 +203,19 @@ public class SessionService {
 		return userMessage;
 	}
 
-	/**
-	 * [헬퍼 2] 봇 메시지 및 키워드 저장
-	 */
+	// 봇 메시지 및 키워드 저장
 	@Transactional
 	@CacheEvict(value = "initialData", key = "#userMessage.session.member.userId")
 	public void saveBotResponseAndAnalysis(CounsellingContent userMessage, FastApiResponseDto fastApiResponse) {
 
 		CounsellingSession session = userMessage.getSession();
 
-		// 1. 봇 메시지 저장 (C) ChatbotResponseDto 사용
+		// 봇 메시지 저장 (C) ChatbotResponseDto 사용
 		CounsellingContent botMessage = CounsellingContent.builder().session(session).sender(Sender.CHATBOT)
 				.content(fastApiResponse.getChatbotResponse().getContent()).build();
 		contentRepository.save(botMessage);
 
-		// 2. 키워드 분석 저장 (C) KeywordAnalysisDto 사용
+		// 키워드 분석 저장 (C) KeywordAnalysisDto 사용
 		KeywordAnalysisDto analysisDto = fastApiResponse.getKeywordAnalysis();
 		KeywordAnalysis analysis = KeywordAnalysis.builder().session(session).content(userMessage)
 				.isDivorce(analysisDto.getIsDivorce()).emotionLabel(analysisDto.getEmotionLabel())
@@ -238,9 +235,8 @@ public class SessionService {
 		sessionRepository.save(session);
 	}
 
-	/**
-	 * Map을 JSON 문자열로 변환
-	 */
+	
+	// Map을 JSON 문자열로 변환 
 	private String convertMapToJsonString(Map<String, Object> data) {
 		try {
 			if (data == null) {
