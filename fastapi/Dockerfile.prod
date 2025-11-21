@@ -5,6 +5,7 @@ FROM python:3.11-slim
 # 'openjdk-17-jdk-headless' 대신 'default-jdk-headless'를 사용하여 호환성 문제 해결
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        libsndfile1 \
         ffmpeg \
         curl \
     && apt-get clean && \

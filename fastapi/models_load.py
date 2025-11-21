@@ -302,103 +302,206 @@ def predict_full(text, models):
 
 # --- [D] 질의응답 검색 모델 정의  ---
 def search_qa_faiss(query, db, k=3):
+    
+    # [DEBUG] 검색 시작 로그
+    print(f">>>>>>>>>> 질의응답 검색 시작 <<<<<<<<<<")
+    print(f"🔍 [QA Search] 검색 시작: '{query}'")
+    
     if db is None:
+        print("⚠️ [QA Search] DB가 로드되지 않았습니다 (None).")
         return []
-    # FAISS 결과(Document 객체)를 JSON 친화적인 dict 리스트로 변환
-    results = db.similarity_search(query, k=k)
-    processed_results = []
-    for doc in results:
-        content = doc.page_content.strip()
-        question, answer = "", ""
-        if '?' in content:
-            try:
-                parts = content.split('?', 1)
-                question = parts[0].strip() + '?'
-                answer = parts[1].strip()
-            except Exception:
-                question = "(분리 오류)"
+
+    try:
+        # 1. FAISS 유사도 검색 수행
+        # k=3: 상위 3개 검색
+        results = db.similarity_search(query, k=k)
+        print(f"🔍 [QA Search] 검색된 문서 개수: {len(results)}")
+        
+        processed_results = []
+        
+        for i, doc in enumerate(results):
+            content = doc.page_content.strip()
+            
+            # [DEBUG] 검색된 원본 내용 살짝 출력
+            # print(f"  - 문서 {i+1} 원본: {content[:30]}...")
+
+            question, answer = "", ""
+            
+            # 2. 텍스트 분리 로직 강화 (질문과 답변 분리)
+            if '?' in content:
+                try:
+                    parts = content.split('?', 1) # 첫 번째 물음표 기준으로 나눔
+                    question = parts[0].strip() + '?'
+                    answer = parts[1].strip()
+                except Exception as e:
+                    print(f"⚠️ [QA Search] 분리 중 오류: {e}")
+                    question = "질문 분리 실패"
+                    answer = content
+            else:
+                # 물음표가 없는 경우 통째로 답변으로 처리
+                question = "(질문 형식 아님)"
                 answer = content
-        else:
-            question = "(형식 불일치: '?' 없음)"
-            answer = content
-        processed_results.append({"question": question, "answer": answer})
-    return processed_results
+            
+            processed_results.append({
+                "question": question,
+                "answer": answer
+            })
+            
+        return processed_results
+
+    except Exception as e:
+        print(f"❌ [QA Search] 치명적 오류 발생: {e}")
+        import traceback
+        traceback.print_exc()
+        # 에러가 나더라도 빈 리스트 대신 에러 메시지를 담아서 보냄 (디버깅용)
+        return [{"question": "검색 오류", "answer": str(e)}]
 
 # --- [E/F] 판례/법률 검색 로직 (JSON 반환용으로 수정) ---
-def search_legal_csv(query, pred_i, pred_t, models):
+def search_legal_csv(query, pred_i, pred_t, pred_s, models):
+    # [DEBUG] 1. 검색 시작 로그
+    print(f">>>>>>>>>> 판례/법률 검색 시작 <<<<<<<<<<")
+    print(f"🔍 [Legal Search] 진입 - Query: '{query}'")
+    print(f"🔍 [Legal Search] 분류 결과 - 의도: {pred_i}, 주제: {pred_t}, 상황: {pred_s}")
+
     results = []
     df_precedent = models.get('df_precedent_labeled')
     df_law = models.get('df_law_content')
 
     if df_precedent is None or df_precedent.empty or df_law is None or df_law.empty:
+        print("⚠️ [Legal Search] 데이터프레임 로드 실패")
         return [{"type": "error", "content": "판례 또는 법률 DB가 로드되지 않았습니다."}]
 
-    # 의도가 '법률.판례'가 아니면 검색 안 함
-    if pred_i != '법률.판례':
+    # 2. 의도(Intent) 체크
+    if not pred_i or ("법률" not in pred_i and "판례" not in pred_i):
+        print(f"🚫 [Legal Search] 의도 불일치({pred_i}) -> 검색 건너뜀")
         return [{"type": "skipped", "content": f"의도가 '{pred_i}'이므로 법률/판례 검색을 건너뜁니다."}]
 
-    search_keyword_for_ef = None
-    search_mode = ""
+    # 3. 검색 키워드 수집
+    search_keywords = []
+    if pred_t and pred_t not in ['N/A', '해당 없음', '단순 이혼 질문']:
+        search_keywords.append(pred_t)
+    if pred_s and pred_s not in ['N/A', '해당 없음', 'N/A (전처리 결과 없음)']:
+        search_keywords.append(pred_s)
 
-    if not pred_t:
-        search_keyword_for_ef = query
-        search_mode = "주제 분류 실패"
-    elif pred_t == '단순 이혼 질문':
-        search_keyword_for_ef = query # 원본 query 사용
-        search_mode = "법령 검색"
-    else:
-        search_keyword_for_ef = pred_t # 주제 키워드 사용 (예: '재산분할')
-        search_mode = "판례 검색"
+    # 키워드 정규식 생성
+    search_regex_pattern = "|".join(search_keywords) if search_keywords else ""
+    print(f"🔍 [Legal Search] 최종 검색 키워드 패턴: '{search_regex_pattern}'")
 
-    # [A] "판례 검색" 모드
-    if search_mode == "판례 검색":
-        mask = df_precedent['라벨'].str.contains(search_keyword_for_ef, na=False)
+    # ---------------------------------------------------
+    # [Step A] 판례 검색 실행
+    # ---------------------------------------------------
+    if search_keywords:
+        mask = df_precedent['라벨'].str.contains(search_regex_pattern, na=False, regex=True)
         matched_precedents = df_precedent[mask]
-        if matched_precedents.empty:
-            results.append({"type": "precedent_miss", "content": f"'{search_keyword_for_ef}' 키워드와 일치하는 판례를 찾을 수 없습니다."})
-        else:
-            for _, row in matched_precedents.iterrows():
+        
+        total_count = len(matched_precedents)
+        print(f"🔍 [Legal Search] 판례 검색 결과: 총 {total_count}건 발견")
+
+        if not matched_precedents.empty:
+            # [DEBUG] 상위 5개 제목 로그 출력
+            try:
+                print(f"🔍 [DEBUG] 검색된 판례 목록(Top 5):\n{matched_precedents['판시사항'].head(5).to_string(index=False)}")
+            except: pass
+
+            # 상위 3개만 추출
+            top_n = matched_precedents.head(3)
+            
+            for _, row in top_n.iterrows():
                 ref_laws_details = []
                 ref_law_str = row.get('참조법령_최종')
+                
+                # 참조 법령 상세 조회
                 if pd.notna(ref_law_str):
-                    ref_law_list = [key.strip() for key in ref_law_str.split('\n') if key.strip()]
+                    ref_law_list = re.split(r'[\n,]', str(ref_law_str))
                     for law_key in ref_law_list:
+                        law_key = law_key.strip()
+                        if not law_key: continue
+
                         law_detail = df_law[df_law['key'] == law_key]
                         if not law_detail.empty:
+                            # [안전장치] 법령 데이터 NaN 처리
+                            l_title = law_detail.iloc[0].get('소제목')
+                            l_content = law_detail.iloc[0].get('content')
+                            
                             ref_laws_details.append({
-                                "key": law_key,
-                                "title": law_detail.iloc[0].get('소제목', 'N/A'),
-                                "content": law_detail.iloc[0].get('content', 'N/A')
+                                "key": str(law_key),
+                                "title": str(l_title) if pd.notna(l_title) else "",
+                                "content": str(l_content) if pd.notna(l_content) else ""
                             })
-                        else:
-                            ref_laws_details.append({"key": law_key, "title": "N/A", "content": "민법 DB에서 해당 법령을 찾을 수 없음"})
-                
+
+                # [안전장치] 판례 데이터 NaN 처리 (핵심 수정 부분)
+                p_title = row.get('판시사항')
+                p_summary = row.get('요약문장')
+
                 results.append({
                     "type": "precedent",
-                    "title": row.get('판시사항', 'N/A'),
-                    "summary": row.get('요약문장', 'N/A'),
-                    "references": ref_laws_details
+                    "title": str(p_title) if pd.notna(p_title) else "제목 없음", # NaN이면 "제목 없음" 문자열로
+                    "summary": str(p_summary) if pd.notna(p_summary) else "내용 없음", # NaN이면 "내용 없음" 문자열로
+                    "references": ref_laws_details, 
+                    "matched_keywords": search_keywords
+                })
+        else:
+            print("⚠️ [Legal Search] 키워드는 있으나 매칭된 판례 없음")
+
+    # ---------------------------------------------------
+    # [Step B] 법령 직접 검색 실행
+    # ---------------------------------------------------
+    
+    # 1) 조항 번호 검색
+    jo_match = re.search(r'(\d+)\s*조', query)
+    if jo_match:
+        jo_num = jo_match.group(1)
+        search_key = f"제{jo_num}조"
+        print(f">>>>>>>>>> 법령 검색 시작 <<<<<<<<<<")
+        print(f"🔍 [Legal Search] 조항 번호 감지: {search_key}")
+        
+        law_detail = df_law[df_law['key'].str.contains(search_key, na=False)]
+        if not law_detail.empty:
+            for _, row in law_detail.iterrows():
+                # [안전장치]
+                l_key = row.get('key')
+                l_title = row.get('소제목')
+                l_content = row.get('content')
+
+                results.append({
+                    "type": "law",
+                    "key": str(l_key) if pd.notna(l_key) else "조항 없음",
+                    "title": str(l_title) if pd.notna(l_title) else "",
+                    "content": str(l_content) if pd.notna(l_content) else ""
                 })
 
-    # [B] "법령 검색" 모드
-    elif search_mode == "법령 검색" or search_mode == "주제 분류 실패":
-        m = re.search(r'(\d+)', search_keyword_for_ef)
-        if m:
-            jo_num = m.group(1)
-            search_key = f"제{jo_num}조"
-            law_detail = df_law[df_law['key'].str.contains(search_key, na=False)]
-            if not law_detail.empty:
-                for _, row in law_detail.iterrows():
-                    results.append({
-                        "type": "law",
-                        "key": row.get('key'),
-                        "title": row.get('소제목'),
-                        "content": row.get('content')
-                    })
-            else:
-                results.append({"type": "law_miss", "content": f"'{search_key}'에 대한 법률 내용을 DB에서 찾지 못했습니다."})
-        else:
-            results.append({"type": "law_miss", "content": "쿼리에서 법령 조항 번호를 추출할 수 없습니다."})
+    # 2) 키워드 법령 검색
+    elif search_keywords:
+        mask_law = df_law['content'].str.contains(search_regex_pattern, na=False, regex=True) | \
+                   df_law['소제목'].str.contains(search_regex_pattern, na=False, regex=True)
+        matched_laws = df_law[mask_law]
+        
+        print(f"🔍 [Legal Search] 관련 법령 직접 검색 결과: 총 {len(matched_laws)}건 발견")
+        
+        if not matched_laws.empty:
+             # [DEBUG] 검색된 법령 목록 로그
+             try:
+                 print(f"🔍 [DEBUG] 검색된 법령 목록(Top 5):\n{matched_laws['소제목'].head(5).to_string(index=False)}")
+             except: pass
+
+             # 검색된 모든 법령 반환
+             for _, row in matched_laws.iterrows():
+                # [안전장치]
+                l_key = row.get('key')
+                l_title = row.get('소제목')
+                l_content = row.get('content')
+                
+                results.append({
+                    "type": "law",
+                    "key": str(l_key) if pd.notna(l_key) else "조항 없음",
+                    "title": str(l_title) if pd.notna(l_title) else "",
+                    "content": str(l_content) if pd.notna(l_content) else ""
+                })
+
+    # 결과가 하나도 없으면
+    if not results:
+        print("⚠️ [Legal Search] 최종 결과 없음")
+        results.append({"type": "law_miss", "content": "관련된 판례나 법령을 찾지 못했습니다."})
             
     return results
 

@@ -43,7 +43,7 @@ export function startPolling() {
       await loadInitialData();
       // renderChat은 loadInitialData 안에서 호출됨
     }
-  }, 10000);
+  }, 30000);
 }
 
 // [추가] 폴링 중지 (페이지 이동 시 등)
