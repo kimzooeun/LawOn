@@ -29,15 +29,12 @@ async function loadMembers() {
 
     const members = await res.json();
     
-    // [디버깅용] 콘솔에 데이터를 찍어서 변수명을 확인해보세요! (F12 -> Console 탭)
-    console.log("받은 회원 데이터:", members); 
-
     tbody.innerHTML = "";
     
     members.forEach(m => {
       const tr = document.createElement("tr");
 
-      // ▼▼▼ 핵심 수정 부분: 변수명(camelCase)과 (snake_case)를 둘 다 확인합니다 ▼▼▼
+      // 핵심 수정 부분: 변수명(camelCase)과 (snake_case)를 둘 다 확인
       const createdDate = m.createdAt || m.created_at;
       const updatedDate = m.updatedAt || m.updated_at;
       const withdrawDate = m.withdrawDate || m.withdraw_date;

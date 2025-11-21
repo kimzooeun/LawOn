@@ -3,9 +3,7 @@ import { TokenManager } from '/src/js/token.js';
 const ADMIN_API = "/api/admin";
 const SETTINGS_API_BASE = "/admin/settings";
 
-// ======================================================
 // DOM READY
-// ======================================================
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initPasswordChange();
@@ -13,9 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initSystemButtons();
 });
 
-// ======================================================
-// 🔹 탭 버튼
-// ======================================================
+// 탭 버튼
+
 function initTabs() {
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
@@ -36,9 +33,8 @@ function initTabs() {
   tabBtns[0]?.click();
 }
 
-// ======================================================
-// 🔐 비밀번호 변경 기능 (수정됨)
-// ======================================================
+// 비밀번호 변경 기능 (수정됨)
+
 function initPasswordChange() {
   const btn = document.getElementById("pwChangeBtn");
   if (!btn) return;
@@ -56,7 +52,7 @@ function initPasswordChange() {
 
     try {
       const res = await fetch(`/api/admin/change-password`, {
-        method: "POST", // ✅ [수정] POST -> PUT 으로 변경 (백엔드와 일치시킴)
+        method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -67,7 +63,6 @@ function initPasswordChange() {
         }),
       });
 
-      // ✅ [수정] 백엔드가 단순 문자열(String)을 반환하므로 text()로 받음
       const message = await res.text();
 
       if (!res.ok) {
@@ -90,9 +85,8 @@ function initPasswordChange() {
   });
 }
 
-// ======================================================
-// 🔔 알림 설정
-// ======================================================
+// 알림 설정
+
 function initNotifySettings() {
   document.querySelectorAll("#notify input[type='checkbox']").forEach((chk) => {
     chk.addEventListener("change", async (e) => {
@@ -112,9 +106,7 @@ function initNotifySettings() {
   });
 }
 
-// ======================================================
-// ⚙️ 시스템 버튼
-// ======================================================
+// 시스템 버튼
 function initSystemButtons() {
   const backupBtn = document.getElementById("backupBtn");
   const resetBtn = document.getElementById("resetBtn");
@@ -136,9 +128,7 @@ function initSystemButtons() {
   });
 }
 
-// ======================================================
-// 🔧 서버 Key-Value 설정 저장
-// ======================================================
+// 서버 Key-Value 설정 저장
 async function updateSetting(key, value) {
   try {
     const res = await fetch(
@@ -153,9 +143,7 @@ async function updateSetting(key, value) {
   }
 }
 
-// ======================================================
-// 🍞 토스트 메시지
-// ======================================================
+// 토스트 메시지
 function showToast(msg) {
   let toast = document.getElementById("toast");
 

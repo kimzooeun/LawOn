@@ -18,17 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/members")
 public class AdminMemberController {
-	
+
 	private final SessionRepository sessionRepository; // 팀원의 상담 저장소
-    private final MemberRepository memberRepository;   // 회원 저장소
-    private final AdminMemberService adminMemberService;
-    
- // 🔥 전체 회원 조회
-    @GetMapping("")
-    public List<MemberAdminDto> getMembers() {
-        return memberRepository.findAll().stream()
-                .map(MemberAdminDto::from)
-                .toList();
-    }
-    
+	private final MemberRepository memberRepository; // 회원 저장소
+	private final AdminMemberService adminMemberService;
+
+	// 전체 회원 조회
+	@GetMapping("")
+	public List<MemberAdminDto> getMembers() {
+		return memberRepository.findAll().stream().map(MemberAdminDto::from).toList();
+	}
+
 }
