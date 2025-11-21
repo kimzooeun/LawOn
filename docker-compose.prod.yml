@@ -7,7 +7,7 @@ services:
     image: finalproject-backend-prod
     container_name: finalproject-backend
     env_file:
-      - .env
+      - .env.prod
     restart: always
     ports:
       - "${BACKEND_PORT}:8080"
@@ -42,7 +42,7 @@ services:
     ports:
       - "${FASTAPI_PORT}:8000"
     env_file:
-      - .env
+      - .env.prod
     restart: always
     depends_on:
       redis:
