@@ -6,10 +6,12 @@ import redis
 import traceback
 import uvicorn
 import asyncio
+
 # stt tts 추가 및 튜닝 관련 임포트
 import numpy as np
 import soundfile as sf
 import noisereduce as nr
+
 # tts 추가
 import aiofiles
 import io
@@ -19,13 +21,10 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 import models_load
 from pydub import AudioSegment               
 from fastapi.responses import StreamingResponse  
-
 from pydantic import BaseModel
 
 # --- 노트북에서 가져온 라이브러리 임포트 ---
 from fastapi.middleware.cors import CORSMiddleware
-
-
 
 frontend_url = os.getenv("FRONTEND_URL")
 origins = [frontend_url]
@@ -37,6 +36,7 @@ simple_models = models_load.load_simple_models()
 # OpenAI 클라이언트 (OPENAI_API_KEY는 환경변수로)
 client = OpenAI()
 
+# Redis 클라이언트 (REDIS_HOST, REDIS_PORT는 환경변수로)
 redis_client = redis.Redis(
     host= os.getenv("REDIS_HOST"),
     port = int(os.getenv("REDIS_PORT")),
@@ -54,8 +54,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-LIMIT_SIMPLE = 5  # 간편 상담 최대 질문 수
+# 간편 상담 최대 질문 수
+LIMIT_SIMPLE = 5  
 
 # --- FastAPI에서 들어오는 JSON 바디를 파이썬 객체로 변환해주는 모델----
 class QueryRequest(BaseModel):
@@ -64,7 +64,6 @@ class QueryRequest(BaseModel):
 class SimpleChatRequest(BaseModel):
     session_id: Optional[str] = None
     query: str
-
 
 @app.get("/")
 def read_root():
@@ -76,6 +75,7 @@ def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
+# ===================================================================================================
 
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
@@ -134,13 +134,17 @@ async def handle_generate_response(request: QueryRequest):
 
     # --- [E/F] 판례/법률 검색 (C의 결과가 필요하므로 순차 실행) ---
     try:
-        # C에서 가져온 pred_i, pred_t 사용
-        pred_i_val = results.get('its_classification', {}).get('intent')
-        pred_t_val = results.get('its_classification', {}).get('topic')
-        
+        # C에서 가져온 pred_i, pred_t, pred_s(상황) 사용
+        its_data = results.get('its_classification', {})
+        pred_i_val = its_data.get('intent')
+        pred_t_val = its_data.get('topic')
+        pred_s_val = its_data.get('situation') # 상황 추가 
+
+        print(f"🔍 [DEBUG] Legal Search 진입 - 의도: {pred_i_val}, 주제: {pred_t_val}, 상황: {pred_s_val}")
+
         results['legal_search'] = await asyncio.to_thread(
-            # [수정] models_load.search_legal_csv 로 변경
-            models_load.search_legal_csv, query, pred_i_val, pred_t_val, all_models
+            # 인자에 pred_s_val 추가
+            models_load.search_legal_csv, query, pred_i_val, pred_t_val, pred_s_val, all_models
         )
     except Exception as e:
         results['legal_search'] = [{"error": str(e), "trace": traceback.format_exc()}]
@@ -155,23 +159,23 @@ async def handle_generate_response(request: QueryRequest):
 
     try:
         # --- [A] 감정 분류 리포트 ---
-        final_answer_lines.append("--- [A] 감정 분류 결과 ---")
+        final_answer_lines.append("### [A] 감정 분류 결과 ###")
         sentiment_data = results.get('sentiment', {})
         if 'error' in sentiment_data:
             final_answer_lines.append(f"오류: {sentiment_data['error']}")
         else:
             final_answer_lines.append(f"발화: '{sentiment_data.get('cleaned_text', query)}'")
             labels = ", ".join(sentiment_data.get('labels', ['N/A']))
-            if not labels: labels = "N/A (50% 이상 감정 없음)"
-            final_answer_lines.append(f"[최종 예측 레이블] -> {labels}")
+            if not labels: labels = "N/A"
+            final_answer_lines.append(f"최종 감정: {labels}")
             
-            # 확률 상세 (상위 2개)
+            # 확률 상세 (상위 2개, 불릿 포인트)
             probs_a = sentiment_data.get('probabilities', [])[:2]
             for label, prob in probs_a:
-                final_answer_lines.append(f"  {label}: {prob:.4f}")
+                final_answer_lines.append(f"- {label}: {prob:.4f}")
 
         # --- [B] 문맥 분류 리포트 ---
-        final_answer_lines.append("\n--- [B] 문맥 (KoBERT) 분류 결과 ---")
+        final_answer_lines.append("\n### [B] 문맥 분류 결과 ###")
         context_data = results.get('context', {})
         if 'error' in context_data:
             final_answer_lines.append(f"오류: {context_data['error']}")
@@ -181,7 +185,7 @@ async def handle_generate_response(request: QueryRequest):
             final_answer_lines.append(f"예측 결과: {pred_b} (신뢰도: {conf_b:.2f}%)")
 
         # --- [C] 주제/의도/상황 리포트 ---
-        final_answer_lines.append("\n--- [C] 주제/의도/상황 분류 결과 ---")
+        final_answer_lines.append("\n### [C] 주제/의도/상황 분류 결과 ###")
         its_data = results.get('its_classification', {})
         if 'error' in its_data:
             final_answer_lines.append(f"오류: {its_data['error']}")
@@ -191,37 +195,66 @@ async def handle_generate_response(request: QueryRequest):
             final_answer_lines.append(f"➡️ 상황 : {its_data.get('situation', 'N/A')}")
 
         # --- [D] 질의응답 검색 리포트 ---
-        final_answer_lines.append("\n--- [D] 질의응답 검색 결과 (Top 1) ---")
+        final_answer_lines.append("\n### [D] 질의응답 검색 결과 (Top 1) ###")
         qa_data = results.get('qa_search', [])
-        if not qa_data or 'error' in qa_data[0]:
-            final_answer_lines.append("검색 결과 없음 (또는 오류)")
-        else:
+        
+        if qa_data:
             first_qa = qa_data[0]
-            final_answer_lines.append(f"Q: {first_qa.get('question', 'N/A')}")
-            final_answer_lines.append(f"A: {first_qa.get('answer', 'N/A')}")
+            if 'error' in first_qa:
+                final_answer_lines.append(f"검색 오류: {first_qa['error']}")
+            else:
+                final_answer_lines.append(f"Q: {first_qa.get('question', 'N/A')}")
+                # 가독성을 위해 Q와 A 사이에 줄바꿈 추가
+                final_answer_lines.append(f"\nA: {first_qa.get('answer', 'N/A')}")
+        else:
+            final_answer_lines.append("검색 결과 없음")
+
 
         # --- [E/F] 판례/법률 검색 리포트 ---
-        final_answer_lines.append("\n--- [E/F] 판례/법률 검색 ---")
+        final_answer_lines.append("\n### [E/F] 판례/법률 검색 ###")
         legal_data = results.get('legal_search', [])
+        
         if not legal_data:
             final_answer_lines.append("검색 결과 없음")
         else:
-            first_legal = legal_data[0]
-            res_type = first_legal.get('type')
-            
-            if res_type == 'precedent':
-                final_answer_lines.append(f"판례 검색: [{first_legal.get('title', 'N/A')}]")
-                final_answer_lines.append(f"요약: {first_legal.get('summary', 'N/A')}")
-            elif res_type == 'law':
-                final_answer_lines.append(f"법령 검색: {first_legal.get('key', 'N/A')}")
-                final_answer_lines.append(f"소제목: {first_legal.get('title', 'N/A')}")
-                final_answer_lines.append(f"내용: {first_legal.get('content', 'N/A')}")
-            elif res_type in ['skipped', 'law_miss', 'precedent_miss']:
-                final_answer_lines.append(f"검색 건너뜀 또는 실패: {first_legal.get('content', 'N/A')}")
-            elif res_type == 'error':
-                 final_answer_lines.append(f"오류: {first_legal.get('content', 'N/A')}")
-            else:
-                final_answer_lines.append("알 수 없는 검색 결과 타입")
+            for item in legal_data:
+                res_type = item.get('type')
+                
+                if res_type == 'precedent':
+                    final_answer_lines.append("\n[판례]")
+                    final_answer_lines.append(f"{item.get('title', 'N/A')}")
+                    final_answer_lines.append(f"\n요약: {item.get('summary', 'N/A')}")
+                    
+                    # 참조 법령 처리
+                    refs = item.get('references', [])
+                    if refs:
+                        # 대괄호 중복 방지 로직: DB 키에서 [ ] 제거 후 포맷팅
+                        ref_keys = []
+                        for r in refs:
+                            clean_key = r.get('key', '').replace('[', '').replace(']', '')
+                            ref_keys.append(f"[{clean_key}]")
+                        
+                        ref_line = ", ".join(ref_keys)
+                        final_answer_lines.append(f"\n참조 법령 : {ref_line}")
+
+                        # 상세 리스트
+                        final_answer_lines.append("\n<참조법령>")
+                        for i, ref in enumerate(refs, 1):
+                            clean_key = ref.get('key', '').replace('[', '').replace(']', '')
+                            final_answer_lines.append(f"{i}. [{clean_key}] : {ref.get('title')}")
+                            final_answer_lines.append(f"내용: {ref.get('content', '내용 없음')}")
+                            final_answer_lines.append("") 
+                
+                elif res_type == 'law':
+                    clean_key = item.get('key', '').replace('[', '').replace(']', '')
+                    final_answer_lines.append(f"\n[법령] {clean_key} - {item.get('title', 'N/A')}")
+                    final_answer_lines.append(f"내용: {item.get('content', 'N/A')}")
+                
+                elif res_type in ['skipped', 'law_miss', 'precedent_miss']:
+                    final_answer_lines.append(f"(참고: {item.get('content', 'N/A')})")
+                    
+                elif res_type == 'error':
+                    final_answer_lines.append(f"오류: {item.get('content', 'N/A')}")
 
         # 모든 라인을 하나의 문자열로 합침
         final_answer = "\n".join(final_answer_lines)
@@ -315,7 +348,9 @@ async def handle_generate_response(request: QueryRequest):
 
     return final_response_object
   
+# ===================================================================================================
 
+# [엔드포인트 3: 간편 상담]
 @app.post("/simple-chat")
 async def simple_chat(request:SimpleChatRequest):
     # 세션 ID 확인/생성
@@ -453,6 +488,9 @@ async def simple_chat(request:SimpleChatRequest):
         },
     }
 
+# ===================================================================================================
+
+# [엔드포인트 4: 간편 상담 이력 조회]
 @app.get("/simple-chat/history")
 async def get_simple_chat_history(session_id: str):
     redis_key = f"simple:session:{session_id}"
@@ -482,7 +520,9 @@ async def get_simple_chat_history(session_id: str):
             "suggest_login": False
         }
 
-# 정민 추가 
+
+# ===================================================================================================
+
 # STT (Whisper) - 음성 → 텍스트
 async def run_stt_memory(audio_file: UploadFile):
     # 메모리로 읽기

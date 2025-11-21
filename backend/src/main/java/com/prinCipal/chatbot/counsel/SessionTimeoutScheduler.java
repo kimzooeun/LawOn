@@ -56,18 +56,18 @@ public class SessionTimeoutScheduler {
 //        }
 //    }
     
-    // 30초마다
-    @Scheduled(fixedRate = 30000)
+    // 실행 주기 : 1분마다
+    @Scheduled(fixedRate = 60000)
     @Transactional // 전체 작업에 트랜잭션 유지 (데이터 정합성)
     public void checkSessionTimeouts() {
         LocalDateTime now = LocalDateTime.now();
         
         // [시간 설정 변경]
-        // 1. 경고 기준: 마지막 대화로부터 1분 지남
-        LocalDateTime warningTime = now.minusMinutes(1); 
+        // 1. 경고 기준: 마지막 대화로부터 5분 지남
+        LocalDateTime warningTime = now.minusMinutes(5); 
         
-        // 2. 종료 기준: 마지막 대화로부터 3분 지남 (경고 후 2분 더 지남)
-        LocalDateTime terminationTime = now.minusMinutes(3); 
+        // 2. 종료 기준: 마지막 대화로부터 10분 지남
+        LocalDateTime terminationTime = now.minusMinutes(10);
 
         // 이번 턴에 처리된 세션 ID 저장 (중복 처리 방지)
         Set<Long> processedSessionIds = new HashSet<>();
