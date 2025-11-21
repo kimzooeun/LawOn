@@ -120,6 +120,8 @@ cloud:
   aws:
     s3:
       bucket: principalbbucket
+      
+      
 # Health check, actuator 설정
 management:
   endpoints:

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class LawyerAdminController {
 
 	private final LawyerService lawyerService;
+	private final S3Uploader s3Uploader;
 	
 	/* 전체 변호사 조회 */
 	@GetMapping
@@ -40,10 +41,14 @@ public class LawyerAdminController {
 	}
 
 	/* 이미지 업로드 */
-//	@PostMapping("/upload")
-//	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) {
-//		String imageUrl = lawyerService.uploadImage(file);
-//		return ResponseEntity.ok(imageUrl);
-//	}
+	@PostMapping("/upload")
+	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) {
+		try {
+			String imageUrl = s3Uploader.upload(file,"lawyers");
+			return ResponseEntity.ok(imageUrl);
+		} catch (Exception e) {
+			 return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
+		}
+	}
 
 }
