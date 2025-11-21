@@ -39,6 +39,7 @@ bin/
 .settings/
 .classpath
 .project
+uploads/
 
 # IntelliJ
 .idea/
@@ -48,3 +49,4 @@ bin/
 target/
 dist/
 node_modules/
+uploads/

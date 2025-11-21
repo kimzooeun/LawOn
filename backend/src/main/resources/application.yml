@@ -115,7 +115,13 @@ app:
     internal_url : ${FRONTEND_INTERNAL_URL}
   backend:
     url: ${BACKEND_URL}
-  
+    
+cloud:
+  aws:
+    s3:
+      bucket: principalbbucket
+      
+      
 # Health check, actuator 설정
 management:
   endpoints:
