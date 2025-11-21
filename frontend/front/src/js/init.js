@@ -30,7 +30,6 @@ if (!document.getElementById("chatArea")) {
   window.INIT_STOP = true;
 }
 
-
 // showPage 함수를 동기식으로 변경
 export function showPage(pageToShow) {
   const chatArea = document.getElementById("chatArea");
@@ -135,7 +134,7 @@ export function openDocModal(title, content, size = "lg") {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-   if (window.INIT_STOP) return;     // index.html에서는 전체 init 로직을 실행하지 않음
+  if (window.INIT_STOP) return; // index.html에서는 전체 init 로직을 실행하지 않음
   Modal.init();
   FormModal.init();
 
@@ -237,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     // 1. '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {
-      archiveCurrent();
+      // archiveCurrent();
 
       state.currentId = null; // 1. 현재 ID를 null로 설정
       renderChat(); // 2. 빈 채팅 화면을 그림 (DB 호출 없음)

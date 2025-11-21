@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import com.prinCipal.chatbot.alert.CrisisAlert;
 import com.prinCipal.chatbot.content.CounsellingContent;
@@ -57,6 +56,10 @@ public class CounsellingSession {
 
 	@Column(name = "last_message_time")
 	private LocalDateTime lastMessageTime;
+	
+	// 경고 메시지 발송 여부
+    @Column(name = "warning_sent")
+    private boolean warningSent = false;
 
 	// 세션 길이
 	@Formula("TIMESTAMPDIFF(SECOND,start_time,end_time)")
@@ -134,5 +137,18 @@ public class CounsellingSession {
 	public void updateendTime(LocalDateTime endTime) {
 		this.endTime = endTime;
 	}
+	
+	// 상담 재시작 시 상태 초기화 편의 메서드
+    public void restartSession() {
+        this.completionStatus = CompletionStatus.ONGOING; // 진행 중으로 변경
+        this.endTime = null;                              // 종료 시간 삭제
+        this.lastMessageTime = LocalDateTime.now();       // 마지막 대화 시간 갱신 (지금부터 다시 카운트)
+        this.warningSent = false;                         // 경고 상태 초기화
+    }
+
+    // 경고 상태 업데이트
+    public void updateWarningSent(boolean warningSent) {
+        this.warningSent = warningSent;
+    }
 
 }
