@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -101,7 +102,7 @@ public class MemberService{
 	}
 	
 	// 회원가입 시, 비밀번호 검증 함수 
-	public void validatePassword(String password, String confirmPassword, String nickname, Map<String, String> errors) {
+	public void validatePassword(@NonNull String password, String confirmPassword, String nickname, Map<String, String> errors) {
 		if(password == null || password.length() < 8) {
 			errors.put("password", "비밀번호는 최소 8자 이상이어야 합니다.");
 		}
@@ -141,6 +142,7 @@ public class MemberService{
 	
 	
 	// 회원가입 
+	@SuppressWarnings("null")
 	public void registerUser(SignupRequest signUpRequest) {
 		Map<String, String> errors = new HashMap<>();
 		
