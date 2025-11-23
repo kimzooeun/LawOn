@@ -47,7 +47,9 @@ public class LawyerAdminController {
 			String imageUrl = s3Uploader.upload(file,"lawyers");
 			return ResponseEntity.ok(imageUrl);
 		} catch (Exception e) {
-			 return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
+			e.printStackTrace();   // 또는 log.error("upload error", e);
+		    throw e; // 임시적으로 다시 던지면 500 에러 + 로그 출력됨
+			// return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
 		}
 	}
 
