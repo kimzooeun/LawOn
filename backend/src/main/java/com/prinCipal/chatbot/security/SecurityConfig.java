@@ -95,7 +95,7 @@ public class SecurityConfig {
             .authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
                   .requestMatchers("/api/auth/**").permitAll()
                   .requestMatchers(HttpMethod.OPTIONS, "/api/admin/lawyers/upload").permitAll()
-                  .requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").hasRole("ADMIN")
+                  .requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").permitAll() 
                   .requestMatchers("/api/admin/**").hasRole("ADMIN")
                   .requestMatchers("/admin/**").permitAll()
                   .requestMatchers(PERMIT_URL).permitAll()
