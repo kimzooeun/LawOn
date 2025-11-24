@@ -9,11 +9,8 @@ import asyncio
 
 # stt tts 추가
 import numpy as np
-import soundfile as sf
-import noisereduce as nr
 import tempfile
 import subprocess
-import aiofiles
 import io
 from typing import List,Optional
 from openai import OpenAI
@@ -578,6 +575,7 @@ async def run_stt_memory(audio_file: UploadFile):
             os.remove(tmp_in_path)
         if tmp_out_path and os.path.exists(tmp_out_path):
             os.remove(tmp_out_path)
+
 
 @app.post("/stt")
 async def stt_endpoint(audio_file: UploadFile = File(...)):
