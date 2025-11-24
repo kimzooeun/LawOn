@@ -1,6 +1,5 @@
 import { TokenManager } from '/src/js/token.js';
 
-const ADMIN_API = "/api/admin";
 const SETTINGS_API_BASE = "/admin/settings";
 
 // DOM READY
@@ -75,7 +74,7 @@ function initPasswordChange() {
       // 2초 뒤 로그아웃 및 로그인 페이지로 이동
       setTimeout(() => {
           TokenManager.clearTokens();
-          window.location.href = "/admin/login.html";
+          window.location.href = "/admin/login/";
       }, 2000);
 
     } catch (err) {

@@ -25,18 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
 function setupNavigation() {
   const buttons = document.querySelectorAll(".admin-nav .page-buttons button");
 
+  // 클릭하면 이동
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const page = btn.dataset.page;
       const routes = {
-        main: "/admin/main.html",
-        settings: "/admin/settings.html",
-        lawyers: "/admin/lawyers.html",
-        user: "/admin/user.html",
-        logs: "/admin/logs.html"
+        main: "/admin/",
+        settings: "/admin/settings/",
+        lawyers: "/admin/lawyers/",
+        user: "/admin/user/",
+        logs: "/admin/logs/"
       };
 
       if (routes[page]) {
@@ -47,8 +50,33 @@ function setupNavigation() {
     });
   });
 
-  // active 효과
-  const current = window.location.pathname.split("/").pop().replace(".html", "");
+  // ⭐ active 효과: 모든 경우를 완벽 지원하는 함수
+  function getCurrentPage() {
+    let path = window.location.pathname;
+
+    // 끝에 / 있으면 제거
+    if (path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
+
+    // 마지막 segment 가져오기
+    let last = path.split("/").pop();
+
+    // index.html 또는 공백인 경우 → main 처리
+    if (last === "" || last === "index.html") {
+      return "main";
+    }
+
+    // .html 확장자 제거
+    last = last.replace(".html", "");
+
+    return last;
+  }
+
+  const current = getCurrentPage();
+  console.log("CURRENT PAGE:", current);
+
+  // 버튼 active 처리
   buttons.forEach(btn => {
     btn.classList.remove("active");
     if (btn.dataset.page === current) {
@@ -56,6 +84,8 @@ function setupNavigation() {
     }
   });
 }
+
+
 
 function initializeMainPage() {
   loadDashboardSummary();
@@ -87,7 +117,7 @@ async function loadDashboardSummary() {
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login.html";
+      window.location.href = "/admin/login/";
       return;
     }
 
@@ -144,7 +174,7 @@ async function loadDashboardLogs() {
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login.html";
+      window.location.href = "/admin/login/";
       return;
     }
 
