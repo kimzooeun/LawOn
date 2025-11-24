@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { 
     threshold: 0.1,
-    // ✅ rootMargin 추가로 약간 더 일찍 트리거
+    // rootMargin 추가로 약간 더 일찍 트리거
     rootMargin: "0px 0px -10% 0px"
   });
 

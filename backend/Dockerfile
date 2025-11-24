@@ -1,4 +1,4 @@
-# -------- 개발용: Builder로만 환경 설정 --------
+# 개발용: Builder로만 환경 설정
 FROM gradle:8.5-jdk17
 
 WORKDIR /app

@@ -1,7 +1,5 @@
-// ===================================
 // 2. 채팅 세션 & 렌더링
 // (세션/메시지 관리, 최근 대화, 삭제, 렌더링)
-// ===================================
 
 import { showToast, state, qs, Modal, loadInitialData } from "./utils.js";
 import {
@@ -54,7 +52,7 @@ export function stopPolling() {
   }
 }
 
-// ---- 세션 ----
+// 세션
 export async function createNewSession() {
   const currentUserId = localStorage.getItem(USER_ID_KEY);
 
@@ -98,7 +96,7 @@ function createLoadingBubble() {
   return div;
 }
 
-// ---- 메시지 ----
+// 메시지
 export async function addMessage(role, text) {
   const sess = current();
   if (!sess) return;
@@ -127,7 +125,7 @@ export async function addMessage(role, text) {
       return;
     }
 
-    // ▼ [추가] 상담이 종료된 상태(end_time 있음)라면 메시지 전송 전 '자동 재시작' 수행
+    // [추가] 상담이 종료된 상태(end_time 있음)라면 메시지 전송 전 '자동 재시작' 수행
     if (sess.end_time || sess.endTime) {
       try {
         await restartSession(sess.id); // API 호출
@@ -169,11 +167,7 @@ export async function addMessage(role, text) {
         };
         sess.messages.push(botMessageData);
       }
-
-      // if (botResponse && botResponse.newTitle) {
-      //   sess.title = botResponse.newTitle;
-      // }
-
+      
       // 대화 제목 자동 설정 로직 개선
       if (botResponse && botResponse.newTitle) {
         // 메시지가 2개 이하(첫 턴)일 때만 제목 적용
@@ -203,7 +197,7 @@ export async function addMessage(role, text) {
   }
 }
 
-// ---- 최근 저장 ----
+// 최근 저장
 export function archiveCurrent() {
   const sess = current();
   if (!sess || !sess.messages.length) return;
@@ -241,7 +235,7 @@ export function archiveCurrent() {
   renderRecents();
 }
 
-// ---- 삭제 기능 ----
+// 삭제 기능
 // deleteRecent 함수를  변경
 export async function deleteRecent(id) {
   try {
@@ -276,13 +270,12 @@ export async function deleteRecent(id) {
   }
 }
 
-// --- 삭제 애니메이션 ---
-// async await 추가, showToast 주석 처리
+// 삭제 애니메이션
+// async await 추가
 export async function animateAndDeleteRecent(li, id) {
   const item = li.querySelector(".recent-item");
   if (!item) {
     await deleteRecent(id);
-    // showToast("대화 1개 삭제했어요", "success");
     return;
   }
   item.classList.add("removing");
@@ -290,13 +283,12 @@ export async function animateAndDeleteRecent(li, id) {
     "animationend",
     async () => {
       await deleteRecent(id);
-      // showToast("대화 1개 삭제했어요", "success");
     },
     { once: true }
   );
 }
 
-// ---- 렌더링 ----
+// 렌더링
 export function renderRecents() {
   const ul = qs("#recentList");
   ul.innerHTML = "";
@@ -315,7 +307,7 @@ export function renderRecents() {
 
     const dateString = isValidDate
       ? dateObj.toLocaleString()
-      : "시간 정보 없음"; // 👈 유효성 검사 통과 시에만 변환
+      : "시간 정보 없음"; // 유효성 검사 통과 시에만 변환
 
     li.innerHTML = `
       <div class="recent-item">
@@ -456,7 +448,7 @@ export function renderChat() {
   startPolling(); // 폴링 시작 확인
 }
 
-// ---- 전송 ----
+// 전송
 export async function handleSend(e) {
   e.preventDefault();
   const input = qs("#chatInput");

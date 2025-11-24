@@ -7,13 +7,12 @@ import traceback
 import uvicorn
 import asyncio
 
-# stt tts 추가 및 튜닝 관련 임포트
+# stt tts 추가
 import numpy as np
 import soundfile as sf
 import noisereduce as nr
 import tempfile
 import subprocess
-# tts 추가
 import aiofiles
 import io
 from typing import List,Optional
@@ -58,7 +57,7 @@ app.add_middleware(
 # 간편 상담 최대 질문 수
 LIMIT_SIMPLE = 5  
 
-# --- FastAPI에서 들어오는 JSON 바디를 파이썬 객체로 변환해주는 모델----
+# --- FastAPI에서 들어오는 JSON 바디를 파이썬 객체로 변환해주는 모델 ----
 class QueryRequest(BaseModel):
     query: str
 

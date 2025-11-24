@@ -459,10 +459,6 @@ function passwordStrength(pw){
 }
 
 
-
-
-
-
 function bindSignupPasswordEvents() {
   console.log("bindSignupPasswordEvents 호출됨");
   const nicknameInput = document.getElementById("nickname");
@@ -488,9 +484,6 @@ function bindSignupPasswordEvents() {
   updatePasswordMatchUI();
   updatePasswordStrengthUI();
 }
-
-
-
 
 
 function resetAuthForms() {
@@ -533,7 +526,6 @@ function openSignupModal() {
 
   resetAuthForms();
 }
-//------------------------------------------------------------------------------------
 
 // 간편 상담 버튼 클릭 시 열기
 const quickBtn = document.querySelector('[data-role="quick"]');

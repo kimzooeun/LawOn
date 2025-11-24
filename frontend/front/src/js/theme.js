@@ -1,7 +1,5 @@
-// ===================================
-// 4. 테마 변경
+// 테마 변경
 // (사이드바 Footer 테마 변경 기능)
-// ===================================
 
 (function () {
   const footer = document.querySelector(".sidebar-footer");

@@ -1,4 +1,4 @@
-// 1. 상태 & 유틸
+// 상태 & 유틸
 // (전역 변수, 스토리지, 모달, 토스트, 닉네임)
 
 import { getInitialData } from "./api.js";
@@ -20,25 +20,25 @@ export function applySidebarCollapsed(collapsed) {
   sidebar.classList.toggle("collapsed", !!collapsed);
 }
 
-// == 비어있는 스토어 ==
+// 비어있는 스토어
 export function createEmptyStore() {
   return { recents: [], sessions: {}, currentId: null, isSending: false }; // 👈 isSending 추가
 }
 
-// ---- 스토리지 로드/저장 ----
+// 스토리지 로드/저장
 export let state = createEmptyStore(); // 일단 빈 상태로 시작
 
 export async function loadInitialData() {
-  // [수정 1] 전송 중이면 아예 시작도 하지 않음
+  // 전송 중이면 아예 시작도 하지 않음
   if (state.isSending) return;
 
   try {
-    // 1. 사용자가 현재 보고 있던 방 ID 기억
+    // 사용자가 현재 보고 있던 방 ID 기억
     const viewingId = state.currentId;
 
     const dataFromServer = await getInitialData();
 
-    // [수정 2] 데이터를 받아왔더라도, 그 사이에 전송이 시작됐다면 덮어쓰기 금지 (핵심!)
+    // 데이터를 받아왔더라도, 그 사이에 전송이 시작됐다면 덮어쓰기 금지 (핵심!)
     if (state.isSending) return;
 
     // [수정 핵심] 서버 DB 지연으로 인해, 현재 보고 있는 방(viewingId)이
@@ -64,10 +64,10 @@ export async function loadInitialData() {
       }
     }
 
-    // 2. 서버 데이터를 state에 병합
+    // 서버 데이터를 state에 병합
     Object.assign(state, dataFromServer);
 
-    // 3. 화면 유지 vs 빈 화면 결정
+    // 화면 유지 vs 빈 화면 결정
     if (viewingId && state.sessions[viewingId]) {
       state.currentId = viewingId;
     } else {
@@ -76,7 +76,7 @@ export async function loadInitialData() {
   } catch (err) {
     console.error("초기 데이터 로드 실패:", err);
   } finally {
-    // [수정 3] 전송 중이 아닐 때만 렌더링 (선택 사항이나 안전을 위해)
+    // 전송 중이 아닐 때만 렌더링 (선택 사항이나 안전을 위해)
     if (!state.isSending) {
       renderChat();
     }
@@ -139,7 +139,7 @@ export const Modal = {
   },
 };
 
-// --- Toast ---
+// Toast
 let toastTimer = null;
 export function showToast(text, variant = "info", ms = 1800) {
   const el = document.getElementById("toast");
@@ -157,13 +157,13 @@ export function updateNicknameDisplay() {
   const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
   const safeNick = nick || "게스트";
 
-  // 1. 마이페이지 타이틀 닉네임 (ID: mypageUserNickname)
+  // 마이페이지 타이틀 닉네임 (ID: mypageUserNickname)
   const mypageEl = document.getElementById("mypageUserNickname");
   if (mypageEl) {
     mypageEl.textContent = safeNick;
   }
 
-  // 2. 빈 채팅방 환영 닉네임 (Class: empty-hint-nickname)
+  // 빈 채팅방 환영 닉네임 (Class: empty-hint-nickname)
   const emptyChatEl = document.querySelector(".empty-hint-nickname");
   if (emptyChatEl) {
     emptyChatEl.textContent = safeNick;
@@ -236,11 +236,11 @@ export const FormModal = {
       return;
     }
 
-    // 1. 폼 데이터 객체로 변환
+    // 폼 데이터 객체로 변환
     const formData = new FormData(this.formEl);
     const data = Object.fromEntries(formData.entries());
 
-    // 2. 콜백 실행
+    // 콜백 실행
     // 콜백이 false를 반환하면 유효성 검사 실패로 간주하고 모달을 닫지 않음
     const result = this.onConfirmCallback(data);
     if (result !== false) {
