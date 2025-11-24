@@ -1,7 +1,7 @@
-// 3. Whisper STT
+// Whisper STT
 // (음성 녹음, 서버 전송, 텍스트 변환)
 
-import { showToast, STT_ENDPOINT } from "./utils.js";
+import { showToast} from "./utils.js";
 
 let mediaRecorder;
 let audioChunks = [];
@@ -63,18 +63,30 @@ async function startRecording() {
           showToast("🎤 녹음된 데이터가 없습니다", "info");
           return;
         }
-
+        
         const mime = chosenMime || "audio/webm";
-        const ext = mime.includes("ogg") ? "ogg" : "webm";
+
         const blob = new Blob(audioChunks, { type: mime });
 
         const fd = new FormData();
-        fd.append("audio_file", blob, `speech.webm`);
-
+        // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
+        fd.append("audio_file", blob, "speech.webm"); 
+        
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch(STT_ENDPOINT, { method: "POST", body: fd });
-        if (!res.ok) throw new Error("STT HTTP " + res.status);
+        const res = await fetch("/stt", { method: "POST", body: fd});
+        
+        if (!res.ok) {
+          // 서버에서 오류 메시지가 있다면 가져와서 출력
+          let errorText = `STT HTTP ${res.status}`;
+          try {
+            const errorJson = await res.json();
+            errorText = errorJson.error || errorText;
+          } catch (e) {
+            // JSON 파싱 실패 시 기본 텍스트 사용
+          }
+          throw new Error(errorText);
+        }
 
         const json = await res.json();
         const text = (json.text || json.transcription || "").trim();
@@ -85,12 +97,16 @@ async function startRecording() {
           if (autoSubmitAfterSTT) {
             targetInputEl.closest("form")?.requestSubmit();
           }
+        } else if (json.error) {
+           showToast(`❌ STT 서버 오류: ${json.error}`, "error", 5000);
         } else {
           showToast("⚠ 음성 인식 불가, 좀 더 정확하게 부탁드려요!", "info");
         }
       } catch (err) {
         console.error("STT 처리 오류:", err);
-        showToast("❌ Whisper 서버 응답 오류", "info", 3000);
+        // 에러 메시지가 문자열이면 바로 표시
+        const displayMsg = err.message.startsWith("STT HTTP") ? err.message : "Whisper 서버 응답 오류";
+        showToast(`❌ ${displayMsg}`, "error", 5000);
       } finally {
         cleanupRecording();
       }

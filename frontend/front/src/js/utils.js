@@ -5,7 +5,6 @@ import { getInitialData } from "./api.js";
 import { renderChat } from "./chat.js";
 
 export const STORE_KEY = "todak_chats_v1";
-export const STT_ENDPOINT = `${import.meta.env.VITE_FASTAPI_URL}/stt`;
 export const AUTO_SEND_STT = true;
 
 // 간단한 쿼리 셀렉터 유틸
