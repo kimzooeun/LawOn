@@ -1,6 +1,6 @@
 /* 1. 마이페이지 (Mypage) */
 
-/* --- 1.1. 헤더 (Hero) --- */
+/* 헤더 (Hero) */
 .mpx-hero {
   position: sticky;
   top: 0;
@@ -27,7 +27,7 @@
   font-size: 24px;
 }
 
-/* --- 1.2. 리스트 레이아웃 --- */
+/* 리스트 레이아웃 */
 .mpx-list-layout {
   max-width: 800px;
   margin: 12px auto;
@@ -105,7 +105,7 @@
 
 /* 3. 변호사 페이지 (Lawyer Page) */
 
-/* --- 3.1. 컨트롤 (Controls) --- */
+/* 컨트롤 (Controls) */
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -128,7 +128,7 @@
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-/* --- 2.2. 그리드/리스트 (Grid/List) --- */
+/* 그리드/리스트 (Grid/List) */
 .mpx-grid {
   max-width: 800px;
   margin: 0 auto;
@@ -179,7 +179,7 @@
   }
 }
 
-/* --- 3.3. 개별 카드 (Card) --- */
+/* 3.3. 개별 카드 (Card) */
 .card {
   display: flex;
   gap: 16px;

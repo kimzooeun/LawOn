@@ -1,8 +1,6 @@
-/* ================================
-  1. 사이드바 (Sidebar)
-  ================================ */
+/* 사이드바 (Sidebar) */
 
-/* --- 1.1. 기본 레이아웃 --- */
+/* 기본 레이아웃 */
 .sidebar {
   width: 260px;
   background-color: var(--panel);
@@ -15,7 +13,7 @@
   box-shadow: 0 0 0 1px rgba(162, 127, 247, 0.04);
 }
 
-/* --- 1.2. 헤더 & 버전 --- */
+/* 헤더 & 버전 */
 .sidebar-header {
   display: flex;
   justify-content: space-between;
@@ -40,7 +38,7 @@
   color: var(--ink);
 }
 
-/* --- 1.3. 메인 버튼 --- */
+/* 메인 버튼 */
 .new-chat-btn,
 .explore-btn,
 .footer-link {
@@ -91,7 +89,7 @@
   overflow: hidden;
 }
 
-/* --- 1.4. 최근 대화 (Recent Chats) --- */
+/* 최근 대화 (Recent Chats) */
 .recent-chats {
   margin-top: 10px;
   flex-grow: 1;
@@ -181,7 +179,7 @@
   display: inline-block;
 }
 
-/* --- 1.5. 사이드바 하단 (Footer) --- */
+/* 사이드바 하단 (Footer) */
 .sidebar-footer {
   position: relative;
   text-align: center;
@@ -200,9 +198,7 @@
   border-color: var(--btn-line);
 }
 
-/* ================================
-   2. 사이드바 접힘 (Collapsed)
-   ================================ */
+/* 사이드바 접힘 (Collapsed)  */
 .sidebar.collapsed {
   width: 60px;
   padding: 16px 8px;

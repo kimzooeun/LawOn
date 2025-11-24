@@ -94,7 +94,7 @@ function downloadChatPdf(session) {
   }
 }
 
-// === 탐색형 마이페이지 전환 & 검색/필터 ===
+// 탐색형 마이페이지 전환 & 검색/필터
 export function initMypageListeners() {
   const exploreBtn = document.getElementById("exploreBtn");
   const explore = document.getElementById("mypageExplore");
