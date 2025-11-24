@@ -6,7 +6,7 @@ import redis
 import traceback
 import asyncio
 
-# stt tts 추가
+# stt - tts 추가
 import numpy as np
 import tempfile
 import subprocess
