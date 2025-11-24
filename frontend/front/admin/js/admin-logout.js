@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("관리자 로그아웃 되었습니다.");
 
       // 관리자 로그인 페이지로 이동
-      window.location.href = "/admin/login.html";
+      window.location.href = "/admin/login/";
     });
   }
 });
