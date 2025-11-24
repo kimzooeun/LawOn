@@ -11,12 +11,8 @@ import asyncio
 import numpy as np
 import soundfile as sf
 import noisereduce as nr
-<<<<<<< Updated upstream
-
-=======
 import tempfile
 import subprocess
->>>>>>> Stashed changes
 # tts 추가
 import aiofiles
 import io
