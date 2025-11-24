@@ -71,7 +71,6 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-# ===================================================================================================
 
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
