@@ -23,7 +23,7 @@ MODEL_NAME_A = "klue/bert-base"
 MODEL_SAVE_PATH_B = os.path.join(BASE_PATH, "kobert_divorce_end_input.pt")
 MODEL_NAME_B = "monologg/kobert"
 
-# kobert된 의도/주제/상황 모델
+# kobert된 의도/주제/상황 모델 !!
 SITUATION_MODEL_PATH = os.path.join(BASE_PATH, "best_kobert_situation_new.pt")
 INTENT_MODEL_PATH    = os.path.join(BASE_PATH, "best_kobert_intent.pt")
 TOPIC_MODEL_PATH     = os.path.join(BASE_PATH, "best_kobert_topic_new.pt")
