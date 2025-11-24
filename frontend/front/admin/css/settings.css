@@ -1,4 +1,4 @@
-/* --- 설정 탭 --- */
+/* 설정 탭 */
 .settings-tabs {
   background: #fff;
   border-radius: 12px;
@@ -38,7 +38,7 @@
 }
 
 
-/* --- 계정 관리 --- */
+/* 계정 관리 */
 .pw-box {
   margin-top: 10px;
   display: flex;
@@ -52,7 +52,7 @@
   flex: 1;
 }
 
-/* --- 시스템 관리 --- */
+/* 시스템 관리 */
 .sys-btn {
   border: none;
   border-radius: 8px;

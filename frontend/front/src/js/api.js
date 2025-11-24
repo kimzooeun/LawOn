@@ -3,9 +3,7 @@ import { TokenManager } from "./token.js";
 // 백엔드 서버 주소
 const API_BASE_URL = "/api";
 
-/**
- * (R) 앱 로드 시 채팅 데이터 전체 조회
- */
+/* (R) 앱 로드 시 채팅 데이터 전체 조회 */
 export async function getInitialData() {
   const response = await fetch(`${API_BASE_URL}/chats`, {
     headers: getAuthHeaders(false),
@@ -31,18 +29,18 @@ export async function saveMessage(sessionId, userId, messageData) {
 
   // 2. 백엔드 DTO({ userMessage: '...' }) 형식에 맞춰 본문 구성
   const requestBody = {
-    sessionId: sessionId, // 👈 세션 ID 추가
-    userId: userId, // 👈 사용자 ID 추가
-    userMessage: messageData.text, // 👈 사용자 메시지
+    sessionId: sessionId, // 세션 ID 추가
+    userId: userId, // 사용자 ID 추가
+    userMessage: messageData.text, // 사용자 메시지
   };
 
   // (세션 ID가 필요한 경우, 백엔드가 세션을 직접 관리하도록 DTO에 추가할 수 있습니다.)
 
   const response = await fetch(CHAT_ENDPOINT, {
-    // 👈 CHAT_ENDPOINT 사용
+    //  CHAT_ENDPOINT 사용
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify(requestBody), // 👈 requestBody 사용
+    body: JSON.stringify(requestBody), // requestBody 사용
   });
 
   if (!response.ok) {
@@ -149,8 +147,8 @@ export async function deleteSession(sessionId) {
 
 /**
  * 인증 토큰을 포함한 fetch 헤더를 반환합니다.
- * @returns {HeadersInit}
- */
+  @returns {HeadersInit}
+*/
 function getAuthHeaders(includeContentType = true) {
   const token = TokenManager.getAccessToken(); // TokenManager에서 토큰 가져오기
   const headers = {};
@@ -165,9 +163,7 @@ function getAuthHeaders(includeContentType = true) {
   return headers;
 }
 
-/**
- * (U) 상담 수동 종료
- */
+/* (U) 상담 수동 종료 */
 export async function endSession(sessionId) {
   const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/end`, {
     method: "POST",
@@ -179,9 +175,7 @@ export async function endSession(sessionId) {
   return response.ok;
 }
 
-/**
- * (U) 상담 재시작
- */
+/* (U) 상담 재시작 */
 export async function restartSession(sessionId) {
   const response = await fetch(
     `${API_BASE_URL}/sessions/${sessionId}/restart`,

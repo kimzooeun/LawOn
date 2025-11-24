@@ -467,50 +467,14 @@ header .container {
   box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
-
-
-
-
-
-
 /* 아직 hero-image 손 안봄 */
-/* --- 히어로 이미지 카드들 --- */
+/* 히어로 이미지 카드들 */
 .hero-image {
   flex: 1;
   position: relative;
   text-align: center;
 }
-.hero-image img {
-  max-width: 100%;
-  height: auto;
-  position: relative;
-  z-index: 2;
-}
-.hero-image::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  height: 500px;
-  background-color: var(--white-circle);
-  border-radius: 50%;
-  z-index: 1;
-}
-.hero-image .card {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  padding: 15px 20px;
-  box-shadow: 0 8px 30px rgba(185, 20, 97, 0.1);
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+
 .card-checkup {
   top: 30%;
   left: -30px;
@@ -618,9 +582,6 @@ header .container {
   }
 }
 
-
-
-/* -------------------------------------------------------------------------------------------------------- */
 /* 맞춤형 모달 관련 css */
 /* 오버레이 */
 /* 오버레이: 포털 안에서 z-index 1 */
@@ -673,8 +634,6 @@ header .container {
   transform: translate(-50%,-50%) scale(1);
 }
 
-
-
 /* 맞춤형 상담 닫기 버튼 */
 .auth-close-btn {
   position: absolute;
@@ -695,9 +654,6 @@ header .container {
 .auth-close-btn:hover {
   color: #1c1c1c;
 }
-
-
-
 
 /* 맞춤형 상담 탭 버튼 */
 .auth-tabs {
@@ -857,14 +813,11 @@ header .container {
   display: block;
 }
 
-
 .text-success {
   color: #2f9e44;
   font-size: 12px;
   margin-top: 4px;
 }
-
-
 
 .password-strength {
   display: none;
@@ -876,7 +829,6 @@ header .container {
 .password-strength.show {
   display: block;
 }
-
 
 /* 막대기 배경 */
 .password-strength .strength-bar {
@@ -919,8 +871,6 @@ header .container {
   background-color: transparent;
 }
 
-
-
 /* 회원가입 성공 토스트 css */
 .auth-toast {
   position: absolute;
@@ -945,7 +895,6 @@ header .container {
   transform: translate(-50%, -55%);
 }
 
-
 /* 회원가입 버튼 */
 .auth-submit-btn {
   padding: 14px;
@@ -960,7 +909,6 @@ header .container {
   margin-top: 8px;
 }
 
-
 .auth-submit-btn:hover {
   background: #2d2d2d;
   transform: translateY(-2px);
@@ -970,7 +918,6 @@ header .container {
   transform: translateY(0);
 }
 
-
 /* 회원가입 버튼 비활성화 상태 */
 .auth-submit-btn:disabled {
   background: #b5b5b5;
@@ -979,7 +926,6 @@ header .container {
   box-shadow: none;
   transform: none;
 }
-
 
 /* 하단 링크 */
 .auth-links {
@@ -1020,10 +966,7 @@ body.page-fading {
   transition: opacity 0.25s ease;
 }
 
-
-/* =========================================
-------------------간편 상담 채팅 위젯 (사이드 슬라이드)------------------------------------------------------------
-========================================= */
+/* 간편 상담 채팅 위젯 (사이드 슬라이드) */
 
 /* 배경 오버레이 */
 .chat-overlay {
@@ -1203,8 +1146,6 @@ body.page-fading {
   }
 }
 
-
-
 /* 채팅 입력창 */
 .chat-footer {
   display: flex;
@@ -1255,8 +1196,6 @@ body.page-fading {
     max-width: 100%;
   }
 }
-
-
 
 .chat-login-banner {
   display: none;
@@ -1311,9 +1250,7 @@ body.page-fading {
   filter: brightness(0.98);
 }
 
-
-
-/*-------------------------=== 특징 섹션 --------------------------------=== */
+/* 특징 섹션 */
 .process-section {
   padding: 100px 40px;
 
@@ -1372,7 +1309,6 @@ body.page-fading {
   transition: all 0.4s var(--smooth-ease);
 }
 
-
 .feature-card:hover .feature-icon {
   transform: scale(1.1) rotate(-5deg);
 }
@@ -1392,13 +1328,10 @@ body.page-fading {
   white-space: normal;   /* 엔터 무시하고, <br>만 줄바꿈으로 처리 */
 }
 
-
 .section-header p {
   font-size: 20px;
   color: #0b0a0a;
 }
-
-
 
 .lawyer-section {
     max-width: 1400px;
@@ -1557,7 +1490,6 @@ body.page-fading {
     margin-bottom: 4px;
 }
 
-
 .arrow-link {
   display: inline-flex;
   align-items: center;
@@ -1626,7 +1558,6 @@ body.page-fading {
     }
 }
 
-
 .office-map-section {
   padding: 90px min(6vw, 80px);
   background: #fff;
@@ -1651,7 +1582,6 @@ body.page-fading {
   font-weight: bold;
   color:  #8b7a52;
 }
-
 
 .office-sub {
   color: #777;
@@ -1798,14 +1728,7 @@ body.page-fading {
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-
-
-
-
-/* =========================================
-    ★★★ 추가: 하단 푸터 (Footer) ★★★
-=========================================
-*/
+/* 추가: 하단 푸터 (Footer) */
 .site-footer {
   background: #fff;
   border-top: 1px solid #e0e0e0;
@@ -1852,7 +1775,7 @@ body.page-fading {
 }
 
 .footer-links a:hover {
-  color: var(--accent); /* ★ 수정: 골드 액센트 */
+  color: var(--accent); /* 수정: 골드 액센트 */
 }
 
 .footer-divider {
@@ -1903,8 +1826,6 @@ body.page-fading {
   }
 }
 
-
-
 .chat-message.bot.loading {
   opacity: 0.7;
   font-style: italic;
@@ -1934,7 +1855,7 @@ body.page-fading {
 }
 
 
-/* -----------------반응형 관련 css ---------------------------*/
+/* 반응형 관련 css */
 @media (max-width: 768px) {
   .hero {
     grid-template-columns: 1fr;

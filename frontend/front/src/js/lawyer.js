@@ -1,8 +1,8 @@
-// 7. 변호사 페이지
+// 변호사 페이지
 
 import { showToast } from "./utils.js";
 
-// ===== 1) 데이터 스키마 =====
+// 데이터 스키마
 const DATA = [
   {
     region: "서울·수도권",
@@ -386,7 +386,7 @@ const DATA = [
   },
 ];
 
-// ===== 2) 렌더링 =====
+// 렌더링
 const lawyerState = {
   query: "",
   region: "ALL",
@@ -519,7 +519,7 @@ export function render() {
   });
 }
 
-// ===== 3) CSV 내보내기 =====
+// CSV 내보내기
 function toCSV(rows) {
   const header = ["region", "name", "phone", "address", "url", "note"];
   const lines = [header.join(",")];
@@ -564,7 +564,7 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-// ===== 4) 이벤트 바인딩 (초기화 함수) =====
+// 이벤트 바인딩 (초기화 함수)
 export function initLawyerPageListeners() {
   document.getElementById("q")?.addEventListener("input", (e) => {
     lawyerState.query = e.target.value;

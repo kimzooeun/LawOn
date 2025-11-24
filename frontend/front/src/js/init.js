@@ -1,7 +1,5 @@
-// ===================================
-// 8. 메인 초기화
+// 메인 초기화
 // (DOM 로드 후 이벤트 바인딩 및 앱 실행)
-// ===================================
 
 import {
   Modal,
@@ -38,11 +36,11 @@ export function showPage(pageToShow) {
   const inputSec = document.querySelector(".input-section");
   const allPages = [chatArea, mypageExplore, lawyerPage];
 
-  // 1. 모든 페이지 숨기기
+  // 모든 페이지 숨기기
   allPages.forEach((page) => page?.classList.add("hidden"));
   inputSec?.classList.add("hidden");
 
-  // 2. 대상 페이지만 즉시 보이기
+  // 대상 페이지만 즉시 보이기
   if (pageToShow) {
     pageToShow.classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,10 +88,10 @@ export function openDocModal(title, content, size = "lg") {
 
   titleEl.textContent = title;
 
-  // 1. 크기 설정
+  // 크기 설정
   cardEl.classList.toggle("modal-card--lg", size === "lg");
 
-  // 2. 내용 채우기
+  // 내용 채우기
   if (typeof content === "string") {
     bodyEl.innerHTML = content;
   } else if (content instanceof Node) {
@@ -103,11 +101,11 @@ export function openDocModal(title, content, size = "lg") {
     bodyEl.innerHTML = "<p>내용을 불러올 수 없습니다.</p>";
   }
 
-  // 3. 배경 스크롤 잠금
+  // 배경 스크롤 잠금
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
 
-  // 4. 닫기 핸들러 세팅
+  // 닫기 핸들러 세팅
   const closeBtn = document.getElementById("docModalClose");
   const backdrop = modal.querySelector(".modal-backdrop");
 
@@ -149,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     console.error("initMypageListeners 함수를 찾을 수 없습니다. (aaa5.js)");
   }
-  // ===== 1. 헤더 로그아웃 버튼 =====
+  // 헤더 로그아웃 버튼
   const headerLogoutBtn = document.getElementById("headerLogoutBtn");
   headerLogoutBtn?.addEventListener("click", () => {
     Modal.open({
@@ -159,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
       onConfirm: async () => {
         let apiFailed = false;
         try {
-          // 1. API 호출 시도
+          // API 호출 시도
           const response = await fetch("/api/logout", {
             method: "POST",
             credentials: "include",
@@ -172,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
           apiFailed = true; // 네트워크 오류 등 API 호출 실패
           console.error("서버 로그아웃 API 호출 실패:", err);
         } finally {
-          // 2. API 성공/실패와 관계없이 *항상* 모든 로컬 데이터 삭제
+          // API 성공/실패와 관계없이 *항상* 모든 로컬 데이터 삭제
 
           // utils.js에서 가져온 변수 사용
           localStorage.removeItem(STORE_KEY); // "todak_chats_v1"
@@ -189,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
           localStorage.removeItem("todak_recents"); //
           localStorage.removeItem("todak_push_enabled"); //
 
-          // 3. 피드백 및 리디렉션
+          // 피드백 및 리디렉션
           const toastMsg = apiFailed
             ? "로그아웃. 로컬 데이터만 삭제합니다."
             : "로그아웃 되었습니다.";
@@ -203,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // [추가] ===== 2. 로고 버튼 (Index로 이동) =====
+  // [추가] 로고 버튼 (Index로 이동)
   const logoBtn = document.getElementById("logoBtn");
   logoBtn?.addEventListener("click", () => {
     window.location.href = "/"; // 메인 페이지로 이동 (로그인 상태 유지)
@@ -234,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     return;
   } else {
-    // 1. '새 채팅' 버튼
+    // '새 채팅' 버튼
     qs("#newChatBtn").addEventListener("click", () => {
       // archiveCurrent();
 
@@ -244,17 +242,17 @@ document.addEventListener("DOMContentLoaded", () => {
       showPage(chatArea);
     });
 
-    // 2. '마이페이지' 버튼
+    // '마이페이지' 버튼
     qs("#exploreBtn").addEventListener("click", () => {
       showPage(mypageExplore);
     });
 
-    // 3. '마이페이지' -> '채팅으로'
+    // '마이페이지' -> '채팅으로'
     qs("#mpxBackBtn").addEventListener("click", () => {
       showPage(chatArea);
     });
 
-    // 4. '변호사페이지' 버튼
+    // '변호사페이지' 버튼
     qs("#lawyerBtn").addEventListener("click", () => {
       showPage(lawyerPage);
 
@@ -273,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // 5. '변호사페이지' -> '채팅으로'
+    // '변호사페이지' -> '채팅으로'
     qs("#lawyerBackBtn").addEventListener("click", () => {
       showPage(chatArea);
     });
@@ -281,13 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // 초기 로드 시 채팅 페이지 기본 표시
     showPage(chatArea);
   }
-
-  // 채팅 초기 바인딩
-  // if (!state.currentId) createNewSession();
-  // qs("#chatForm").addEventListener("submit", handleSend);
-
-  // 기존 채팅 렌더링
-  // renderChat();
 
   qs("#chatForm").addEventListener("submit", handleSend);
 
