@@ -67,7 +67,7 @@ class SimpleChatRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"status": "AI RAG Server is running."} # STT 문구 제거
+    return {"status": "AI RAG Server is running."} 
 
 # Healthcheck 엔드포인트
 @app.get("/health")
