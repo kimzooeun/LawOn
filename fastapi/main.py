@@ -4,7 +4,6 @@ import json
 import uuid
 import redis
 import traceback
-import uvicorn
 import asyncio
 
 # stt tts 추가
