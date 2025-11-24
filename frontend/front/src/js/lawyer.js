@@ -1,396 +1,77 @@
-// 변호사 페이지
-
 import { showToast } from "./utils.js";
 
-// 데이터 스키마
-const DATA = [
-  {
-    region: "서울·수도권",
-    items: [
-      {
-        type: "law",
-        name: "예시 법무법인 1",
-        tags: ["가사", "이혼", "상속"],
-        phone: "02-000-0001",
-        address: "서울 서초구 서초대로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "가사/이혼 전문 상담 운영",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 2",
-        tags: ["가사", "재산분할"],
-        phone: "02-000-0002",
-        address: "서울 강남구 테헤란로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "재산분할/친권 분쟁 경험",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 3",
-        tags: ["상속", "유류분"],
-        phone: "02-000-0003",
-        address: "서울 종로구 종로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "상속/유류분 소송 다수",
-      },
-      {
-        type: "law",
-        name: "예시 법률사무소 4",
-        tags: ["가사", "친권·양육"],
-        phone: "031-000-0004",
-        address: "경기 성남시 분당구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "양육·면접교섭 합의 지원",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 5",
-        tags: ["국제이혼", "재판상이혼"],
-        phone: "031-000-0005",
-        address: "경기 수원시 영통구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "국제사건·국제사법 경험",
-      },
-      {
-        type: "law",
-        name: "예시 심리상담센터 A",
-        tags: ["부부", "가족", "개인"],
-        phone: "02-111-1111",
-        address: "서울 중구 세종대로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "부부·가족상담 프로그램",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 B",
-        tags: ["이혼후 회복", "애도"],
-        phone: "02-111-1112",
-        address: "서울 용산구 한강대로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "이별/이혼 회복 그룹",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 C",
-        tags: ["청소년", "정서"],
-        phone: "02-111-1113",
-        address: "경기 고양시 일산서구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "청소년 정서/행동",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 D",
-        tags: ["불안", "우울"],
-        phone: "031-111-1114",
-        address: "경기 의정부시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "성인 불안/우울",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 E",
-        tags: ["트라우마", "PTSD"],
-        phone: "031-111-1115",
-        address: "인천 미추홀구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "트라우마 전문",
-      },
-    ],
-  },
-  {
-    region: "부산·영남권",
-    items: [
-      {
-        type: "law",
-        name: "예시 로펌 부산 1",
-        tags: ["가사", "이혼"],
-        phone: "051-000-0001",
-        address: "부산 연제구 법원로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "가사 사건 대응",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 부산 2",
-        tags: ["재산분할", "위자료"],
-        phone: "051-000-0002",
-        address: "부산 해운대구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "재산분할/위자료",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 대구 3",
-        tags: ["친권", "면접교섭"],
-        phone: "053-000-0003",
-        address: "대구 수성구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "친권·양육",
-      },
-      {
-        type: "law",
-        name: "예시 법률사무소 4",
-        tags: ["상속", "유류분"],
-        phone: "055-000-0004",
-        address: "경남 창원시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "상속 분쟁",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 5",
-        tags: ["국제이혼"],
-        phone: "054-000-0005",
-        address: "경북 포항시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "국제/해외 거주",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 F",
-        tags: ["부부", "가족"],
-        phone: "051-111-1111",
-        address: "부산 수영구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "부부상담",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 G",
-        tags: ["개인", "우울"],
-        phone: "051-111-1112",
-        address: "부산 남구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "개인상담",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 H",
-        tags: ["청소년", "학부모"],
-        phone: "053-111-1113",
-        address: "대구 중구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "청소년/부모 교육",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 I",
-        tags: ["불안", "공황"],
-        phone: "055-111-1114",
-        address: "경남 김해시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "불안/공황",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 J",
-        tags: ["트라우마"],
-        phone: "054-111-1115",
-        address: "경북 구미시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "트라우마",
-      },
-    ],
-  },
-  {
-    region: "대전·충청권",
-    items: [
-      {
-        type: "law",
-        name: "예시 로펌 대전 1",
-        tags: ["가사", "이혼"],
-        phone: "042-000-0001",
-        address: "대전 서구 둔산로 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "가사 사건",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 대전 2",
-        tags: ["재산분할"],
-        phone: "042-000-0002",
-        address: "대전 유성구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "재산분할",
-      },
-      {
-        type: "law",
-        name: "예시 법률사무소 3",
-        tags: ["친권", "양육"],
-        phone: "043-000-0003",
-        address: "충북 청주시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "친권·양육",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 4",
-        tags: ["상속"],
-        phone: "041-000-0004",
-        address: "충남 천안시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "상속",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 5",
-        tags: ["국제사건"],
-        phone: "044-000-0005",
-        address: "세종특별자치시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "국제·국내 연계",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 K",
-        tags: ["가족", "부부"],
-        phone: "042-111-1111",
-        address: "대전 중구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "가족/부부상담",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 L",
-        tags: ["우울", "스트레스"],
-        phone: "043-111-1112",
-        address: "청주 상당구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "성인상담",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 M",
-        tags: ["청소년"],
-        phone: "041-111-1113",
-        address: "아산시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "청소년",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 N",
-        tags: ["불안", "공황"],
-        phone: "041-111-1114",
-        address: "천안시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "불안/공황",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 O",
-        tags: ["트라우마"],
-        phone: "044-111-1115",
-        address: "세종 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "트라우마",
-      },
-    ],
-  },
-  {
-    region: "광주·전라·제주권",
-    items: [
-      {
-        type: "law",
-        name: "예시 로펌 광주 1",
-        tags: ["가사", "이혼"],
-        phone: "062-000-0001",
-        address: "광주 동구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "가사 사건",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 전주 2",
-        tags: ["재산분할"],
-        phone: "063-000-0002",
-        address: "전북 전주시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "재산분할",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 순천 3",
-        tags: ["친권", "양육"],
-        phone: "061-000-0003",
-        address: "전남 순천시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "친권·양육",
-      },
-      {
-        type: "law",
-        name: "예시 로펌 제주 4",
-        tags: ["국제이혼"],
-        phone: "064-000-0004",
-        address: "제주 제주시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "국제이혼",
-      },
-      {
-        type: "law",
-        name: "예시 법률사무소 5",
-        tags: ["상속"],
-        phone: "064-000-0005",
-        address: "제주 서귀포시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "상속",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 P",
-        tags: ["부부", "가족"],
-        phone: "062-111-1111",
-        address: "광주 북구 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "부부/가족",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 Q",
-        tags: ["우울", "불안"],
-        phone: "061-111-1112",
-        address: "전남 목포시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "성인상담",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 R",
-        tags: ["청소년"],
-        phone: "063-111-1113",
-        address: "전북 군산시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "청소년",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 S",
-        tags: ["트라우마"],
-        phone: "064-111-1114",
-        address: "제주 제주시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "트라우마",
-      },
-      {
-        type: "law",
-        name: "예시 상담센터 T",
-        tags: ["애도", "이별"],
-        phone: "064-111-1115",
-        address: "제주 서귀포시 000",
-        url: "http://127.0.0.1:5500/frontend/front/lawyer.html",
-        note: "상실/애도",
-      },
-    ],
-  },
-];
-
-// 렌더링
+// 상태 관리
 const lawyerState = {
   query: "",
   region: "ALL",
+  data: [] // 서버에서 받아온 데이터를 여기에 저장합니다.
 };
+
+// 지역 분류 헬퍼 함수
+function classifyRegion(address) {
+  if (!address) return "기타";
+  const addr = address.trim();
+  if (addr.startsWith("서울") || addr.startsWith("경기") || addr.startsWith("인천")) return "서울·수도권";
+  if (addr.startsWith("부산") || addr.startsWith("대구") || addr.startsWith("울산") || addr.startsWith("경남") || addr.startsWith("경북")) return "부산·영남권";
+  if (addr.startsWith("대전") || addr.startsWith("세종") || addr.startsWith("충남") || addr.startsWith("충북")) return "대전·충청권";
+  if (addr.startsWith("광주") || addr.startsWith("전남") || addr.startsWith("전북") || addr.startsWith("제주")) return "광주·전라·제주권";
+  return "기타";
+}
+
+// DB 데이터를 프론트엔드 형식으로 변환 및 그룹화
+function processLawyerData(dbList) {
+  const grouped = {
+    "서울·수도권": [],
+    "부산·영남권": [],
+    "대전·충청권": [],
+    "광주·전라·제주권": [],
+    "기타": []
+  };
+
+  dbList.forEach(item => {
+    // DB 컬럼 -> 프론트엔드 객체 매핑
+    const lawyer = {
+      id: item.id,
+      name: item.name, // 변호사 이름
+      officeName: item.office, // 소속 (법무법인 등)
+      tags: item.detail_specialty ? [item.detail_specialty] : [], // 전문분야를 태그로 변환
+      phone: item.contact, // 연락처
+      address: item.office_location, // 주소
+      url: item.image_url || "#", 
+      note: item.description // 설명
+    };
+
+    const region = classifyRegion(lawyer.address);
+    if (grouped[region]) {
+      grouped[region].push(lawyer);
+    } else {
+      grouped["기타"].push(lawyer);
+    }
+  });
+
+  // DATA 배열 형식으로 변환
+  return Object.keys(grouped)
+    .filter(key => grouped[key].length > 0)
+    .map(key => ({
+      region: key,
+      items: grouped[key]
+    }));
+}
+
+// 서버에서 변호사 목록 가져오기
+async function fetchLawyers() {
+  try {
+    const response = await fetch("/api/lawyers");
+    if (!response.ok) throw new Error("데이터 불러오기 실패");
+
+    const dbList = await response.json();
+    lawyerState.data = processLawyerData(dbList); // 데이터 가공 후 상태 저장
+    render(); // 화면 그리기
+  } catch (error) {
+    console.error("변호사 목록 로딩 에러:", error);
+    showToast("변호사 정보를 불러오지 못했습니다.", "error");
+  }
+}
 
 function makeTag(text) {
   const s = document.createElement("span");
@@ -399,6 +80,7 @@ function makeTag(text) {
   return s;
 }
 
+// ★ 카드 생성 함수 (여기가 수정됨) ★
 function card(item) {
   const cardTpl = document.getElementById("card-tpl");
   if (!cardTpl) {
@@ -416,27 +98,40 @@ function card(item) {
   icon.classList.add("law");
   icon.textContent = "법";
 
-  title.textContent = item.name;
+  title.textContent = `${item.name} (${item.officeName || '변호사'})`;
+  
   meta.innerHTML = "";
-  meta.appendChild(makeTag("변호사 사무실"));
-  if (item.phone) {
-    meta.appendChild(makeTag(item.phone));
-  }
-  if (item.address) {
-    meta.appendChild(makeTag(item.address));
-  }
+  if (item.officeName) meta.appendChild(makeTag(item.officeName));
+  if (item.phone) meta.appendChild(makeTag(item.phone));
+  if (item.address) meta.appendChild(makeTag(item.address));
   if (Array.isArray(item.tags))
     item.tags.forEach((t) => meta.appendChild(makeTag("#" + t)));
 
   desc.textContent = item.note || "";
 
-  // actions
+  // actions 버튼들
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
-  aSite.href = item.url || "#";
+
+  // ▼ [수정 부분] 사이트 버튼 링크 생성 로직 ▼
+  const targetHtml = "lawfirm_view.html"; // 이동할 HTML 파일명 확인하세요!
+  
+  // 데이터 인코딩 (URL에 특수문자나 한글이 들어갈 때 깨지지 않도록 함)
+  const officeParam = encodeURIComponent(item.officeName || "법률사무소");
+  const phoneParam = encodeURIComponent(item.phone || "");
+
+  // DB에 유효한 URL이 있으면 그걸 쓰고, 없으면 우리가 만든 상세페이지로 데이터와 함께 이동
+  if (item.url && item.url !== 'NULL' && item.url.startsWith('http')) {
+      aSite.href = item.url;
+  } else {
+      // 예: lawfirm_view.html?office=김앤장&phone=010-1234-5678
+      aSite.href = `${targetHtml}?office=${officeParam}&phone=${phoneParam}`;
+  }
+  
   aSite.target = "_blank";
   aSite.rel = "noopener";
   aSite.textContent = "사이트";
+  // ▲ [수정 끝] ▲
 
   const aCall = document.createElement("a");
   aCall.className = "btn small line";
@@ -476,32 +171,28 @@ export function render() {
   const app = document.getElementById("app");
   const sectionTpl = document.getElementById("section-tpl");
 
-  if (!app || !sectionTpl) {
-    console.error("app 또는 section-tpl 템플릿을 찾을 수 없습니다.");
-    return;
-  }
+  if (!app || !sectionTpl) return;
 
   app.innerHTML = "";
 
   const regions =
     lawyerState.region === "ALL"
-      ? DATA
-      : DATA.filter((r) => r.region === lawyerState.region);
+      ? lawyerState.data
+      : lawyerState.data.filter((r) => r.region === lawyerState.region);
 
   regions.forEach((block) => {
     const sec = sectionTpl.content.firstElementChild.cloneNode(true);
     sec.querySelector("h2").textContent = block.region;
 
     const grid = sec.querySelector("[data-grid]");
+    
     const list = block.items.filter((it) => {
       const q = lawyerState.query.trim().toLowerCase();
-      const hay = [it.name, it.address, (it.tags || []).join(","), it.note]
+      const hay = [it.name, it.officeName, it.address, (it.tags || []).join(","), it.note]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      const matchQ = !q || hay.includes(q);
-
-      return matchQ;
+      return !q || hay.includes(q);
     });
 
     sec.querySelector(".count").textContent = `${list.length}개 표시`;
@@ -514,41 +205,44 @@ export function render() {
     } else {
       list.forEach((it) => grid.appendChild(card(it)));
     }
-
-    app.appendChild(sec);
+    
+    if(list.length > 0 || lawyerState.query === "") {
+        app.appendChild(sec);
+    }
   });
 }
 
-// CSV 내보내기
+// CSV 내보내기 로직
 function toCSV(rows) {
-  const header = ["region", "name", "phone", "address", "url", "note"];
+  const header = ["region", "name", "office", "phone", "address", "note"];
   const lines = [header.join(",")];
   rows.forEach((r) => {
     const vals = header.map((k) => {
-      const v = Array.isArray(r[k]) ? r[k].join("|") : r[k] ?? "";
+        let val = r[k];
+        if (k === 'office') val = r.officeName; 
+        const v = Array.isArray(val) ? val.join("|") : val ?? "";
       return '"' + String(v).replaceAll('"', '""') + '"';
     });
     lines.push(vals.join(","));
   });
   return lines.join("\n");
 }
+
 function exportCSV() {
   const all = [];
   const regions =
     lawyerState.region === "ALL"
-      ? DATA
-      : DATA.filter((r) => r.region === lawyerState.region);
+      ? lawyerState.data
+      : lawyerState.data.filter((r) => r.region === lawyerState.region);
 
   regions.forEach((r) => {
     r.items.forEach((it) => {
       const q = lawyerState.query.trim().toLowerCase();
-      const hay = [it.name, it.address, (it.tags || []).join(","), it.note]
+      const hay = [it.name, it.officeName, it.address, (it.tags || []).join(","), it.note]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      const okQ = !q || hay.includes(q);
-
-      if (okQ) {
+      if (!q || hay.includes(q)) {
         all.push({ region: r.region, ...it });
       }
     });
@@ -559,13 +253,15 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "directory_export.csv";
+  a.download = "lawyers_list.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// 이벤트 바인딩 (초기화 함수)
+// 초기화 함수
 export function initLawyerPageListeners() {
+  fetchLawyers(); // 데이터 로드
+
   document.getElementById("q")?.addEventListener("input", (e) => {
     lawyerState.query = e.target.value;
     render();
@@ -579,8 +275,10 @@ export function initLawyerPageListeners() {
   document.getElementById("resetBtn")?.addEventListener("click", () => {
     lawyerState.query = "";
     lawyerState.region = "ALL";
-    document.getElementById("q").value = "";
-    document.getElementById("type").value = "ALL";
+    const qEl = document.getElementById("q");
+    const tEl = document.getElementById("type");
+    if(qEl) qEl.value = "";
+    if(tEl) tEl.value = "ALL";
     render();
   });
 
