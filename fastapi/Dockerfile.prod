@@ -20,10 +20,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 5. 애플리케이션 코드 및 모델 복사
-COPY ./main.py .
-COPY ./models_load.py .
+# COPY ./main.py .
+# COPY ./models_load.py .
 
 # 6. 서버 실행
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
+# EXPOSE 8000
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning"]
 
