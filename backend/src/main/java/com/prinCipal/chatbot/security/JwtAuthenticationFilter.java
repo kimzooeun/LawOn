@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 		};
 
     // 모든 HTTP 요청이 이 필터를 거쳐가게 될거임 .. 
-    // 요청을 거쳐가면서 토큰을 추출해 제대로된 토큰인지 아닌지 검사....
+    // 요청을 거쳐가면서 토큰을 추출해 제대로된 토큰인지 아닌지 검사...
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {

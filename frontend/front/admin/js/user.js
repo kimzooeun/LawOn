@@ -65,12 +65,12 @@ function formatDate(dateInput) {
 
   let date;
 
-  // 1. 만약 배열로 들어오면 ([2025, 11, 18, 21, 30]) Date 객체로 변환
+  // 만약 배열로 들어오면 ([2025, 11, 18, 21, 30]) Date 객체로 변환
   if (Array.isArray(dateInput)) {
     const [y, M, d, h, m, s] = dateInput;
     date = new Date(y, M - 1, d, h || 0, m || 0, s || 0);
   } else {
-    // 2. 문자열이나 일반 Date 객체일 때
+    // 문자열이나 일반 Date 객체일 때
     date = new Date(dateInput);
   }
   

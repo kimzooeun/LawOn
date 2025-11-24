@@ -3,7 +3,7 @@ package com.prinCipal.chatbot.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//1. 최상위 응답 DTO
+// 최상위 응답 DTO
 @Data
 @NoArgsConstructor
 public class FastApiResponseDto {

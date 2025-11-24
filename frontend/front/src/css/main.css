@@ -62,7 +62,6 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
-  /**/
   padding: 20px 0;
   position: sticky;
 
@@ -492,8 +491,8 @@ header .container {
   font-size: 24px;
 }
 
-/* --- 반응형 디자인 --- */
-/* 1. 태블릿 사이즈 (1024px 이하) */
+/* 반응형 디자인 */
+/* 태블릿 사이즈 (1024px 이하) */
 @media (max-width: 1024px) {
   .hero-content {
     flex-direction: column;
@@ -625,7 +624,7 @@ header .container {
     visibility 0.35s;
   display: flex;
   flex-direction: column;
-  pointer-events: auto;           /* 클릭 가능 */
+  pointer-events: auto;   /* 클릭 가능 */
 }
 
 .auth-modal.is-open {
@@ -770,6 +769,7 @@ header .container {
   background: transparent; /* ← 흰 배경 제거! */
   z-index: 1; /* 텍스트는 위에 */
 }
+
 /* 폼 */
 .auth-form {
   display: flex;

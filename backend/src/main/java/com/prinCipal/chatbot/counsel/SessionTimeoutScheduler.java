@@ -72,9 +72,7 @@ public class SessionTimeoutScheduler {
         // 이번 턴에 처리된 세션 ID 저장 (중복 처리 방지)
         Set<Long> processedSessionIds = new HashSet<>();
 
-        // ==========================================
         // 1. [경고 단계]
-        // ==========================================
         try {
             List<CounsellingSession> warningTargets = sessionRepository.findSessionsForWarning(
                     CompletionStatus.ONGOING, warningTime);
@@ -96,9 +94,7 @@ public class SessionTimeoutScheduler {
             logger.error("경고 대상 조회 중 오류 발생", e);
         }
 
-        // ==========================================
         // 2. [종료 단계]
-        // ==========================================
         try {
             List<CounsellingSession> timeoutTargets = sessionRepository.findSessionsForTimeout(
                     CompletionStatus.ONGOING, terminationTime);

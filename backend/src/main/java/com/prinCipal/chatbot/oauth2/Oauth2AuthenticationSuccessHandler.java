@@ -84,7 +84,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            encodedProvider
 	        );
 	        
-	    System.out.println("🚀 Redirecting to: " + targetUrl);  // 👈 디버깅용
+	    System.out.println("🚀 Redirecting to: " + targetUrl);  // 디버깅용
         
         response.sendRedirect(targetUrl);
 
