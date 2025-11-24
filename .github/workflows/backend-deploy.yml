@@ -33,7 +33,9 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/ubuntu/app
-            docker compose -f docker-compose.prod.yml down
-            docker system prune -af
-            docker compose -f docker-compose.prod.yml up -d --build
-          
+            docker compose -f docker-compose.prod.yml stop backend || true
+            docker compose -f docker-compose.prod.yml rm -f backend || true
+            docker images -q finalproject-backend | xargs -r docker rmi -f
+            docker image prune -f
+            docker compose -f docker-compose.prod.yml build backend --no-cache
+            docker compose -f docker-compose.prod.yml up -d backend
