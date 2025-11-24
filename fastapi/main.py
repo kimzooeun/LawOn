@@ -75,8 +75,6 @@ def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
-# ===================================================================================================
-
 # [엔드포인트 2: RAG 응답 생성]
 @app.post("/generate-response")
 async def handle_generate_response(request: QueryRequest):
@@ -347,8 +345,6 @@ async def handle_generate_response(request: QueryRequest):
     }
 
     return final_response_object
-  
-# ===================================================================================================
 
 # [엔드포인트 3: 간편 상담]
 @app.post("/simple-chat")
@@ -488,8 +484,6 @@ async def simple_chat(request:SimpleChatRequest):
         },
     }
 
-# ===================================================================================================
-
 # [엔드포인트 4: 간편 상담 이력 조회]
 @app.get("/simple-chat/history")
 async def get_simple_chat_history(session_id: str):
@@ -519,9 +513,6 @@ async def get_simple_chat_history(session_id: str):
             "limit_reached": False,
             "suggest_login": False
         }
-
-
-# ===================================================================================================
 
 # STT (Whisper) - 음성 → 텍스트
 async def run_stt_memory(audio_file: UploadFile):
