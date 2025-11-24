@@ -144,8 +144,18 @@ function card(item) {
   // actions
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
-  // url이 #이면 클릭 방지 혹은 알림
-  aSite.href = item.url && item.url !== "NULL" ? item.url : "#";
+
+  // ▼▼▼ [수정됨] 사이트 버튼 클릭 시 상세 페이지로 이동하도록 변경 ▼▼▼
+  // 1. 이동할 파일 이름 (같은 폴더에 lawfirm_view.html이 있어야 함)
+  const targetPage = "/lawyer/lawfirm.html";
+
+  // 2. 데이터 포장 (URL에 한글/특수문자가 들어가도 깨지지 않게 안전포장)
+  // item.officeName이 없으면 '법률사무소', phone이 없으면 빈값
+  const officeParam = encodeURIComponent(item.officeName || "법률사무소");
+  const phoneParam = encodeURIComponent(item.phone || "");
+
+  // 3. 최종 주소 완성 (예: lawfirm_view.html?office=김앤장&phone=010-1234-5678)
+  aSite.href = `${targetPage}?office=${officeParam}&phone=${phoneParam}`;
   aSite.target = "_blank";
   aSite.rel = "noopener";
   aSite.textContent = "사이트";
