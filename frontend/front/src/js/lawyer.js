@@ -4,17 +4,41 @@ import { showToast } from "./utils.js";
 const lawyerState = {
   query: "",
   region: "ALL",
-  data: [] // 서버에서 받아온 데이터를 여기에 저장합니다.
+  data: [], // 서버에서 받아온 데이터를 여기에 저장합니다.
 };
 
-// 지역 분류 헬퍼 함수
+// 지역 분류 헬퍼 함수 (DB의 office_location을 기준으로 대분류)
 function classifyRegion(address) {
   if (!address) return "기타";
   const addr = address.trim();
-  if (addr.startsWith("서울") || addr.startsWith("경기") || addr.startsWith("인천")) return "서울·수도권";
-  if (addr.startsWith("부산") || addr.startsWith("대구") || addr.startsWith("울산") || addr.startsWith("경남") || addr.startsWith("경북")) return "부산·영남권";
-  if (addr.startsWith("대전") || addr.startsWith("세종") || addr.startsWith("충남") || addr.startsWith("충북")) return "대전·충청권";
-  if (addr.startsWith("광주") || addr.startsWith("전남") || addr.startsWith("전북") || addr.startsWith("제주")) return "광주·전라·제주권";
+  if (
+    addr.startsWith("서울") ||
+    addr.startsWith("경기") ||
+    addr.startsWith("인천")
+  )
+    return "서울·수도권";
+  if (
+    addr.startsWith("부산") ||
+    addr.startsWith("대구") ||
+    addr.startsWith("울산") ||
+    addr.startsWith("경남") ||
+    addr.startsWith("경북")
+  )
+    return "부산·영남권";
+  if (
+    addr.startsWith("대전") ||
+    addr.startsWith("세종") ||
+    addr.startsWith("충남") ||
+    addr.startsWith("충북")
+  )
+    return "대전·충청권";
+  if (
+    addr.startsWith("광주") ||
+    addr.startsWith("전남") ||
+    addr.startsWith("전북") ||
+    addr.startsWith("제주")
+  )
+    return "광주·전라·제주권";
   return "기타";
 }
 
@@ -25,10 +49,10 @@ function processLawyerData(dbList) {
     "부산·영남권": [],
     "대전·충청권": [],
     "광주·전라·제주권": [],
-    "기타": []
+    기타: [],
   };
 
-  dbList.forEach(item => {
+  dbList.forEach((item) => {
     // DB 컬럼 -> 프론트엔드 객체 매핑
     const lawyer = {
       id: item.id,
@@ -37,8 +61,8 @@ function processLawyerData(dbList) {
       tags: item.detail_specialty ? [item.detail_specialty] : [], // 전문분야를 태그로 변환
       phone: item.contact, // 연락처
       address: item.office_location, // 주소
-      url: item.image_url || "#", 
-      note: item.description // 설명
+      url: item.image_url || "#", // 이미지 URL이 있으면 쓰고 없으면 # (또는 상세페이지 링크)
+      note: item.description, // 설명
     };
 
     const region = classifyRegion(lawyer.address);
@@ -49,18 +73,19 @@ function processLawyerData(dbList) {
     }
   });
 
-  // DATA 배열 형식으로 변환
+  // DATA 배열 형식으로 변환 ([{region: "...", items: [...]}, ...])
   return Object.keys(grouped)
-    .filter(key => grouped[key].length > 0)
-    .map(key => ({
+    .filter((key) => grouped[key].length > 0)
+    .map((key) => ({
       region: key,
-      items: grouped[key]
+      items: grouped[key],
     }));
 }
 
 // 서버에서 변호사 목록 가져오기
 async function fetchLawyers() {
   try {
+    // ★ 중요: 백엔드에 이 경로(/api/lawyers)를 처리하는 Controller가 있어야 합니다.
     const response = await fetch("/api/lawyers");
     if (!response.ok) throw new Error("데이터 불러오기 실패");
 
@@ -80,7 +105,6 @@ function makeTag(text) {
   return s;
 }
 
-// ★ 카드 생성 함수 (여기가 수정됨) ★
 function card(item) {
   const cardTpl = document.getElementById("card-tpl");
   if (!cardTpl) {
@@ -98,40 +122,33 @@ function card(item) {
   icon.classList.add("law");
   icon.textContent = "법";
 
-  title.textContent = `${item.name} (${item.officeName || '변호사'})`;
-  
+  // 이름 옆에 소속(office)도 같이 보여주면 좋습니다.
+  title.textContent = `${item.name} (${item.officeName || "변호사"})`;
+
   meta.innerHTML = "";
-  if (item.officeName) meta.appendChild(makeTag(item.officeName));
-  if (item.phone) meta.appendChild(makeTag(item.phone));
-  if (item.address) meta.appendChild(makeTag(item.address));
+  // DB의 office(소속) 정보를 태그로 추가
+  if (item.officeName) {
+    meta.appendChild(makeTag(item.officeName));
+  }
+  if (item.phone) {
+    meta.appendChild(makeTag(item.phone));
+  }
+  if (item.address) {
+    meta.appendChild(makeTag(item.address));
+  }
   if (Array.isArray(item.tags))
     item.tags.forEach((t) => meta.appendChild(makeTag("#" + t)));
 
   desc.textContent = item.note || "";
 
-  // actions 버튼들
+  // actions
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
-
-  // ▼ [수정 부분] 사이트 버튼 링크 생성 로직 ▼
-  const targetHtml = "lawfirm_view.html"; // 이동할 HTML 파일명 확인하세요!
-  
-  // 데이터 인코딩 (URL에 특수문자나 한글이 들어갈 때 깨지지 않도록 함)
-  const officeParam = encodeURIComponent(item.officeName || "법률사무소");
-  const phoneParam = encodeURIComponent(item.phone || "");
-
-  // DB에 유효한 URL이 있으면 그걸 쓰고, 없으면 우리가 만든 상세페이지로 데이터와 함께 이동
-  if (item.url && item.url !== 'NULL' && item.url.startsWith('http')) {
-      aSite.href = item.url;
-  } else {
-      // 예: lawfirm_view.html?office=김앤장&phone=010-1234-5678
-      aSite.href = `${targetHtml}?office=${officeParam}&phone=${phoneParam}`;
-  }
-  
+  // url이 #이면 클릭 방지 혹은 알림
+  aSite.href = item.url && item.url !== "NULL" ? item.url : "#";
   aSite.target = "_blank";
   aSite.rel = "noopener";
   aSite.textContent = "사이트";
-  // ▲ [수정 끝] ▲
 
   const aCall = document.createElement("a");
   aCall.className = "btn small line";
@@ -171,10 +188,15 @@ export function render() {
   const app = document.getElementById("app");
   const sectionTpl = document.getElementById("section-tpl");
 
-  if (!app || !sectionTpl) return;
+  if (!app || !sectionTpl) {
+    // console.error("app 또는 section-tpl 찾을 수 없음");
+    // 페이지 이동 시 에러 로그 방지를 위해 조용히 리턴
+    return;
+  }
 
   app.innerHTML = "";
 
+  // lawyerState.data를 사용 (서버에서 받아온 데이터)
   const regions =
     lawyerState.region === "ALL"
       ? lawyerState.data
@@ -185,19 +207,31 @@ export function render() {
     sec.querySelector("h2").textContent = block.region;
 
     const grid = sec.querySelector("[data-grid]");
-    
+
+    // 검색 필터 로직
     const list = block.items.filter((it) => {
       const q = lawyerState.query.trim().toLowerCase();
-      const hay = [it.name, it.officeName, it.address, (it.tags || []).join(","), it.note]
+      // 검색 대상 필드 확장 (이름, 소속, 주소, 태그, 설명)
+      const hay = [
+        it.name,
+        it.officeName,
+        it.address,
+        (it.tags || []).join(","),
+        it.note,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      return !q || hay.includes(q);
+      const matchQ = !q || hay.includes(q);
+
+      return matchQ;
     });
 
     sec.querySelector(".count").textContent = `${list.length}개 표시`;
 
     if (list.length === 0) {
+      // 검색 결과가 없을 때 해당 섹션을 아예 숨길지, '없음'을 표시할지 결정
+      // 여기서는 섹션 자체를 렌더링하지 않거나 empty 메시지 표시
       const empty = document.createElement("div");
       empty.className = "empty";
       empty.textContent = "조건에 맞는 결과가 없습니다.";
@@ -205,22 +239,23 @@ export function render() {
     } else {
       list.forEach((it) => grid.appendChild(card(it)));
     }
-    
-    if(list.length > 0 || lawyerState.query === "") {
-        app.appendChild(sec);
+
+    // 리스트가 있는 경우에만 섹션 추가 (선택사항)
+    if (list.length > 0 || lawyerState.query === "") {
+      app.appendChild(sec);
     }
   });
 }
 
-// CSV 내보내기 로직
+// CSV 내보내기 (서버 데이터 기준)
 function toCSV(rows) {
   const header = ["region", "name", "office", "phone", "address", "note"];
   const lines = [header.join(",")];
   rows.forEach((r) => {
     const vals = header.map((k) => {
-        let val = r[k];
-        if (k === 'office') val = r.officeName; 
-        const v = Array.isArray(val) ? val.join("|") : val ?? "";
+      let val = r[k];
+      if (k === "office") val = r.officeName; // 매핑
+      const v = Array.isArray(val) ? val.join("|") : val ?? "";
       return '"' + String(v).replaceAll('"', '""') + '"';
     });
     lines.push(vals.join(","));
@@ -238,11 +273,19 @@ function exportCSV() {
   regions.forEach((r) => {
     r.items.forEach((it) => {
       const q = lawyerState.query.trim().toLowerCase();
-      const hay = [it.name, it.officeName, it.address, (it.tags || []).join(","), it.note]
+      const hay = [
+        it.name,
+        it.officeName,
+        it.address,
+        (it.tags || []).join(","),
+        it.note,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      if (!q || hay.includes(q)) {
+      const okQ = !q || hay.includes(q);
+
+      if (okQ) {
         all.push({ region: r.region, ...it });
       }
     });
@@ -258,9 +301,10 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-// 초기화 함수
+// 이벤트 바인딩 (초기화 함수)
 export function initLawyerPageListeners() {
-  fetchLawyers(); // 데이터 로드
+  // ★ 페이지 로드 시 DB 데이터 가져오기 실행
+  fetchLawyers();
 
   document.getElementById("q")?.addEventListener("input", (e) => {
     lawyerState.query = e.target.value;
@@ -277,8 +321,8 @@ export function initLawyerPageListeners() {
     lawyerState.region = "ALL";
     const qEl = document.getElementById("q");
     const tEl = document.getElementById("type");
-    if(qEl) qEl.value = "";
-    if(tEl) tEl.value = "ALL";
+    if (qEl) qEl.value = "";
+    if (tEl) tEl.value = "ALL";
     render();
   });
 
