@@ -61,7 +61,7 @@ html {
 
 /* 레이아웃 (Layout) */
 
-/* 3.1. 전체 레이아웃 (사이드바 + 메인 컨테이너) */
+/* 전체 레이아웃 (사이드바 + 메인 컨테이너) */
 .container {
   display: flex;
   flex-direction: row;

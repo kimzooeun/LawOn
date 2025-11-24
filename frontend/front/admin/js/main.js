@@ -2,10 +2,10 @@ import { TokenManager } from '/src/js/token.js';
 
 const DASHBOARD_API = "/api/admin/dashboard";
 
-// 1. 페이지 초기화 및 네비게이션
+// 페이지 초기화 및 네비게이션
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1) 토큰 체크
+  // 토큰 체크
   const token = TokenManager.getAccessToken();
   if (!token) {
     console.warn("토큰 없음 -> 로그인 페이지 이동");
@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // 2) 네비게이션 버튼 설정
+  // 네비게이션 버튼 설정
   setupNavigation();
 
-  // 3) 데이터 로딩 시작 (메인 페이지일 경우만)
+  // 데이터 로딩 시작 (메인 페이지일 경우만)
   // logTableBody가 존재하는지 확인하여 메인 페이지인지 판단
   if (document.getElementById("logTableBody")) {
       initializeMainPage();
@@ -50,7 +50,7 @@ function setupNavigation() {
     });
   });
 
-  // ⭐ active 효과: 모든 경우를 완벽 지원하는 함수
+  // active 효과: 모든 경우를 완벽 지원하는 함수
   function getCurrentPage() {
     let path = window.location.pathname;
 
@@ -106,7 +106,7 @@ async function safeJson(res) {
 }
 
 
-// 2. 상단 요약 데이터 로딩
+// 상단 요약 데이터 로딩
 async function loadDashboardSummary() {
   const token = TokenManager.getAccessToken();
 
@@ -152,7 +152,7 @@ function applySummaryData(data) {
 }
 
 
-// 3. 최근 상담 로그 로드 (핵심 수정 부분)
+// 최근 상담 로그 로드 (핵심 수정 부분)
 async function loadDashboardLogs() {
   const tbody = document.getElementById("logTableBody");
   
@@ -167,7 +167,7 @@ async function loadDashboardLogs() {
   try {
     const token = TokenManager.getAccessToken();
     
-    // 1. 백엔드에 데이터 요청
+    // 백엔드에 데이터 요청
     const res = await fetch(`${DASHBOARD_API}/logs`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -180,10 +180,10 @@ async function loadDashboardLogs() {
 
     if (!res.ok) throw new Error(`로그 로드 실패 (상태코드: ${res.status})`);
 
-    // 2. 데이터 받기
+    // 데이터 받기
     const logs = await res.json();
 
-    // 3. 화면에 뿌리기
+    // 화면에 뿌리기
     applyLogData(logs, tbody);
 
   } catch (err) {
