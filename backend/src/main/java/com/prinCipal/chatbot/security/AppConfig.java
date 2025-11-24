@@ -15,11 +15,6 @@ public class AppConfig {
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
-
-//	@Bean
-//    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-//        return builder.build();
-//    }
 	
 	@Bean
 	public PasswordEncoder passwordEncoder() {

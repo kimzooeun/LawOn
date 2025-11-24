@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.prinCipal.chatbot.dto.ChatRequestDto; // 👈 (A) 프론트 요청 DTO
-import com.prinCipal.chatbot.dto.ChatResponseDto; // 👈 (B) 프론트 응답 DTO
-import com.prinCipal.chatbot.dto.SessionCreationResponse; // 👈 (C) 새 세션 응답 DTO
+import com.prinCipal.chatbot.dto.ChatRequestDto; // (A) 프론트 요청 DTO
+import com.prinCipal.chatbot.dto.ChatResponseDto; // (B) 프론트 응답 DTO
+import com.prinCipal.chatbot.dto.SessionCreationResponse; // (C) 새 세션 응답 DTO
 import com.prinCipal.chatbot.member.Member;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import org.springframework.data.redis.core.StringRedisTemplate; //1. Redis 템플릿 임포트
@@ -35,9 +35,8 @@ public class SessionController {
 	private final StringRedisTemplate stringRedisTemplate;
   private final ObjectMapper objectMapper;
 
-	/**
-	 * 1. 초기 데이터 로드 (GET /api/chats)
-	 */
+	/* 1. 초기 데이터 로드 (GET /api/chats) */
+	 
 	@GetMapping("/chats")
 	public ResponseEntity<?> getInitialData(@AuthenticationPrincipal CustomOAuth2User customUser) {
 		if (customUser == null) {

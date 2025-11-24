@@ -51,24 +51,21 @@ public class SessionService {
 	// Redis 캐시 유지 시간 (예: 24시간)
 	private static final Duration CACHE_TTL = Duration.ofHours(24);
 
-	/**
-	 * 새 상담 세션 생성
-	 */
-	@Transactional // 👈 [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
+	/* 새 상담 세션 생성 */
+	 
+	@Transactional // [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
 	public CounsellingSession createSession(Member member) {
 		CounsellingSession session = CounsellingSession.builder().member(member)
 				.completionStatus(CompletionStatus.ONGOING).resumeToken(null).build();
 
-		// 👈 [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
+		// [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
 		session.updateSummaryTitle("새 대화");
 		session.updateLastMessageTime(LocalDateTime.now());
 
 		return sessionRepository.save(session);
 	}
 
-	/**
-	 * 세션 삭제 (소유권 확인)
-	 */
+	/* 세션 삭제 (소유권 확인) */
 	@Transactional // 👈 [수정] 삭제도 트랜잭션으로 관리
 	public void deleteSession(Long sessionId, Member member) {
 		CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
@@ -89,9 +86,8 @@ public class SessionService {
 
 	}
 
-	/**
-	 * [추가] 사용자의 전체 채팅방/최근 목록 조회
-	 */
+	/* [추가] 사용자의 전체 채팅방/최근 목록 조회 */
+	 
 	@Transactional(readOnly = true)
 	public Map<String, Object> getInitialDataForUser(Member member) {
 		Map<String, Object> initialData = new HashMap<>();
@@ -164,10 +160,9 @@ public class SessionService {
 		return initialData;
 	}
 	
-	/**
-     * 1. 채팅 처리 메인 로직
-     * 흐름: Redis 조회 -> (없으면 AI 호출) -> 비동기 저장 실행 -> 사용자에게 즉시 응답
-     */
+	
+     // 1. 채팅 처리 메인 로직
+     // 흐름: Redis 조회 -> (없으면 AI 호출) -> 비동기 저장 실행 -> 사용자에게 즉시 응답
     public ChatResponseDto processChat(ChatRequestDto requestDto, Member member) {
         String userQuery = requestDto.getUserMessage();
         // Redis Key: 사용자 질문 내용을 기반으로 생성 (중복 질문 식별)
@@ -222,10 +217,9 @@ public class SessionService {
         );
     }
 
-    /**
-     * 2. 비동기 DB 저장 메서드 (@Async)
-     * 사용자가 응답을 받은 뒤 백그라운드에서 실행됨
-     */
+    
+     // 2. 비동기 DB 저장 메서드 (@Async)
+     // 사용자가 응답을 받은 뒤 백그라운드에서 실행됨
     @Async // 별도 스레드에서 실행됨
     @Transactional
     @CacheEvict(value = "initialData", key = "#member.userId") 
@@ -298,9 +292,8 @@ public class SessionService {
         }
     }
     
-    /**
-     * [수동] 상담 종료
-     */
+     // [수동] 상담 종료
+     
     @Transactional
     public void endSessionManually(Long sessionId, Member member) {
         CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
@@ -319,9 +312,8 @@ public class SessionService {
         saveSystemMessage(session, "상담이 종료되었습니다.");
     }
 
-    /**
-     * [수동] 상담 재시작
-     */
+    
+     // [수동] 상담 재시작
     @Transactional
     public void restartSessionManually(Long sessionId, Member member) {
         CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
@@ -343,113 +335,6 @@ public class SessionService {
                 .build();
         contentRepository.save(systemMsg);
     }
-
-//	/**
-//	 * [수정] 메시지 저장 및 봇 응답 처리
-//	 */
-//	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
-//	public ChatResponseDto addMessage(ChatRequestDto requestDto, Member member) {
-//
-//		CounsellingContent userMessage;
-//		Long sessionId;
-//
-//		try {
-//			// (A) 사용자 메시지 저장
-//			userMessage = saveUserMessageAndUpdateSession(requestDto, member);
-//			sessionId = userMessage.getSession().getSessionId();
-//
-//		} catch (RuntimeException e) {
-//			logger.error("사용자 메시지 저장 실패 (DB 조회 오류): {}", e.getMessage());
-//			// 에러 시 제목은 null
-//			return new ChatResponseDto("메시지 전송에 실패했습니다. (세션 오류)", requestDto.getSessionId().toString(), null);
-//		}
-//
-//		FastApiResponseDto fastApiResponse;
-//
-//		try {
-//			// 1. FastAPI 호출
-//			fastApiResponse = chatService.getFastApiResponse(requestDto);
-//
-//			// 2. 봇 응답 및 분석 내용 DB 저장
-//			saveBotResponseAndAnalysis(userMessage, fastApiResponse);
-//
-//			// 3. 👈 [핵심 수정] 새 제목 가져오기
-//			String newTitle = null;
-//			if (fastApiResponse.getSessionUpdates() != null) {
-//				newTitle = fastApiResponse.getSessionUpdates().getSummaryTitle();
-//			}
-//
-//			// 4. (B) 프론트 응답 DTO 생성 (제목 포함)
-//			return new ChatResponseDto(fastApiResponse.getChatbotResponse().getContent(), sessionId.toString(), newTitle // 👈
-//																															// 여기에
-//																															// 새
-//																															// 제목을
-//																															// 담아서
-//																															// 보냄
-//			);
-//
-//		} catch (Exception e) {
-//			logger.error("FastAPI 챗봇 응답 또는 저장 실패 (세션 ID: {}): {}", sessionId, e.getMessage());
-//			return new ChatResponseDto("죄송합니다. 봇 응답에 실패했습니다. (" + e.getMessage() + ")", sessionId.toString(), null);
-//		}
-//	}
-//
-//	/**
-//	 * [헬퍼 1] 사용자 메시지 저장
-//	 */
-//	@Transactional
-//	@CacheEvict(value = "initialData", key = "#member.userId")
-//	// 👈 [수정] (A) DTO 사용
-//	public CounsellingContent saveUserMessageAndUpdateSession(ChatRequestDto requestDto, Member member) {
-//		Long sessionId = requestDto.getSessionId().longValue();
-//
-//		CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
-//				.orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
-//
-//		CounsellingContent userMessage = CounsellingContent.builder().session(session).sender(Sender.PERSON)
-//				.content(requestDto.getUserMessage()).build();
-//		contentRepository.save(userMessage);
-//
-//		session.updateLastMessageTime(LocalDateTime.now());
-//		sessionRepository.save(session);
-//
-//		return userMessage;
-//	}
-//
-//	/**
-//	 * [헬퍼 2] 봇 메시지 및 키워드 저장
-//	 */
-//	@Transactional
-//	@CacheEvict(value = "initialData", key = "#userMessage.session.member.userId")
-//	public void saveBotResponseAndAnalysis(CounsellingContent userMessage, FastApiResponseDto fastApiResponse) {
-//
-//		CounsellingSession session = userMessage.getSession();
-//
-//		// 1. 봇 메시지 저장 (C) ChatbotResponseDto 사용
-//		CounsellingContent botMessage = CounsellingContent.builder().session(session).sender(Sender.CHATBOT)
-//				.content(fastApiResponse.getChatbotResponse().getContent()).build();
-//		contentRepository.save(botMessage);
-//
-//		// 2. 키워드 분석 저장 (C) KeywordAnalysisDto 사용
-//		KeywordAnalysisDto analysisDto = fastApiResponse.getKeywordAnalysis();
-//		KeywordAnalysis analysis = KeywordAnalysis.builder().session(session).content(userMessage)
-//				.isDivorce(analysisDto.getIsDivorce()).emotionLabel(analysisDto.getEmotionLabel())
-//				.topic(analysisDto.getTopic()).intent(analysisDto.getIntent()).situation(analysisDto.getSituation())
-//				.retrievedData(convertMapToJsonString(analysisDto.getRetrievedData())).alertTriggered(false).build();
-//		keywordAnalysisRepository.save(analysis);
-//
-//		// 3. 세션 업데이트 (C) SessionUpdatesDto 사용
-//		session.updateLastMessageTime(LocalDateTime.now());
-//
-//		String newTitle = fastApiResponse.getSessionUpdates().getSummaryTitle();
-//		if (newTitle != null && !newTitle.isEmpty()
-//				&& (session.getSummaryTitle() == null || session.getSummaryTitle().equals("새 대화"))) {
-//			session.updateSummaryTitle(newTitle); // AI 제목으로 업데이트
-//		}
-//
-//		sessionRepository.save(session);
-//	}
-
 	
 	// Map을 JSON 문자열로 변환 
 	private String convertMapToJsonString(Map<String, Object> data) {

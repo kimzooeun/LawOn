@@ -25,38 +25,38 @@ public class CounselService {
 	// 상담 시작 (세션 생성)
 	@Transactional
 	public CounsellingSession startCounsel(Long userId) {
-		// 1. 회원 정보 찾기
+		// 회원 정보 찾기
 		Member member = memberRepository.findById(userId)
 				.orElseThrow(() -> new RuntimeException("회원을 찾을 수 없습니다. ID: " + userId));
 
-		// 2. 상담 세션 생성 (팀원의 Entity Builder 사용)
+		// 상담 세션 생성 (팀원의 Entity Builder 사용)
 		CounsellingSession session = CounsellingSession.builder().member(member)
 				.completionStatus(CompletionStatus.ONGOING) // 시작 상태 (Enum 값 확인 필요: ONGOING/START 등)
 				.build();
 
-		// 3. 저장
+		// 저장
 		return sessionRepository.save(session);
 	}
 
 	// 상담 종료 (상태 업데이트)
 	@Transactional
 	public void endCounsel(Long sessionId) {
-		// 1. 세션 찾기
+		// 세션 찾기
 		CounsellingSession session = sessionRepository.findById(sessionId)
 				.orElseThrow(() -> new RuntimeException("상담 세션을 찾을 수 없습니다. ID: " + sessionId));
 
-		// 2. 종료 시간 및 상태 업데이트 (Entity의 편의 메서드 사용)
+		// 종료 시간 및 상태 업데이트 (Entity의 편의 메서드 사용)
 		session.updateendTime(LocalDateTime.now());
 
 		// 주의: CompletionStatus에 'COMPLETED' 혹은 'END'에 해당하는 값이 있는지 확인하세요.
 		session.updateStatus(CompletionStatus.COMPLETED);
 	}
 
-	// 관리자용 전체 목록 조회 메서드 ▼▼▼
+	// 관리자용 전체 목록 조회 메서드
 	@Transactional(readOnly = true)
 	public java.util.List<CounselLogDto> findAllAdminLogs(String username, String status) {
 
-		// 1. DB에서 필터링된 Entity 리스트 가져오기
+		// DB에서 필터링된 Entity 리스트 가져오기
 		java.util.List<CounsellingSession> sessions;
 
 		if (username != null && !username.isEmpty()) {

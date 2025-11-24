@@ -45,7 +45,7 @@ public class AdminDashboardService {
 				"totalLawyers", totalLawyers);
 	}
 
-	// 📋 최근 상담 로그 목록 조회 (최신순 10개)
+	// 최근 상담 로그 목록 조회 (최신순 10개)
 	@Transactional(readOnly = true)
 	public List<CounselLogDto> getRecentLogs() {
 		// 1. DB에서 최근 상담 세션 10개 조회 (start_time 기준 내림차순)
@@ -53,7 +53,7 @@ public class AdminDashboardService {
 		List<CounsellingSession> sessions = sessionRepository
 				.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "startTime"))).getContent();
 
-		// 2. Entity 리스트를 DTO 리스트로 변환 (CounselLogDto.fromEntity 메서드 활용)
+		// Entity 리스트를 DTO 리스트로 변환 (CounselLogDto.fromEntity 메서드 활용)
 		return sessions.stream().map(CounselLogDto::fromEntity).collect(Collectors.toList());
 	}
 }

@@ -76,7 +76,7 @@ public class Member {
 		this.profileImageUrl = profileImageUrl;
 	}
 
-	// ----- 소셜 로그인 정보 ------
+	// 소셜 로그인 정보
 	@Column(name = "social_provider", length = 50)
 	private String socialProvider;
 
