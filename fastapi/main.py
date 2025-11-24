@@ -69,7 +69,7 @@ class SimpleChatRequest(BaseModel):
 def read_root():
     return {"status": "AI RAG Server is running."} # STT 문구 제거
 
-# [추가] Healthcheck 엔드포인트 !!!!
+# [추가] Healthcheck 엔드포인트~
 @app.get("/health")
 def health_check():
     # 간단하게 200 OK 상태와 메시지를 반환합니다.
