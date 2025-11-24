@@ -11,7 +11,12 @@ import asyncio
 import numpy as np
 import soundfile as sf
 import noisereduce as nr
+<<<<<<< Updated upstream
 
+=======
+import tempfile
+import subprocess
+>>>>>>> Stashed changes
 # tts 추가
 import aiofiles
 import io
@@ -528,35 +533,66 @@ async def run_stt_memory(audio_file: UploadFile):
     # 메모리로 읽기
     raw_data = await audio_file.read()
 
-    print("파일 이름:", audio_file.filename)
-    print("파일 사이즈:", len(raw_data))
-    # pysub으로 불러오기
-    audio = AudioSegment.from_file(io.BytesIO(raw_data), format="webm")
+    tmp_in_path = None
+    tmp_out_path = None
 
-    wav_buf = io.BytesIO()
-    audio.set_frame_rate(16000).set_channels(1).export(
-        wav_buf, 
-        format="wav"
-    )    
-    wav_buf.seek(0)
+    try:
+        # 1) webm 임시 파일로 저장
+        # tempfile.NamedTemporaryFile을 with 문으로 사용하면 자동으로 닫히지만, 
+        # delete=False로 했으므로 직접 삭제해야 합니다.
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp_in:
+            tmp_in.write(raw_data) # ⬅️ **수정: raw 대신 raw_data 사용**
+            tmp_in_path = tmp_in.name
 
-    # 2) Whisper 호출
-    transcription = client.audio.transcriptions.create(
-        model="whisper-1",
-        file=("audio.wav", wav_buf, "audio/wav"),
-        response_format="text",
-        language="ko"
-    )
-    return transcription
+        # 2) wav 출력 파일 경로 설정
+        tmp_out_path = tmp_in_path + ".wav"
+
+        # 3) ffmpeg 변환
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", tmp_in_path,
+            "-ar", "16000",
+            "-ac", "1",
+            tmp_out_path
+        ]
+        
+        # stderr를 캡처하여 오류 확인 가능
+        process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        
+        # ffmpeg 변환 실패 시 오류 출력
+        if process.returncode != 0:
+            raise Exception(f"FFmpeg 변환 실패: {process.stderr.decode('utf-8')}")
+
+        # 4) wav 파일 읽기
+        with open(tmp_out_path, "rb") as f:
+            wav_bytes = f.read()
+
+        wav_buf = io.BytesIO(wav_bytes)
+
+        # 5) Whisper
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=("audio.wav", wav_buf, "audio/wav"),
+            response_format="text",
+            language="ko"
+        )
+        return transcription
+        
+    finally:
+        # 6) 임시 파일 정리 (오류 발생 여부와 관계없이 실행)
+        if tmp_in_path and os.path.exists(tmp_in_path):
+            os.remove(tmp_in_path)
+        if tmp_out_path and os.path.exists(tmp_out_path):
+            os.remove(tmp_out_path)
 
 @app.post("/stt")
-async def stt_endpoint(audio_file: UploadFile = File(...), sensitivity: float = 1.0, noise_reduction: bool = False, auto_gain: bool = False):
+async def stt_endpoint(audio_file: UploadFile = File(...)):
     try:
         text = await run_stt_memory(audio_file)
         return {"text": text}
     except Exception as e:
         print("STT 오류:", e)
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=f"STT 처리 실패: {str(e)}")
 
 #  TTS (GPT-4o-mini-tts) - 텍스트 → 음성
 class TTSRequest(BaseModel):

@@ -8,17 +8,22 @@ const originalFetch = window.fetch;
 // 로그인/회원가입/리프레시 요청은 Authorization 헤더 제외
 const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
 
+const skipContentType = ["/stt"];
 window.fetch = async(url, options = {}) => {
 	const isSkipAuth = skipAuth.some((path) => url.includes(path));
+	const isSkipContent = skipContentType.some((path) => url.includes(path));
+
 	let accessToken = TokenManager.getAccessToken();
 	options = { ...options };  // 기존 options 객체를 복사해서 새 객체를 만드는 부분
 	options.headers = options.headers ? { ...options.headers } : {};    // 안전하게 헤더를 추가할 수 있도록 하는 준비 코드
 
+	//  STT 요청일 경우 Content-Type 자동 추가 금지!
 	// body가 존재하고, Content-Type이 명시되지 않았다면 자동으로 JSON 지정
-	if(options.body && !options.headers['Content-Type']){
-		options.headers['Content-Type'] = 'application/json';
-	}
-
+	 if (!isSkipContent) {
+        if (options.body && !options.headers['Content-Type']) {
+            options.headers['Content-Type'] = 'application/json';
+        }
+    }
 
 	// 실제로 Authorization 헤더에 JWT 토큰을 붙임 (단, skipAuth 제외)
 	// 로그인 후 API 요청 시 인증을 위해 꼭 필요한 부분
