@@ -10,7 +10,7 @@
 
         // 로그아웃 후 이동할 페이지
         alert("로그아웃 되었습니다.");
-        window.location.href = "/login.html";
+        window.location.href = "/";
       });
     }
   });
