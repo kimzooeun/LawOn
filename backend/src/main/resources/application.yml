@@ -1,6 +1,7 @@
 spring:
   thymeleaf:
     check-template-location: false
+  forward-headers-strategy: framework
   application:
     name: backend
   server:
