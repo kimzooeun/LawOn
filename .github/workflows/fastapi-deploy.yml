@@ -23,8 +23,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            rm -rf /home/ubuntu/app/fastapi
-            
+            sudo rm -rf /home/ubuntu/app/fastapi
+
       - name: Upload FastAPI Folder to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
