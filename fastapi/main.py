@@ -344,7 +344,7 @@ async def handle_generate_response(request: QueryRequest):
 # ===================================================================================================
 
 # [엔드포인트 3: 간편 상담]
-@app.post("/simple-chat")
+@app.post("/fastapi/simple-chat")
 async def simple_chat(request:SimpleChatRequest):
     # 세션 ID 확인/생성
     session_id = request.session_id or str(uuid.uuid4())
@@ -484,7 +484,7 @@ async def simple_chat(request:SimpleChatRequest):
 # ===================================================================================================
 
 # [엔드포인트 4: 간편 상담 이력 조회]
-@app.get("/simple-chat/history")
+@app.get("/fastapi/simple-chat/history")
 async def get_simple_chat_history(session_id: str):
     redis_key = f"simple:session:{session_id}"
     
@@ -574,7 +574,7 @@ async def run_stt_memory(audio_file: UploadFile):
             os.remove(tmp_out_path)
 
 
-@app.post("/stt")
+@app.post("/fastapi/stt")
 async def stt_endpoint(audio_file: UploadFile = File(...)):
     try:
         text = await run_stt_memory(audio_file)

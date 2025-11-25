@@ -10,6 +10,10 @@ spring:
     multipart:
       max-file-size: 250MB
       max-request-size: 250MB
+    session:
+      cookie:
+        same-site: none
+        secure: true
 
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8

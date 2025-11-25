@@ -604,7 +604,7 @@ async function sendMessage() {
       body.session_id = simpleSessionId;
     }
 
-    const response = await fetch("/simple-chat", {
+    const response = await fetch("/fastapi/simple-chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -646,7 +646,7 @@ async function loadSimpleChatHistory() {
 
   try {
     const response = await fetch(
-      `/simple-chat/history?session_id=${encodeURIComponent(simpleSessionId)}`
+      `/fastapi/simple-chat/history?session_id=${encodeURIComponent(simpleSessionId)}`
     );
 
     if (!response.ok) {

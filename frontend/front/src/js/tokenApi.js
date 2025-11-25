@@ -9,7 +9,7 @@ const originalFetch = window.fetch;
 
 // 로그인/회원가입/리프레시 요청은 Authorization 헤더 제외
 const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
-const skipContentType = ["/stt"];
+const skipContentType = ["/fastapi/stt"];
 
 
 window.fetch = async(url, options = {}) => {

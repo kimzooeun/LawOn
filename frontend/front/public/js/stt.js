@@ -74,7 +74,7 @@ async function startRecording() {
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch("/stt", { method: "POST", body: fd});
+        const res = await fetch("/fastapi/stt", { method: "POST", body: fd});
         
         if (!res.ok) {
           // 서버에서 오류 메시지가 있다면 가져와서 출력
