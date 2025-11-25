@@ -75,7 +75,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		
 		// 프론트로 redirect 
 		String targetUrl = String.format(
-			    "%s/oauth2_success?token=%s&userid=%s&nickname=%s&displayName=%s&provider=%s",
+			    "%s/oauth2_success/?token=%s&userid=%s&nickname=%s&displayName=%s&provider=%s",
 			    frontendUrl,
 			    encodedAccessToken,
 			    encodedUserid,
