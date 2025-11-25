@@ -15,6 +15,9 @@ torch==2.2.0+cpu
 --extra-index-url https://download.pytorch.org/whl/cpu
 transformers
 numpy>=1.23,<2
+sentencepiece
+protobuf>=4.25.0
+
 
 # Data & Utils
 pandas
@@ -23,6 +26,6 @@ pandas
 redis==5.0.1
 
 # OpenAI / 토큰 관련
-openai==1.52.2
+openai>=1.16.0
 tiktoken==0.7.0
 

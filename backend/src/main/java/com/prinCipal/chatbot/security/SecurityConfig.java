@@ -62,7 +62,7 @@ public class SecurityConfig {
 		})).httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
 				.formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
 				// authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.)
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				// 정민 추가
 				.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
