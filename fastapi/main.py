@@ -14,8 +14,7 @@ import io
 from typing import List,Optional
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, UploadFile, File 
-import models_load
-from pydub import AudioSegment               
+import models_load         
 from fastapi.responses import StreamingResponse  
 from pydantic import BaseModel
 
