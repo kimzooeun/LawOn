@@ -40,7 +40,7 @@ public class SecurityConfig {
 
 	private static final String[] PERMIT_URL = { "/api/redis/test", // Redis 관련
 			"/api/login", "/api/signup", "/api/refresh", "/api/logout", "/oauth2/**", // 소셜 로그인
-			"/login/oauth2/code/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/actuator/health",
+			"/api/login/oauth2/code/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/actuator/health",
 			"/actuator/info"// 정적 파일
 	};
 
