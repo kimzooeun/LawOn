@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,12 +29,33 @@ public class MemberDetailService implements UserDetailsService{
 
 	@Override
 	public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
-		Member member = this.memberRepository.findByNickname(nickname)
-							.orElseThrow(() -> new UsernameNotFoundException("사용자 찾을 수 없음" + nickname));
-	
-		Collection<GrantedAuthority> authorities = getAuthorities(member);
-
-		return new CustomOAuth2User(member,Map.of("name",member.getNickname()),"name", authorities, null);		
+		
+		 // 소셜 로그인 사용자 먼저 찾기
+	    Optional<Member> socialUser = memberRepository.findBySocialId(nickname);
+	    if (socialUser.isPresent()) {
+	        Member member = socialUser.get();
+	        Collection<GrantedAuthority> authorities = getAuthorities(member);
+	        return new CustomOAuth2User(
+	                member,
+	                Map.of("name", member.getNickname()),
+	                "name",
+	                authorities,
+	                null
+	        );
+	    }
+	    
+	    // 일반 회원 로그인 처리 (nickname)
+	    Member member = memberRepository.findByNickname(nickname)  
+	            .orElseThrow(() -> new UsernameNotFoundException("사용자 찾을 수 없음: " + nickname));
+	    Collection<GrantedAuthority> authorities = getAuthorities(member);
+	    return new CustomOAuth2User(
+	            member,
+	            Map.of("name", member.getNickname()),
+	            "name",
+	            authorities,
+	            null
+	    );
+	    	
 	}
 
 	// 사용자 권한 목록 생성

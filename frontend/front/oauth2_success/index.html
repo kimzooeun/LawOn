@@ -59,7 +59,7 @@
       showToast(`${nickname}님 환영합니다! (${provider} 로그인)`);
   
       setTimeout(() => {
-        window.location.replace('/chat/'); // 히스토리에서 제거하고 이동
+        window.location.replace('/chat'); // 히스토리에서 제거하고 이동
       }, 700);
       } else{
         console.error("로그인 토큰이 전달되지 않았습니다.");
