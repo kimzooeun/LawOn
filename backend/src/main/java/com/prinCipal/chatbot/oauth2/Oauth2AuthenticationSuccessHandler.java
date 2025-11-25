@@ -75,14 +75,14 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		
 		// 프론트로 redirect 
 		String targetUrl = String.format(
-	            "%s/oauth2_success?token=%s&nickname=%s&provider=%s",
-	            frontendUrl,  // http://localhost:3000
-	            encodedAccessToken, 
-	            encodedUserid,
-	            encodedNickname,
-	            encodedDisplayName,
-	            encodedProvider
-	        );
+			    "%s/oauth2_success/?token=%s&userid=%s&nickname=%s&displayName=%s&provider=%s",
+			    frontendUrl,
+			    encodedAccessToken,
+			    encodedUserid,
+			    encodedNickname,
+			    encodedDisplayName,
+			    encodedProvider
+			);
 	        
 	    System.out.println("🚀 Redirecting to: " + targetUrl);  // 디버깅용
         
