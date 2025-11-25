@@ -42,7 +42,7 @@ public class SecurityConfig {
 
 	private static final String[] PERMIT_URL = { "/api/redis/test", // Redis 관련
 			"/api/login", "/api/signup", "/api/refresh", "/api/logout", "/oauth2/**", // 소셜 로그인
-			"/api/login/oauth2/code/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/actuator/health",
+			"/login/oauth2/code/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/actuator/health",
 			"/actuator/info"// 정적 파일
 	};
 
@@ -78,7 +78,6 @@ public class SecurityConfig {
 
 				.oauth2Login(
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-						        .redirectionEndpoint(redir -> redir.baseUri(("/api/login/oauth2/code/*")))
 								.successHandler(oauth2SuccessHandler).failureHandler(oauth2FailureHandler))
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests.requestMatchers("/api/auth/**")
