@@ -27,9 +27,10 @@ public class ChatService {
 	        
         // 1. 프론트에서 받은 메시지
         String userMessage = requestDto.getUserMessage();
+        String sessionIdStr = requestDto.getSessionId().toString();
         
         // 2. FastAPI가 요구하는 DTO 형식으로 변환 ("query" 필드 사용)
-        FastApiRequestDto fastApiRequest = new FastApiRequestDto(userMessage);
+        FastApiRequestDto fastApiRequest = new FastApiRequestDto(sessionIdStr,userMessage);
         
         // 3. (중요) WebClient로 비동기 POST 요청
         WebClient webClient = webClientBuilder.baseUrl(FASTAPI_URL).build();

@@ -19,14 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper; // JSON 변환
 
 @Service
 @RequiredArgsConstructor
@@ -170,8 +167,9 @@ public class SessionService {
      */
     public ChatResponseDto processChat(ChatRequestDto requestDto, Member member) {
         String userQuery = requestDto.getUserMessage();
-        // Redis Key: 사용자 질문 내용을 기반으로 생성 (중복 질문 식별)
-        String redisKey = "chat:response:" + userQuery.trim(); 
+        
+        // 세션별로 대화 문맥이 다를 수 있으므로 sessionId를 키에 포함 권장
+        String redisKey = "chat:" + requestDto.getSessionId() + ":" + userQuery.trim();
 
         FastApiResponseDto responseData = null;
 
