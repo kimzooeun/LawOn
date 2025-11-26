@@ -558,9 +558,11 @@ function openChat() {
   document.body.classList.add("chat-open");
   chatInput.focus();
 
-   // 혹시 남아있다면 초기화
-  if (!historyLoaded) {
-    chatBody.innerHTML = "";
+  chatBody.innerHTML ="";
+  historyLoaded = false;
+
+  if(!simpleSessionId){
+    addMessage("안녕하세요! 무엇을 도와드릴까요? 😊", "bot");
   }
 
   loadSimpleChatHistory(); // 히스토리 복원
