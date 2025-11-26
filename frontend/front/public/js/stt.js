@@ -135,7 +135,6 @@ function cleanupRecording() {
   isRecording = false;
   if (activeMicBtn) {
     activeMicBtn.classList.remove("recording");
-    activeMicBtn.textContent = "🎙";
     activeMicBtn.title = "음성 입력";
   }
   activeMicBtn = null;

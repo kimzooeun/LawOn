@@ -1,13 +1,3 @@
-/* 헤더 */
-.admin-header {
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px;
-}
-
 .logo {
   display: flex;
   align-items: center;
@@ -17,13 +7,6 @@
 .logo img {
   width: 40px;
   height: 40px;
-}
-
-/* 헤더 안쪽 네비게이션 버튼들 */
-.admin-nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
 }
 
 /* 페이지 이동 버튼 그룹 */
