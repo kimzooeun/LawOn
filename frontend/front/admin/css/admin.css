@@ -93,11 +93,13 @@ button {
   border-radius: 6px;
   transition: 0.2s ease;
   background-color: #ff4da0;
+  text-decoration: none !important;
 }
 
+/* hover만 별도로 유지 */
 .admin-nav a:hover {
-  color: var(--primary-color);
-  background-color: rgba(255, 77, 160, 0.08);
+  background-color: #e74393 !important;
+  color: #fff !important;
 }
 
 /* 현재 페이지(active) 표시 */
@@ -322,4 +324,16 @@ tr:hover {
   background-color: #d3e3ff;
 }
 
+
+/* 네비바 클릭(active/focus/visited) 색 변화 제거 */
+.admin-nav a,
+.admin-nav a:active,
+.admin-nav a:focus,
+.admin-nav a:visited {
+  color: #fff !important;                /* 글자색 고정 */
+  background-color: #ff4da0 !important;  /* 배경 고정 */
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
 
