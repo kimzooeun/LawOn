@@ -62,7 +62,7 @@
 
 /* 등록 버튼 */
 .lawyer-form button {
-  background-color: #4d88ff;
+  background-color: #ff4da0;;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -75,7 +75,7 @@
 }
 
 .lawyer-form button:hover {
-  background-color: #3d78ef;
+  background-color: #961855;
 }
 
 /* 검색 섹션 */
@@ -103,7 +103,7 @@
 }
 
 .lawyer-search button:hover {
-  background-color: #e74393;
+  background-color: #961855;
 }
 
 /* 테이블 스타일 */
@@ -140,10 +140,11 @@
   cursor: pointer;
   border: none;
   font-size: 0.9em;
+  margin-right: 5px;
 }
 
 .edit-btn {
-  background-color: #4d88ff;
+  background-color: #5987e3;
   color: white;
 }
 
