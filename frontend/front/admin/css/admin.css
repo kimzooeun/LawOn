@@ -89,7 +89,7 @@ button {
 .admin-nav a {
   color: var(--text-color);
   font-weight: 500;
-  padding: 6px 10px;
+  padding: 8px 14px;
   border-radius: 6px;
   transition: 0.2s ease;
   background-color: #ff4da0;
@@ -115,7 +115,7 @@ button {
   color: #fff;
   border-radius: 6px;
   padding: 8px 14px;
-  font-weight: 600;
+  font-weight: 500;
   transition: 0.2s ease;
 }
 

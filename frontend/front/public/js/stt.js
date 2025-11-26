@@ -114,7 +114,6 @@ async function startRecording() {
 
     mediaRecorder.start();
     activeMicBtn?.classList.add("recording");
-    activeMicBtn.textContent = "⏺";
     activeMicBtn.title = "녹음 중지";
     showToast("🎙 녹음 시작", "info", 1200);
   } catch (err) {
