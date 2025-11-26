@@ -412,6 +412,7 @@ export function initMypageListeners() {
             localStorage.removeItem(NICK_KEY);
 
             window.location.href = "/";
+            return; 
           } catch (error) {
             showToast("회원 탈퇴 실패", "error");
           }
