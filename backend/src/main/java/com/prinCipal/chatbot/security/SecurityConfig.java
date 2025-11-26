@@ -58,7 +58,7 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(request -> {
 			var config = new org.springframework.web.cors.CorsConfiguration();
 			config.setAllowedOrigins(List.of("http://localhost:3000", frontendUrl)); // 프론트 주소
-			config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+			config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 			config.setAllowCredentials(true);
 			config.setAllowedHeaders(List.of("*"));
 			config.setExposedHeaders(List.of("Authorization"));
@@ -81,8 +81,10 @@ public class SecurityConfig {
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler).failureHandler(oauth2FailureHandler))
 				.logout(logout -> logout.disable())
-				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests.requestMatchers("/api/auth/**")
-						.permitAll().requestMatchers(HttpMethod.OPTIONS, "/api/admin/lawyers/upload").permitAll()
+				.authorizeHttpRequests((authorizeHttpRequests) -> 
+					    authorizeHttpRequests
+					    .requestMatchers("/api/auth/**").permitAll()
+					    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").hasRole("ADMIN")
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
 						.requestMatchers("/admin/**").permitAll()
