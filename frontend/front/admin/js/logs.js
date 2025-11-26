@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = TokenManager.getAccessToken();
 
   if (!token) {
-    window.location.href = "/admin/login/";
+    window.location.href = "/admin/login";
     return;
   }
 
