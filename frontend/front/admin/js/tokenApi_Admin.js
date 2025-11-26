@@ -2,7 +2,7 @@ import { TokenManager } from '/src/js/token.js';
 
 const originalFetch = window.fetch;
 
-const skipAuth = ["/api/login", "/api/refresh", "api/admin/lawyers/upload"];   // 관리자 로그인, 리프레시
+const skipAuth = ["/api/login", "/api/refresh", "/api/admin/lawyers/upload"];   // 관리자 로그인, 리프레시
 
 window.fetch = async (url, options = {}) => {
   const isSkip = skipAuth.some((p) => url.includes(p));
