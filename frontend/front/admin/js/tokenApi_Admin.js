@@ -32,7 +32,7 @@ window.fetch = async (url, options = {}) => {
   }
 
   // 만료 → refresh
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401/* || res.status === 403 */) {
     console.log("🔁 AccessToken 만료 → /api/refresh 직접 호출");
     const refreshRes = await originalFetch(`/api/refresh`, {
       method: "POST",
