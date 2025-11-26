@@ -361,6 +361,10 @@ public class MemberService {
 		this.cookieHeader.clearRefreshCookie(response);
 	}
 
+	
+	
+	
+	
 	// 닉네임(displayName) 변경
 	@Transactional
 	public void updatedisplayName(Long userId, String displayName) {
