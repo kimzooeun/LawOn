@@ -414,7 +414,10 @@ export function initMypageListeners() {
             localStorage.removeItem("todak_sidebar_collapsed");
             TokenManager.clearTokens();
 
+            setTimeout(() => {
             window.location.href = "/";
+            }, 1000); 
+
             return; 
           } catch (error) {
             showToast("회원 탈퇴 실패", "error");
