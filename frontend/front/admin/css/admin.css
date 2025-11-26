@@ -200,7 +200,6 @@ input:focus, select:focus {
 }
 
 .page-buttons button {
-  background: #555555;
   color: #fff;
   border: none;
   border-radius: 6px;
