@@ -1,62 +1,35 @@
-/* admin.css */
-
-/* 기본 변수 및 색상 팔레트 */
+/* ===========================
+   기본 변수 및 색상 팔레트
+   =========================== */
 :root {
-  --primary-color: #ff4da0;        /* 메인 포인트 핑크 */
+  --primary-color: #ff4da0;
   --primary-hover: #e74393;
-  --secondary-color: #4d88ff;      /* 보조 블루 */
+  --secondary-color: #4d88ff;
   --accent-yellow: #ffd93d;
+  --danger-color: #ff4d4d;
+  --danger-hover: #d93c3c;
   --text-color: #222;
   --muted-text: #666;
   --border-color: #ddd;
   --bg-color: #f8f9fb;
   --card-bg: #ffffff;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* 기본 세팅 */
+/* ===========================
+   전역 기본 세팅
+   =========================== */
 html, body {
   font-family: 'Noto Sans KR', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
   padding: 0;
-  height: 100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-p {
-  margin: 0;
-  color: var(--muted-text);
-}
-
-/* 기본 링크 스타일 */
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: 0.2s;
-}
-a:hover {
-  color: var(--primary-hover);
-}
-
-/* 공통 버튼 스타일 */
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  transition: 0.2s;
-}
-
-/* 공통 헤더 */
+/* ===========================
+   상단 헤더 / 네비바 (전 페이지 공통)
+   =========================== */
 .admin-header {
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
@@ -70,7 +43,6 @@ button {
   z-index: 100;
 }
 
-/* 로고 영역 */
 .logo {
   display: flex;
   align-items: center;
@@ -82,38 +54,22 @@ button {
   height: 40px;
 }
 
-.logo h1 {
-  font-size: 1.2em;
-  color: var(--primary-color);
-  font-weight: 700;
-}
-
-/* 상단 네비게이션 */
 .admin-nav {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 
-/* 네비 링크 */
 .admin-nav a {
   color: var(--text-color);
   font-weight: 500;
   padding: 6px 10px;
   border-radius: 6px;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
-
 .admin-nav a:hover {
   color: var(--primary-color);
-  background-color: rgba(255, 77, 160, 0.08);
-}
-
-/* 현재 페이지(active) 표시 */
-.admin-nav a.active {
-  color: var(--primary-color);
-  font-weight: 700;
-  background-color: rgba(255, 77, 160, 0.12);
+  background-color: rgba(255,77,160,0.08);
 }
 
 /* 로그아웃 버튼 */
@@ -123,127 +79,57 @@ button {
   border-radius: 6px;
   padding: 8px 14px;
   font-weight: 600;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
-
 .admin-nav button:hover {
   background-color: var(--primary-hover);
 }
 
-
-/* 메인 공통 레이아웃 */
-.dashboard {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
-}
-
-section {
-  margin-bottom: 40px;
-}
-
-section h2 {
-  font-size: 1.2em;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-/* 카드형 컨테이너 */
-.card, .card-box {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
-}
-
-/* 입력폼 / 인풋 */
-input[type="text"],
-input[type="password"],
-input[type="email"],
-select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95em;
-  transition: border 0.2s;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-/* 공통 버튼 */
-.btn {
+/* ===========================
+   전역 버튼 스타일
+   =========================== */
+button,
+.btn,
+.admin-btn,
+.btn-action {
+  font-family: inherit;
   background-color: var(--primary-color);
-  color: #fff;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.btn:hover {
-  background-color: var(--primary-hover);
-}
-.btn.secondary {
-  background-color: var(--secondary-color);
-}
-.btn.secondary:hover {
-  background-color: #3a74e0;
-}
-.btn.danger {
-  background-color: #ff4d4d;
-}
-.btn.danger:hover {
-  background-color: #d93c3c;
-}
-
-/* 페이지 이동 버튼 그룹 */
-.page-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.page-buttons button {
-  background: #ff4da0;
   color: #fff;
   border: none;
   border-radius: 6px;
   padding: 8px 14px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: 0.2s;
 }
-
-.page-buttons button:hover {
-  background: #e74393;
+button:hover,
+.btn:hover,
+.btn-action:hover {
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
 }
 
-/* 현재 페이지 active 표시 */
-.page-buttons button.active {
-  background: #b91461;
+/* Secondary */
+.btn.secondary {
+  background-color: var(--secondary-color);
+}
+.btn.secondary:hover {
+  background-color: #3a74e0;
 }
 
-/* 로그아웃 버튼 */
-.admin-nav .logout {
-  background-color: #555;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: 0.2s;
+/* Danger */
+.btn.danger,
+.btn-action.delete {
+  background-color: var(--danger-color);
+}
+.btn.danger:hover,
+.btn-action.delete:hover {
+  background-color: var(--danger-hover);
 }
 
-.admin-nav .logout:hover {
-  background-color: #333;
-}
-
-/* 테이블 기본 구조 */
+/* ===========================
+   전역 테이블 스타일
+   =========================== */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -252,86 +138,15 @@ table {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
-
 th, td {
   padding: 12px 14px;
   border-bottom: 1px solid #eee;
-  text-align: left;
 }
-
 th {
   background-color: #fafafa;
   color: #444;
   font-weight: 600;
 }
-
 tr:hover {
   background-color: #fff6fb;
-}
-
-/* 공통 버튼 그룹 */
-.btn-action {
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.85em;
-  color: #fff;
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.btn-action.view { background-color: var(--secondary-color); }
-.btn-action.edit { background-color: #ffb84d; }
-.btn-action.delete { background-color: #ff4d4d; }
-.btn-action:hover { opacity: 0.9; }
-
-/* 카드 / 섹션 공통 */
-.card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
-}
-
-.admin-footer {
-  text-align: center;
-  color: #777;
-  font-size: 0.9em;
-  margin: 60px 0 20px;
-}
-
-/* 반응형 */
-@media (max-width: 768px) {
-  .admin-header {
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-  }
-
-  .dashboard {
-    padding: 0 12px;
-  }
-
-  th, td {
-    padding: 10px;
-  }
-}
-
-/* 회원 관리 버튼 (네비 하단용) */
-.sub-btn {
-  background-color: #e8f0ff;
-  color: #1a3c8d;
-  border: 1px solid #c5d8ff;
-  border-radius: 6px;
-  margin-top: 6px;
-  padding: 6px 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-  width: 100%;
-  text-align: left;
-}
-
-.sub-btn:hover {
-  background-color: #d3e3ff;
 }
