@@ -87,13 +87,17 @@ button {
 
 /* 네비 링크 */
 .admin-nav a {
-  color: var(--text-color);
+  color: #fff;
   font-weight: 500;
-  padding: 8px 14px;
+  padding: 8px 14px;        /* 사이즈 동일 */
   border-radius: 6px;
-  transition: 0.2s ease;
   background-color: #ff4da0;
   text-decoration: none !important;
+
+  display: inline-flex;     /* 버튼처럼 동작 */
+  align-items: center;      /* 텍스트 수직 정렬 */
+  line-height: 1;           /* 높이 불필요한 증가 제거 */
+  font-size: 14px;          /* 버튼과 동일 폰트로 맞추기 (옵션) */
 }
 
 /* hover만 별도로 유지 */
