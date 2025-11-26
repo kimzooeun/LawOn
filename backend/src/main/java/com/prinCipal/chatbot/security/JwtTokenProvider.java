@@ -63,7 +63,7 @@ public class JwtTokenProvider {
 	}
 
 	
-	private RedisTemplate<String, String> redisTemplate;
+	private final RedisTemplate<String, String> redisTemplate;
 	
 	// Access Token 생성
 	public String generateAccessToken(Authentication authentication) {
@@ -91,6 +91,7 @@ public class JwtTokenProvider {
 
 		return Jwts.builder().id(UUID.randomUUID().toString()) // 토큰 고유 식별자 -> JTI 부여
 				.subject(nickname).claim("auth", authorities).issuedAt(new Date()).expiration(validity)
+				.id(UUID.randomUUID().toString())
 				.signWith(this.getSigningKey()).compact();
 	}
 
@@ -119,7 +120,9 @@ public class JwtTokenProvider {
 		}
 
 		return Jwts.builder().id(UUID.randomUUID().toString()).subject(nickname).claim("auth", authorities)
-				.issuedAt(new Date()).expiration(validity).signWith(this.getSigningKey()).compact();
+				.issuedAt(new Date()).expiration(validity)
+				.id(UUID.randomUUID().toString())
+				.signWith(this.getSigningKey()).compact();
 	}
 
 	// Jwt 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
@@ -162,7 +165,8 @@ public class JwtTokenProvider {
 		} catch (IllegalArgumentException e) {
 			System.out.println("토큰 형식 틀렸어요");
 		} catch (Exception e) {
-			System.out.println("의문의 에러");
+			System.out.println("🚨 validateToken 내부 에러: " + e.getMessage());
+			 e.printStackTrace();
 		}
 		return false;
 	}
