@@ -200,6 +200,49 @@ input:focus, select:focus {
   background-color: #d93c3c;
 }
 
+/* 페이지 이동 버튼 그룹 */
+.page-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-buttons button {
+  background: #ff4da0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.page-buttons button:hover {
+  background: #e74393;
+  transform: translateY(-2px);
+}
+
+/* 현재 페이지 active 표시 */
+.page-buttons button.active {
+  background: #b91461;
+}
+
+/* 로그아웃 버튼 */
+.admin-nav .logout {
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.admin-nav .logout:hover {
+  background-color: #333;
+}
+
 /* 테이블 기본 구조 */
 table {
   width: 100%;
