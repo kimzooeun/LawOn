@@ -9,41 +9,29 @@ const searchInput = document.getElementById("searchLawyer");
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
 
-function compressImage(file, maxSize = 1200, quality = 0.82) {
+function resizeImage(file) {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
-
-      let width = img.width;
-      let height = img.height;
-
-      // 긴 변 기준으로 자동 리사이즈
-      if (width > height && width > maxSize) {
-        height = Math.round((height * maxSize) / width);
-        width = maxSize;
-      } else if (height > maxSize) {
-        width = Math.round((width * maxSize) / height);
-        height = maxSize;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
+      
+      const MAX_WIDTH = 1200;
+      const scale = MAX_WIDTH / img.width;
+      canvas.width = MAX_WIDTH;
+      canvas.height = img.height * scale;
 
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob(
         (blob) => {
-          const newFile = new File(
-            [blob], 
-            file.name.replace(/\.\w+$/, ".jpg"),
-            { type: "image/jpeg" }
-          );
+          const newFile = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
+            type: "image/jpeg",
+          });
           resolve(newFile);
         },
         "image/jpeg",
-        quality
+        0.85
       );
     };
     img.src = URL.createObjectURL(file);
@@ -51,12 +39,11 @@ function compressImage(file, maxSize = 1200, quality = 0.82) {
 }
 
 
-
 // 이미지 업로드 함수
 async function uploadImage() {
   let file = document.getElementById("imageFile").files[0];
   if (!file) return null;
-  file = await compressImage(file);
+  file = await resizeImage(file);
   console.log(file.name, file.size);
   const formData = new FormData();
   formData.append("image", file);
