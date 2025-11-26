@@ -9,7 +9,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +34,9 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 처리를 위한 ObjectMapper
-
+	private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+	
+	
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
 	
@@ -55,7 +59,17 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            authentication.getAuthorities()
 	    );
 	    
+		OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+		OAuth2AuthorizedClient client = authorizedClientRepository.loadAuthorizedClient(
+						oauthToken.getAuthorizedClientRegistrationId(),
+						authentication, request);
 		
+		if(client != null && client.getAccessToken() != null) {
+			String socialAccessToken = client.getAccessToken().getTokenValue();
+			oAuth2User.setSocialAccessToken(socialAccessToken);
+		}
+		
+	
 		// 로그인 성공(인증 성공) 시 , 처리되는 영역
 		String accessToken = this.jwtTokenProvider.generateAccessToken(newAuthentication);
 		String refreshToken = this.jwtTokenProvider.generateRefreshToken(newAuthentication);
