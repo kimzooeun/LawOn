@@ -330,14 +330,20 @@ public class MemberService {
 	@Transactional
 	public void withdraw(HttpServletRequest request, HttpServletResponse response) {
 		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
-		System.out.println("탈퇴 요청 AccessToken = " + accessToken);
-		System.out.println("validate = " + jwtTokenProvider.validateToken(accessToken));
 		
+		if(accessToken == null) {
+			throw new LoginFailedException("토큰이 존재하지 않습니다.");
+		}
+	
 		if (accessToken != null && this.jwtTokenProvider.validateToken(accessToken)) {
 			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
 			String jti = claims.getId(); // 토큰의 고유ID
-			Member member = this.memberRepository.findByNickname(claims.getSubject())
-					.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다."));
+			
+			// 소셜 > 로컬 순서로 탐색 
+			Member member = this.memberRepository.findBySocialId(claims.getSubject())
+							.orElseGet(() -> this.memberRepository.findByNickname(claims.getSubject())
+									.orElseThrow(() -> new LoginFailedException("회원 정보를 찾을 수 없습니다.")));
+		
 
 			// accessToken을 더 이상 유효하지 않게 블랙리스트에 등록 (남은 유효기간 만큼)
 			long ttlSeconds = this.jwtTokenProvider.getRemainingTtlSeconds(accessToken);
@@ -363,10 +369,6 @@ public class MemberService {
 		this.cookieHeader.clearRefreshCookie(response);
 	}
 
-	
-	
-	
-	
 	// 닉네임(displayName) 변경
 	@Transactional
 	public void updatedisplayName(Long userId, String displayName) {
