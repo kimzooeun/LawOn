@@ -34,31 +34,31 @@
     <section class="lawyer-register">
       <h2>👨‍⚖️ 새 변호사 등록</h2>
         <form id="lawyerForm" class="lawyer-form">
-
-        <input type="text" id="name" placeholder="이름" required>
-
-        <select id="gender" required>
-          <option value="">성별 선택</option>
-          <option value="남">남</option>
-          <option value="여">여</option>
-        </select>
-
-        <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
-
-        <textarea id="description" placeholder="소개글" required></textarea>
-
-        <input type="text" id="office" placeholder="사무실명" required>
-
-        <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
-
-        <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
-
-        <!-- 이미지 업로드 추가 -->
-        <label style="grid-column: 1 / -1;">프로필 이미지</label>
-        <input type="file" id="imageFile">
-
-        <button type="submit">등록</button>
-      </form>
+          <!-- 첫 번째 줄 -->
+          <input type="text" id="name" placeholder="이름" required>
+          
+          <select id="gender" required>
+            <option value="">성별 선택</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
+          
+          <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
+          
+          <!-- 소개글은 전체 너비 -->
+          <textarea id="description" placeholder="소개글" required></textarea>
+          
+          <!-- 두 번째 줄: 한 줄로 배치 -->
+          <input type="text" id="office" placeholder="사무실명" required>
+          
+          <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
+          
+          <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
+          
+          <input type="file" id="imageFile">
+          
+          <button type="submit">등록</button>
+        </form>
 
     </section>
 

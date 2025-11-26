@@ -11,14 +11,42 @@ const searchInput = document.getElementById("searchLawyer");
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
 
+function resizeImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      
+      const MAX_WIDTH = 1200;
+      const scale = MAX_WIDTH / img.width;
+      canvas.width = MAX_WIDTH;
+      canvas.height = img.height * scale;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(
+        (blob) => {
+          const newFile = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
+            type: "image/jpeg",
+          });
+          resolve(newFile);
+        },
+        "image/jpeg",
+        0.85
+      );
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+
 // 이미지 업로드 함수 (수정)
 async function uploadImage() {
   const file = document.getElementById("imageFile").files[0];
   if (!file) return null;
-
-  // 토큰 가져오기, 유효성 검사 
-  const token = TokenManager.getAccessToken();
-
+  file = await resizeImage(file);
+  console.log(file.name, file.size);
   const formData = new FormData();
   formData.append("image", file);
 
