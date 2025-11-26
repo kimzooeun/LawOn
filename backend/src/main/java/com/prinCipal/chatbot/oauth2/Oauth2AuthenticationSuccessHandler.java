@@ -35,7 +35,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final OAuth2AuthorizedClientRepository authorizedClientRepository;
 	private final MemberRepository memberRepository; // ⭐ 회원 삭제용
-	private SocialTokenService socialTokenService;
+	private final SocialTokenService socialTokenService;
 	
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
@@ -53,7 +53,17 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
 		
+		 // state 파라미터 확인
+	    String state = request.getParameter("state");
+	    if("withdraw".equals(state)) {
+	    	CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
+	        Member member = oAuth2User.getMember();
+	    	handleSocialWithdraw(request, response, authentication, oAuth2User, member);
+	        return; // 더 이상 로그인 로직 안 태움
+	    }
+	    
 		System.out.println("Jwt 로그인 처리중 !!!");
+		
 		
 		 // CustomOAuth2User에서 사용자 정보 추출
 	    CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
@@ -66,12 +76,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	            authentication.getAuthorities()
 	    );
 	    
-	    // state 파라미터 확인
-	    String state = request.getParameter("state");
-	    if("withdraw".equals(state)) {
-	    	handleSocialWithdraw(request, response, authentication, oAuth2User, member);
-	        return; // 더 이상 로그인 로직 안 태움
-	    }
+	   
 	
 		// 로그인 성공(인증 성공) 시 , 처리되는 영역
 		String accessToken = this.jwtTokenProvider.generateAccessToken(newAuthentication);
