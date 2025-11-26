@@ -29,65 +29,49 @@ export function downloadChatPdf(session) {
     return;
   }
 
-  // 👇 [추가] 요약본 HTML 생성 (요약이 있을 때만 표시)
+  // 1. 요약본 HTML 생성 (스타일 유지)
   let summaryHtml = "";
   if (session.summary) {
     summaryHtml = `
       <div style="
-        margin-bottom: 30px; 
         padding: 20px; 
-        background-color: #f8f9fa; 
-        border-left: 5px solid #1976d2; 
+        background-color: #fff; 
+        border: 1px solid #ddd; 
         border-radius: 4px;
       ">
-        <h3 style="margin-top: 0; color: #1976d2;">📑 상담 요약 리포트</h3>
-        <p style="white-space: pre-wrap; line-height: 1.6; color: #333;">${session.summary}</p>
+        <h3 style="
+            margin-top: 0; 
+            color: #1976d2; 
+            border-bottom: 2px solid #1976d2; 
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        ">📑 법률 상담 기초 조사서</h3>
+        <div style="white-space: pre-wrap; line-height: 1.8; color: #333; font-size: 14px;">${session.summary}</div>
       </div>
-      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
     `;
+  } else {
+    // 요약본이 없는 경우 안내 메시지
+    summaryHtml = `<p style="text-align:center; padding:50px;">아직 생성된 상담 요약 리포트가 없습니다.</p>`;
   }
 
-  // 1. PDF용 HTML 생성
+  // 2. PDF용 전체 HTML 구조 (메시지 루프 삭제됨)
   const element = document.createElement("div");
   element.style.padding = "30px";
   element.style.fontFamily = "sans-serif";
 
   element.innerHTML = `
-    <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">${
-      session.title || "상담 내역"
-    }</h1>
+    <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 10px;">
+      ${session.title || "상담 요약 리포트"}
+    </h1>
     
-    <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 30px;">
-      저장 일시: ${new Date().toLocaleString()}
+    <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 40px;">
+      발급 일시: ${new Date().toLocaleString()}
     </p>
 
     ${summaryHtml}
 
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-      ${session.messages
-        .map(
-          (msg) => `
-        <div style="
-          padding: 15px; 
-          border-radius: 8px; 
-          background-color: ${msg.role === "user" ? "#e3f2fd" : "#f5f5f5"};
-          border: 1px solid ${msg.role === "user" ? "#bbdefb" : "#e0e0e0"};
-        ">
-          <strong style="display:block; margin-bottom:5px; color: ${
-            msg.role === "user" ? "#1976d2" : "#424242"
-          };">
-            ${msg.role === "user" ? "나" : "토닥이"}
-          </strong>
-          <span style="white-space: pre-wrap; line-height: 1.5; font-size: 14px;">${
-            msg.text
-          }</span>
-        </div>
-      `
-        )
-        .join("")}
-    </div>
-    <div style="margin-top: 30px; text-align: center; color: #999; font-size: 10px;">
-      LawOn AI 법률 상담 서비스
+    <div style="margin-top: 50px; text-align: center; color: #999; font-size: 11px; border-top: 1px solid #eee; padding-top: 20px;">
+      LawOn AI 법률 상담 서비스 | 본 문서는 법적 효력이 없는 참고용 자료입니다.
     </div>
   `;
 
