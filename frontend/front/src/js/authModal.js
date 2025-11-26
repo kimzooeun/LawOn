@@ -33,7 +33,7 @@ if (customBtn) {
     if (accessToken) {
       document.body.classList.add("fade-out");
       setTimeout(() => {
-        window.location.href = "/chat/index";
+        window.location.href = "/chat";
       }, 500);
       return;
     }
@@ -210,7 +210,7 @@ document
         resetAuthForms();
 
         setTimeout(() => {
-          window.location.href = "/chat/index";
+          window.location.href = "/chat";
         }, 800);
       } else if (response.status === 400 && resData) {
         // 400 Bad Request (유효성 검사 실패) 처리
