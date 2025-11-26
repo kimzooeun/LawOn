@@ -411,9 +411,7 @@ export function initMypageListeners() {
             localStorage.removeItem(USER_ID_KEY);
             localStorage.removeItem(NICK_KEY);
 
-            setTimeout(() => {
-              location.reload();
-            }, 1000);
+            window.location.href = "/";
           } catch (error) {
             showToast("회원 탈퇴 실패", "error");
           }
