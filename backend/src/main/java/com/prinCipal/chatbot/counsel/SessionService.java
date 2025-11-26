@@ -122,6 +122,7 @@ public class SessionService {
 					Map<String, Object> sessionDetail = new HashMap<>();
 					sessionDetail.put("id", session.getSessionId());
 					sessionDetail.put("title", session.getSummaryTitle());
+					sessionDetail.put("summary", session.getSummary());
 
 					List<Map<String, Object>> messages = session.getContents().stream()
 							// [수정 전] 시간만 보고 정렬 (시간 같으면 순서 엉망됨)
@@ -272,7 +273,7 @@ public class SessionService {
         session.updateStatus(CompletionStatus.COMPLETED);
         session.updateendTime(LocalDateTime.now()); // 👈 endTime은 여기서!
         
-        saveSystemMessage(session, "상담이 종료되었습니다. 마이페이지에서 상담 요약을 확인하실 수 있습니다. ※이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
+        saveSystemMessage(session, "상담이 종료되었습니다. ※이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
     }
 
     /**

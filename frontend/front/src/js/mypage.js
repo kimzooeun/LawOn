@@ -23,10 +23,28 @@ import { createNewSession, renderChat } from "./chat.js";
 import { openDocModal } from "./init.js";
 
 // [추가] PDF 다운로드 기능
-function downloadChatPdf(session) {
+export function downloadChatPdf(session) {
   if (!session || !session.messages) {
     showToast("저장된 대화 내용이 없습니다.", "error");
     return;
+  }
+
+  // 👇 [추가] 요약본 HTML 생성 (요약이 있을 때만 표시)
+  let summaryHtml = "";
+  if (session.summary) {
+    summaryHtml = `
+      <div style="
+        margin-bottom: 30px; 
+        padding: 20px; 
+        background-color: #f8f9fa; 
+        border-left: 5px solid #1976d2; 
+        border-radius: 4px;
+      ">
+        <h3 style="margin-top: 0; color: #1976d2;">📑 상담 요약 리포트</h3>
+        <p style="white-space: pre-wrap; line-height: 1.6; color: #333;">${session.summary}</p>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+    `;
   }
 
   // 1. PDF용 HTML 생성
@@ -38,9 +56,13 @@ function downloadChatPdf(session) {
     <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">${
       session.title || "상담 내역"
     }</h1>
+    
     <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 30px;">
       저장 일시: ${new Date().toLocaleString()}
     </p>
+
+    ${summaryHtml}
+
     <div style="display: flex; flex-direction: column; gap: 15px;">
       ${session.messages
         .map(

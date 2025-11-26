@@ -11,6 +11,7 @@ import {
   endSession,
   restartSession,
 } from "./api.js";
+import { downloadChatPdf } from "./mypage.js";
 import { showPage } from "./init.js";
 
 const USER_ID_KEY = "todak_user_id";
@@ -453,7 +454,7 @@ export function renderChat() {
           "📝",
           "상담 요약하기",
           "지금까지의 대화를 리포트로 저장",
-          () => handleEndSessionAction(sess.id)
+          () => handleSummaryAndDownloadAction(sess.id)
         );
         actionsDiv.appendChild(btnReport);
 
@@ -551,5 +552,34 @@ async function handleRestartSessionAction(sessionId) {
   } catch (err) {
     console.error(err);
     showToast("상담 재시작 실패", "error");
+  }
+}
+
+// 2. [⭐ 신규 추가] '상담 요약하기' 버튼용 (종료 + 자동 다운로드)
+async function handleSummaryAndDownloadAction(sessionId) {
+  if (!confirm("상담을 종료하고 요약 리포트를 PDF로 저장하시겠습니까?")) return;
+
+  try {
+    // (1) 상담 종료 요청 (서버에서 요약 생성 및 저장)
+    await endSession(sessionId);
+    showToast("상담 요약본 생성 중...", "info");
+
+    // (2) 최신 데이터(요약 포함)를 서버에서 다시 불러옴
+    await loadInitialData();
+
+    // (3) 갱신된 세션 데이터로 PDF 다운로드 실행
+    const updatedSession = state.sessions[sessionId];
+    if (updatedSession) {
+      showToast("PDF 다운로드를 시작합니다.", "success");
+      // 데이터 로딩 시간 고려하여 약간의 딜레이 후 실행
+      setTimeout(() => {
+        downloadChatPdf(updatedSession);
+      }, 500);
+    } else {
+      showToast("데이터를 불러오지 못해 다운로드에 실패했습니다.", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("요약 및 다운로드 처리 실패", "error");
   }
 }
