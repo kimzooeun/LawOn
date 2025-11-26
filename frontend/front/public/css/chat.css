@@ -173,6 +173,7 @@
   animation-delay: 0.9s;
 }
 .mic-btn:hover {
+  background-color: red;
   background: var(--primary);
   color: #fff;
   transform: scale(1.05);
