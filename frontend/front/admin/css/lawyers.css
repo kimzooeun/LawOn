@@ -1,13 +1,36 @@
 /* 변호사 등록 폼 전체 */
+/* 변호사 등록 폼 전체 */
 .lawyer-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr) auto; /* 4개 컬럼 + 버튼 */
   gap: 12px;
   margin-top: 10px;
   padding: 15px;
   background: #f9f9f9;
   border-radius: 8px;
   border: 1px solid #e6e6e6;
+  align-items: end; /* 모든 요소를 아래쪽 정렬 */
+}
+
+/* 첫 번째 줄: 이름, 성별, 전문분야, 소개글 */
+.lawyer-form input[type="text"]:nth-of-type(1),
+.lawyer-form select,
+.lawyer-form input[type="text"]:nth-of-type(2),
+.lawyer-form textarea {
+  grid-column: span 1;
+}
+
+/* 소개글은 전체 너비 */
+.lawyer-form textarea {
+  grid-column: 1 / -1;
+}
+
+/* 두 번째 줄: 사무실명, 지역, 연락처, 파일업로드, 버튼 */
+.lawyer-form input[type="text"]:nth-of-type(3),
+.lawyer-form input[type="text"]:nth-of-type(4),
+.lawyer-form input[type="text"]:nth-of-type(5),
+.lawyer-form input[type="file"] {
+  grid-column: span 1;
 }
 
 /* 기본 input 스타일 */
@@ -30,28 +53,29 @@
 
 /* file input 스타일 */
 .lawyer-form input[type="file"] {
-  border: none;
-  padding: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
   background: #fff;
   font-size: 0.9em;
 }
 
-/* 폼 버튼 */
+
+/* 등록 버튼 */
 .lawyer-form button {
-  background-color: #ff4da0;
+  background-color: #4d88ff;
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 10px 16px;
+  padding: 10px 20px;
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
-  grid-column: auto; /* 변경: 1 / -1 제거 */
-  align-self: end; /* 파일 업로드와 높이 맞추기 */
+  white-space: nowrap;
+  height: fit-content;
 }
 
 .lawyer-form button:hover {
-  background-color: #a01858;
+  background-color: #3d78ef;
 }
 
 /* 검색 섹션 */
