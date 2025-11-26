@@ -84,9 +84,8 @@ export async function updatePassword(userId, currentPassword, newPassword) {
   return response.ok;
 }
 
-/* (D) 회원 탈퇴 (백엔드에 아직 구현 안 됨)*/
-export async function deleteUser(userId) {
-  // 👈 [수정] userId 인자 추가
+/* 회원 탈퇴 */
+export async function deleteUser() {
   const response = await fetch(`${API_BASE_URL}/withdraw`, {
     headers: getAuthHeaders(),
     method: "POST",
