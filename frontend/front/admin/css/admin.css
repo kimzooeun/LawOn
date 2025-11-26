@@ -168,7 +168,7 @@ input:focus, select:focus {
 
 /* 공통 버튼 */
 .btn {
-  background-color: var(--primary-color);
+  
   color: #fff;
   border-radius: 8px;
   padding: 10px 16px;
