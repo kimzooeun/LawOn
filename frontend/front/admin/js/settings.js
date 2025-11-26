@@ -74,7 +74,7 @@ function initPasswordChange() {
       // 2초 뒤 로그아웃 및 로그인 페이지로 이동
       setTimeout(() => {
           TokenManager.clearTokens();
-          window.location.href = "/admin/login/";
+          window.location.href = "/admin/login";
       }, 2000);
 
     } catch (err) {

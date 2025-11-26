@@ -44,7 +44,7 @@ window.fetch = async (url, options = {}) => {
     if (!refreshRes.ok) {
       console.error("관리자 Refresh 실패 → 로그아웃");
       TokenManager.clearTokens();
-      window.location.href = "/admin/login/";
+      window.location.href = "/admin/login";
       throw new Error("관리자 세션 만료");
     }
 
@@ -53,7 +53,7 @@ window.fetch = async (url, options = {}) => {
 
     if (!freshToken) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login/";
+      window.location.href = "/admin/login";
       throw new Error("관리자 AccessToken 재발급 실패");
     }
 

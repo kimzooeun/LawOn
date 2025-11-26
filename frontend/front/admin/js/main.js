@@ -117,7 +117,7 @@ async function loadDashboardSummary() {
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login/";
+      window.location.href = "/admin/login";
       return;
     }
 
@@ -174,7 +174,7 @@ async function loadDashboardLogs() {
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login/";
+      window.location.href = "/admin/login";
       return;
     }
 
