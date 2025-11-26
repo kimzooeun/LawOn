@@ -19,8 +19,9 @@ import {
 
 import { createNewSession, renderChat } from "./chat.js";
 import { openDocModal } from "./init.js";
+import { TokenManager } from "./token.js";
 
-// [추가] PDF 다운로드 기능
+// PDF 다운로드 기능
 function downloadChatPdf(session) {
   if (!session || !session.messages) {
     showToast("저장된 대화 내용이 없습니다.", "error");
@@ -410,7 +411,8 @@ export function initMypageListeners() {
 
             localStorage.removeItem(USER_ID_KEY);
             localStorage.removeItem(NICK_KEY);
-
+            TokenManager.clearTokens();
+            
             window.location.href = "/";
             return; 
           } catch (error) {
