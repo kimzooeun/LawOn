@@ -330,6 +330,9 @@ public class MemberService {
 	@Transactional
 	public void withdraw(HttpServletRequest request, HttpServletResponse response) {
 		String accessToken = this.jwtTokenProvider.resolveAccessToken(request);
+		System.out.println("탈퇴 요청 AccessToken = " + accessToken);
+		System.out.println("validate = " + jwtTokenProvider.validateToken(accessToken));
+		
 		if (accessToken != null && this.jwtTokenProvider.validateToken(accessToken)) {
 			Claims claims = this.jwtTokenProvider.parseClaimsAllowExpired(accessToken);
 			String jti = claims.getId(); // 토큰의 고유ID
