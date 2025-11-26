@@ -1,24 +1,136 @@
-/* 변호사 관리 페이지 고유 스타일 */
-
-.lawyer-register {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+/* 변호사 등록 폼 전체 */
+.lawyer-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
 }
 
+/* 기본 input 스타일 */
 .lawyer-form input,
 .lawyer-form select,
 .lawyer-form textarea {
-  margin-bottom: 12px;
+  padding: 9px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.lawyer-list .table-wrapper {
-  overflow-x: auto;
-  margin-top: 20px;
+/* textarea 스타일 */
+.lawyer-form textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
+/* file input 스타일 */
+.lawyer-form input[type="file"] {
+  border: none;
+  padding: 4px;
+  background: #fff;
+  font-size: 0.9em;
+}
+
+/* 폼 버튼 */
+.lawyer-form button {
+  background-color: #4d88ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  grid-column: 1 / -1; /* 버튼을 폼 전체 너비로 */
+}
+
+.lawyer-form button:hover {
+  background-color: #3a74e0;
+}
+
+/* 검색 섹션 */
 .lawyer-search .filter-box {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.lawyer-search input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.lawyer-search button {
+  background-color: #ff4da0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.lawyer-search button:hover {
+  background-color: #e74393;
+}
+
+/* 테이블 스타일 */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 15px;
+}
+
+#lawyerTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+#lawyerTable th,
+#lawyerTable td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+#lawyerTable th {
+  background-color: #f0f4ff;
+  color: #333;
+}
+
+#lawyerTable tr:hover {
+  background-color: #f9f9f9;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9em;
+}
+
+.edit-btn {
+  background-color: #4d88ff;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #3a74e0;
+}
+
+.delete-btn:hover {
+  background-color: #d93636;
 }
