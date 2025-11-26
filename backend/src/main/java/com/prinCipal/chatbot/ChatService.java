@@ -7,11 +7,16 @@ import com.prinCipal.chatbot.dto.ChatRequestDto;
 import com.prinCipal.chatbot.dto.FastApiRequestDto;
 import com.prinCipal.chatbot.dto.FastApiResponseDto;
 
-import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -21,41 +26,62 @@ public class ChatService {
 	private final WebClient.Builder webClientBuilder;
 
     // 2. FastAPI 엔드포인트 주소 (docker-compose의 서비스 이름 사용)
-    private final String FASTAPI_URL = "http://fastapi:8000/generate-response";
+    private final String FASTAPI_URL = "http://fastapi:8000";
+    
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
 
-	public FastApiResponseDto getFastApiResponse(ChatRequestDto requestDto) {
-	        
-        // 1. 프론트에서 받은 메시지
+    /**
+     * 1. 일반 대화 요청 (prevSummary를 인자로 받음)
+     */
+	public FastApiResponseDto getFastApiResponse(ChatRequestDto requestDto, String prevSummary) { // 👈 인자 추가
+		
         String userMessage = requestDto.getUserMessage();
+        String sessionIdStr = requestDto.getSessionId().toString();
         
-        // 2. FastAPI가 요구하는 DTO 형식으로 변환 ("query" 필드 사용)
-        FastApiRequestDto fastApiRequest = new FastApiRequestDto(userMessage);
+        // FastAPI DTO 생성 (이제 인자로 받은 prevSummary를 사용)
+        FastApiRequestDto fastApiRequest = FastApiRequestDto.builder()
+                .session_id(sessionIdStr)
+                .query(userMessage)
+                .prev_summary(prevSummary) // 👈 SessionService가 넘겨준 값
+                .build();
         
-        // 3. (중요) WebClient로 비동기 POST 요청
-        WebClient webClient = webClientBuilder.baseUrl(FASTAPI_URL).build();
-        
-        // 4. (중요) WebClient로 비동기 요청을 보낸 뒤, .block()으로 동기 대기
+        return webClientBuilder.baseUrl(FASTAPI_URL).build()
+                .post()
+                .uri("/generate-response")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(fastApiRequest)
+                .retrieve()
+                .bodyToMono(FastApiResponseDto.class) 
+                .timeout(Duration.ofSeconds(60)) 
+                .block(); 
+	}
+    
+    /**
+     * 2. [추가] 최종 리포트 생성 요청 (상담 종료 시 호출)
+     */
+    public String getFinalReport(String sessionId, String prevSummary) {
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("session_id", sessionId);
+        requestBody.put("prev_summary", prevSummary);
+
         try {
-        	FastApiResponseDto fastApiResponse = webClient.post()
-                    .uri("")
+            Map response = webClientBuilder.baseUrl(FASTAPI_URL).build()
+                    .post()
+                    .uri("/generate-report") // 👈 FastAPI의 리포트 생성 엔드포인트
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .bodyValue(fastApiRequest)
+                    .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(FastApiResponseDto.class) 
-                    .timeout(Duration.ofSeconds(30)) 
-                    .block(); 
+                    .bodyToMono(Map.class)
+                    .block();
 
-                // 받은 객체를 변환하지 않고 그대로 반환합니다.
-                if (fastApiResponse == null) {
-                     throw new RuntimeException("FastAPI 응답이 null입니다.");
-                }
-                
-                return fastApiResponse; // 복합 DTO 객체 자체를 반환
-
-            } catch (Exception e) {
-                // 예외 발생 시, SessionService가 처리할 수 있도록 throw
-                throw new RuntimeException("FastAPI 봇 응답 실패: " + e.getMessage(), e);
+            if (response != null && response.containsKey("final_report")) {
+                return (String) response.get("final_report");
             }
-
-    	}
+            return null;
+        } catch (Exception e) {
+        	
+        	logger.error("최종 리포트 생성 실패 (SessionId: {}): {}", sessionId, e.getMessage());
+            return null;
+        }
+    }
 }

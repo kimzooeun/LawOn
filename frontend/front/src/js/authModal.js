@@ -18,7 +18,6 @@ const USER_ID_KEY = "todak_user_id";
 const NICK_KEY = "todak_nickname";
 const PROVIDER_KEY = "todak_provider"; // 예: local / kakao / google / naver
 
-
 // 세션 관리용 변수
 const SIMPLE_SESSION_KEY = "simpleChatSessionId";
 let simpleSessionId = localStorage.getItem(SIMPLE_SESSION_KEY) || null;
@@ -34,7 +33,7 @@ if (customBtn) {
     if (accessToken) {
       document.body.classList.add("fade-out");
       setTimeout(() => {
-        window.location.href = "/chat";
+        window.location.href = "/chat/index";
       }, 500);
       return;
     }
@@ -197,7 +196,6 @@ document
           localStorage.setItem(USER_ID_KEY, resData.userId);
           localStorage.setItem(NICK_KEY, resData.display_name);
           localStorage.setItem(PROVIDER_KEY, resData.provider);
-
         } else {
           // 백엔드 응답에 userId나 display_name이 없는 경우 경고
           console.warn(
@@ -212,7 +210,7 @@ document
         resetAuthForms();
 
         setTimeout(() => {
-          window.location.href = "/chat";
+          window.location.href = "/chat/index";
         }, 800);
       } else if (response.status === 400 && resData) {
         // 400 Bad Request (유효성 검사 실패) 처리
@@ -560,7 +558,7 @@ function openChat() {
   document.body.classList.add("chat-open");
   chatInput.focus();
 
-  chatBody.innerHTML ="";
+  chatBody.innerHTML = "";
   addMessage("안녕하세요! 무엇을 도와드릴까요? 😊", "bot");
 
   // 다음 오픈 시 히스토리 다시 가져오도록
@@ -578,10 +576,10 @@ function closeChat() {
   chatOverlay.classList.remove("is-open");
   document.body.classList.remove("chat-open");
 
-  // DOM 비우기 
-  chatBody.innerHTML="";
+  // DOM 비우기
+  chatBody.innerHTML = "";
 
-  // 다음 오픈 시 히스토리 다시 불러오도록 
+  // 다음 오픈 시 히스토리 다시 불러오도록
   historyLoaded = false;
 
   inputDisabled = false;
@@ -667,7 +665,9 @@ async function loadSimpleChatHistory() {
 
   try {
     const response = await fetch(
-      `/fastapi/simple-chat/history?session_id=${encodeURIComponent(simpleSessionId)}`
+      `/fastapi/simple-chat/history?session_id=${encodeURIComponent(
+        simpleSessionId
+      )}`
     );
 
     if (!response.ok) {
