@@ -37,7 +37,6 @@ async function loadMembers() {
       // 핵심 수정 부분: 변수명(camelCase)과 (snake_case)를 둘 다 확인
       const createdDate = m.createdAt || m.created_at;
       const updatedDate = m.updatedAt || m.updated_at;
-      const withdrawDate = m.withdrawDate || m.withdraw_date;
 
       tr.innerHTML = `
         <td>${m.userId}</td>
@@ -47,7 +46,6 @@ async function loadMembers() {
         <td>${m.socialId || '-'}</td>
         <td>${formatDate(createdDate)}</td>
         <td>${formatDate(updatedDate)}</td>
-        <td>${formatDate(withdrawDate)}</td>
       `;
 
       tbody.appendChild(tr);

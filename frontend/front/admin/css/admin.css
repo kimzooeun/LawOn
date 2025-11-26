@@ -20,7 +20,7 @@
 html, body {
   font-family: 'Noto Sans KR', sans-serif;
   background-color: var(--bg-color);
-  color: var(--text-color);
+  color: black;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -126,11 +126,6 @@ button {
   font-weight: 600;
   transition: 0.2s ease;
 }
-
-.admin-nav button:hover {
-  background-color: var(--primary-hover);
-}
-
 
 /* 메인 공통 레이아웃 */
 .dashboard {
