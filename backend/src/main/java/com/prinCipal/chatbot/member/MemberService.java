@@ -49,7 +49,6 @@ public class MemberService {
 	private final ForbiddenWordService forbiddenWordService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
-	private final AuthenticationManager authenticationManager;
 	private final CookieHeader cookieHeader;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final BlackTokenRepository blackTokenRepository;
