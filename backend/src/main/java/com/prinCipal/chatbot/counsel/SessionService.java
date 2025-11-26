@@ -47,7 +47,7 @@ public class SessionService {
 	@Transactional // 새 세션 생성은 하나의 트랜잭션으로 관리
 	public CounsellingSession createSession(Member member) {
 		CounsellingSession session = CounsellingSession.builder().member(member)
-				.completionStatus(CompletionStatus.ONGOING).resumeToken(null).build();
+				.completionStatus(CompletionStatus.ONGOING).build();
 
 		// 초기 제목 및 시간 설정 (DB 기본값 대신)
 		session.updateSummaryTitle("새 대화");

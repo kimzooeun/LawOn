@@ -79,20 +79,6 @@ public class CounsellingSession {
 	@Column(columnDefinition = "TEXT")
 	private String summary;
 
-	// 세션 재개용 토큰
-	@Column(name = "resume_token")
-	private String resumeToken;
-
-//	 // 세션 생성일
-//	 @CreationTimestamp
-//	 @Column(name = "created_at")
-//	 private LocalDateTime createdAt;
-//
-//	 // 세션 수정일
-//	 @UpdateTimestamp
-//	 @Column(name = "updated_at")
-//	 private LocalDateTime updatedAt;
-
 	// 세선 1 : 발화 N 관계
 	@OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<CounsellingContent> contents = new ArrayList<>();
@@ -106,11 +92,10 @@ public class CounsellingSession {
 	private List<CrisisAlert> crisisAlerts = new ArrayList<>();
 
 	@Builder
-	public CounsellingSession(Member member, CompletionStatus completionStatus, String resumeToken) {
+	public CounsellingSession(Member member, CompletionStatus completionStatus) {
 		this.member = member;
 		this.completionStatus = completionStatus;
 		this.lastMessageTime = LocalDateTime.now();
-		this.resumeToken = resumeToken;
 	}
 
 	// 상담 진행 상태 업데이트
