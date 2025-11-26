@@ -558,6 +558,15 @@ function openChat() {
   document.body.classList.add("chat-open");
   chatInput.focus();
 
+  chatBody.innerHTML ="";
+  addMessage("안녕하세요! 무엇을 도와드릴까요? 😊", "bot");
+
+  // 다음 오픈 시 히스토리 다시 가져오도록
+  historyLoaded = false;
+  inputDisabled = false;
+  chatInput.disabled = false;
+  chatSendBtn.disabled = false;
+
   loadSimpleChatHistory(); // 히스토리 복원
 }
 
@@ -566,6 +575,16 @@ function closeChat() {
   chatWidget.classList.remove("is-open");
   chatOverlay.classList.remove("is-open");
   document.body.classList.remove("chat-open");
+
+  // DOM 비우기 
+  chatBody.innerHTML="";
+
+  // 다음 오픈 시 히스토리 다시 불러오도록 
+  historyLoaded = false;
+
+  inputDisabled = false;
+  chatInput.disabled = false;
+  chatSendBtn.disabled = false;
 }
 
 if (closeChatBtn) {
