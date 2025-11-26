@@ -37,16 +37,6 @@ p {
   color: var(--muted-text);
 }
 
-/* 기본 링크 스타일 */
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: 0.2s;
-}
-a:hover {
-  color: var(--primary-hover);
-}
-
 /* 공통 버튼 스타일 */
 button {
   font-family: inherit;
