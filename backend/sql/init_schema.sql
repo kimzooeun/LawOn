@@ -41,9 +41,6 @@ CREATE TABLE counselling_session (
 
     summary_title TEXT DEFAULT NULL,					-- 상담 제목 (첫발화로 ai가 상담 제목 작성)
     summary TEXT DEFAULT NULL,							-- 상담 내용 요약 (타임아웃 상태의 상담들 ai가 상담 요약)
-	-- context_snapshot JSON DEFAULT NULL,                 -- 상담 대화 맥락 (레디스 저장) 
-
-    resume_token VARCHAR(100) DEFAULT NULL,             -- 재개용 토큰 (사용자가 이어서 대화할 때)
 
 --    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -182,10 +179,5 @@ CREATE INDEX idx_alert_session
     ON crisis_alert (session_id);
 
 
-
 SET FOREIGN_KEY_CHECKS=1;
-
--- 1번 테스트 사용자 추가
-INSERT INTO users (user_id, nickname, display_name, password, user_role, social_provider) 
-VALUES (1, 'testuser', 'testuser', '$2a$10$kEAO1hxQk3gPtXKBN6nsIOBKJC3aJGYAfZT4t5OcRlH1vtO0zgHLC', 'USER', 'local');
 

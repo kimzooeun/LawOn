@@ -21,50 +21,56 @@ import { createNewSession, renderChat } from "./chat.js";
 import { openDocModal } from "./init.js";
 import { TokenManager } from "./token.js";
 
-// PDF 다운로드 기능
-function downloadChatPdf(session) {
+// [추가] PDF 다운로드 기능
+export function downloadChatPdf(session) {
   if (!session || !session.messages) {
     showToast("저장된 대화 내용이 없습니다.", "error");
     return;
   }
 
-  // 1. PDF용 HTML 생성
+  // 1. 요약본 HTML 생성 (스타일 유지)
+  let summaryHtml = "";
+  if (session.summary) {
+    summaryHtml = `
+      <div style="
+        padding: 20px; 
+        background-color: #fff; 
+        border: 1px solid #ddd; 
+        border-radius: 4px;
+      ">
+        <h3 style="
+            margin-top: 0; 
+            color: #1976d2; 
+            border-bottom: 2px solid #1976d2; 
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        ">📑 법률 상담 기초 조사서</h3>
+        <div style="white-space: pre-wrap; line-height: 1.8; color: #333; font-size: 14px;">${session.summary}</div>
+      </div>
+    `;
+  } else {
+    // 요약본이 없는 경우 안내 메시지
+    summaryHtml = `<p style="text-align:center; padding:50px;">아직 생성된 상담 요약 리포트가 없습니다.</p>`;
+  }
+
+  // 2. PDF용 전체 HTML 구조 (메시지 루프 삭제됨)
   const element = document.createElement("div");
   element.style.padding = "30px";
   element.style.fontFamily = "sans-serif";
 
   element.innerHTML = `
-    <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">${
-      session.title || "상담 내역"
-    }</h1>
-    <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 30px;">
-      저장 일시: ${new Date().toLocaleString()}
+    <h1 style="text-align:center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 10px;">
+      ${session.title || "상담 요약 리포트"}
+    </h1>
+    
+    <p style="text-align:right; color:#666; font-size: 12px; margin-bottom: 40px;">
+      발급 일시: ${new Date().toLocaleString()}
     </p>
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-      ${session.messages
-        .map(
-          (msg) => `
-        <div style="
-          padding: 15px; 
-          border-radius: 8px; 
-          background-color: ${msg.role === "user" ? "#e3f2fd" : "#f5f5f5"};
-          border: 1px solid ${msg.role === "user" ? "#bbdefb" : "#e0e0e0"};
-        ">
-          <strong style="display:block; margin-bottom:5px; color: ${
-            msg.role === "user" ? "#1976d2" : "#424242"
-          };">
-            ${msg.role === "user" ? "나" : "토닥이"}
-          </strong>
-          <span style="white-space: pre-wrap; line-height: 1.5; font-size: 14px;">${
-            msg.text
-          }</span>
-        </div>
-      `
-        )
-        .join("")}
-    </div>
-    <div style="margin-top: 30px; text-align: center; color: #999; font-size: 10px;">
-      LawOn AI 법률 상담 서비스
+
+    ${summaryHtml}
+
+    <div style="margin-top: 50px; text-align: center; color: #999; font-size: 11px; border-top: 1px solid #eee; padding-top: 20px;">
+      LawOn AI 법률 상담 서비스 | 본 문서는 법적 효력이 없는 참고용 자료입니다.
     </div>
   `;
 
@@ -406,8 +412,9 @@ export function initMypageListeners() {
               return false;
             }
 
-            const provider =
-            (localStorage.getItem("todak_provider") || "local").toLowerCase();
+            const provider = (
+              localStorage.getItem("todak_provider") || "local"
+            ).toLowerCase();
             if (provider === "local") {
               await deleteUser(currentUserId);
 
@@ -424,12 +431,12 @@ export function initMypageListeners() {
               }, 1000);
               return;
             }
-      } catch (error) {
-        console.error(error);
-        showToast("회원 탈퇴 실패", "error");
-      }
-    },
-  });
+          } catch (error) {
+            console.error(error);
+            showToast("회원 탈퇴 실패", "error");
+          }
+        },
+      });
     } else if (action === "open-emergency") {
       if (typeof openDocModal === "function") {
         const emergencyContent = `

@@ -98,7 +98,7 @@ button {
 
 /* hover만 별도로 유지 */
 .admin-nav a:hover {
-  background: #e74393;
+  color: #e74393;
   transform: translateY(-2px);
 }
 
@@ -323,7 +323,6 @@ tr:hover {
 .sub-btn:hover {
   background-color: #d3e3ff;
 }
-
 
 /* 네비바 클릭(active/focus/visited) 색 변화 제거 */
 .admin-nav a,
