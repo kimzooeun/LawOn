@@ -30,7 +30,7 @@ public class MemberDetailService implements UserDetailsService{
 	@Override
 	public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
 		
-		System.out.println(nickname+"!!!!!!!!!!!!");
+		System.out.println(nickname+"!!!!!!!!!!!!젭알 나와주ㅠㅓ .......");
 		 // 소셜 로그인 사용자 먼저 찾기
 	    Optional<Member> socialUser = memberRepository.findBySocialId(nickname);
 	    if (socialUser.isPresent()) {

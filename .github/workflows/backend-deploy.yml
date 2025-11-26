@@ -23,7 +23,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           source: "backend/"
-          target: "/home/ubuntu/app/backend"
+          target: "/home/ubuntu/app"
 
       - name: Restart Backend on EC2
         uses: appleboy/ssh-action@v0.1.7
@@ -32,9 +32,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/app/backend
-            chmod +x ./gradlew
-            ./gradlew clean build -x test
             cd /home/ubuntu/app
             docker compose -f docker-compose.prod.yml stop backend || true
             docker compose -f docker-compose.prod.yml rm -f backend || true
