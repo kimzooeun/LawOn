@@ -1,5 +1,3 @@
-import { TokenManager } from '../../src/js/token.js';
-
 // 변호사 등록 / 수정 / 삭제 / 실시간 검색
 const API_BASE = "/api/admin/lawyers";
 
