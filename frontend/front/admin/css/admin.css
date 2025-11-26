@@ -89,7 +89,7 @@ button {
 .admin-nav a {
   color: #fff;
   font-weight: 500;
-  padding: 8px 14px;        /* 사이즈 동일 */
+  padding: 10px 10px;        /* 사이즈 동일 */
   border-radius: 6px;
   background-color: #ff4da0;
   text-decoration: none !important;
