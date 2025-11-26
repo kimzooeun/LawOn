@@ -6,10 +6,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+
 import jakarta.servlet.http.Cookie;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +25,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.prinCipal.chatbot.security.MemberDetailService;
+import com.prinCipal.chatbot.counsel.SessionService;
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
 import com.prinCipal.chatbot.member.Member;
@@ -40,7 +45,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-
+	private static final Logger logger = LoggerFactory.getLogger(SessionService.class);
+	
 	private final MemberDetailService memberDetailService;
 
 	@Value("${jwt.secret-key}")
@@ -56,6 +62,9 @@ public class JwtTokenProvider {
 		return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 	}
 
+	
+	private RedisTemplate<String, String> redisTemplate;
+	
 	// Access Token 생성
 	public String generateAccessToken(Authentication authentication) {
 		Object principal = authentication.getPrincipal();
@@ -129,10 +138,19 @@ public class JwtTokenProvider {
 		return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
 	}
 
-	// 토큰 정보를 검증하는 메서드
+	// 토큰 정보를 검증하는 메서드 + 블랙 리스트 검사 까지 해야함. (탈퇴 후, accessToken 블랙리스트 처리 됐는데 검사를 안하니, 그냥 유효 통과됨) 
 	public boolean validateToken(String token) {
 		try {
-			Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(token);
+			Claims claims = Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(token).getPayload();
+			
+			// jti 추출
+			String jti  = claims.getId();
+			
+			// 블랙리스트 검사
+			if(Boolean.TRUE.equals(redisTemplate.hasKey("BL: " + jti))) {
+				logger.warn("블랙리스트 토큰 접근 차단 jti={}", jti);
+				return false;
+			}
 			return true;
 		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
 			System.out.println("잘못된 JWT 시그니처에요");
@@ -204,9 +222,7 @@ public class JwtTokenProvider {
 			// 토큰 -> 서명 검증 + 만료 체크
 			return Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(accessToken).getPayload(); // Payload에
 																														// 실제
-																														// Claims
-																														// 객체
-																														// 포함
+																										// 포함
 		} catch (ExpiredJwtException e) {
 			// 토큰은 만료됐지만, 서명은 유효해서 e안의 claims을 꺼내서 사용은 가능
 			return e.getClaims();

@@ -19,14 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper; // JSON 변환
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +36,10 @@ public class SessionService {
 	private final ChatService chatService;
 	private final ObjectMapper objectMapper;
 
-	// [변경] RedisConfig에 등록된 빈 이름과 타입 매칭
+	// RedisConfig에 등록된 빈 이름과 타입 매칭
 	private final StringRedisTemplate stringRedisTemplate;
 
-	// [핵심] 비동기 처리를 위한 자기 자신 주입 (순환 참조 방지 @Lazy)
+	// 비동기 처리를 위한 자기 자신 주입 (순환 참조 방지 @Lazy)
 	@Lazy
 	@Autowired
 	private SessionService self;
@@ -51,22 +49,21 @@ public class SessionService {
 	// Redis 캐시 유지 시간 (예: 24시간)
 	private static final Duration CACHE_TTL = Duration.ofHours(24);
 
-	/* 새 상담 세션 생성 */
-	 
-	@Transactional // [수정] 새 세션 생성은 하나의 트랜잭션으로 관리
+	// 새 상담 세션 생성 
+	@Transactional // 새 세션 생성은 하나의 트랜잭션으로 관리
 	public CounsellingSession createSession(Member member) {
 		CounsellingSession session = CounsellingSession.builder().member(member)
 				.completionStatus(CompletionStatus.ONGOING).resumeToken(null).build();
 
-		// [추가] 초기 제목 및 시간 설정 (DB 기본값 대신)
+		// 초기 제목 및 시간 설정 (DB 기본값 대신)
 		session.updateSummaryTitle("새 대화");
 		session.updateLastMessageTime(LocalDateTime.now());
 
 		return sessionRepository.save(session);
 	}
 
-	/* 세션 삭제 (소유권 확인) */
-	@Transactional // 👈 [수정] 삭제도 트랜잭션으로 관리
+	// 세션 삭제 (소유권 확인) 
+	@Transactional // 삭제도 트랜잭션으로 관리
 	public void deleteSession(Long sessionId, Member member) {
 		CounsellingSession session = sessionRepository.findBySessionIdAndMember(sessionId, member)
 				.orElseThrow(() -> new RuntimeException("세션을 찾을 수 없거나 권한이 없습니다."));
@@ -86,8 +83,7 @@ public class SessionService {
 
 	}
 
-	/* [추가] 사용자의 전체 채팅방/최근 목록 조회 */
-	 
+	// 사용자의 전체 채팅방/최근 목록 조회 
 	@Transactional(readOnly = true)
 	public Map<String, Object> getInitialDataForUser(Member member) {
 		Map<String, Object> initialData = new HashMap<>();
@@ -100,15 +96,15 @@ public class SessionService {
 			recent.put("id", session.getSessionId());
 
 			String title = session.getSummaryTitle();
-			// ⭐ 수정: 제목이 null이거나 비어있으면 "제목 없음"으로 대체
+			// 제목이 null이거나 비어있으면 "제목 없음"으로 대체
 			// 클라이언트에서 "새 대화"는 로딩으로 처리할 수 있도록 유지하거나,
-			// "새 대화"인 경우 클라이언트가 로딩을 표시하도록 협의합니다.
+			// "새 대화"인 경우 클라이언트가 로딩을 표시하도록 협의
 			if (title == null || title.isEmpty() || title.equals("새 대화")) {
 				title = "제목 생성 중...";
 			}
 			recent.put("title", title); // 수정된 title 사용
 
-			// ⭐ 핵심 수정: LocalDateTime 객체를 JS가 인식하는 long 타임스탬프(밀리초)로 변환
+			// LocalDateTime 객체를 JS가 인식하는 long 타임스탬프(밀리초)로 변환
 			long updatedAtMillis = session.getLastMessageTime().atZone(java.time.ZoneId.systemDefault()) // 서버의 기본 시간대로
 																											// ZoneId 설정
 					.toInstant() // Instant로 변환
