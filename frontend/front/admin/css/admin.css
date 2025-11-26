@@ -56,7 +56,7 @@ button {
   transition: 0.2s;
 }
 
-/* False 헤더 (모든 페이지 공통) */
+/* 공통 헤더 */
 .admin-header {
   background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
@@ -70,15 +70,16 @@ button {
   z-index: 100;
 }
 
+/* 로고 영역 */
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .logo img {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 }
 
 .logo h1 {
@@ -87,31 +88,48 @@ button {
   font-weight: 700;
 }
 
+/* 상단 네비게이션 */
 .admin-nav {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
 }
 
+/* 네비 링크 */
 .admin-nav a {
   color: var(--text-color);
   font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: 0.2s ease;
 }
 
 .admin-nav a:hover {
   color: var(--primary-color);
+  background-color: rgba(255, 77, 160, 0.08);
 }
 
+/* 현재 페이지(active) 표시 */
+.admin-nav a.active {
+  color: var(--primary-color);
+  font-weight: 700;
+  background-color: rgba(255, 77, 160, 0.12);
+}
+
+/* 로그아웃 버튼 */
 .admin-nav button {
   background-color: var(--primary-color);
   color: #fff;
   border-radius: 6px;
   padding: 8px 14px;
   font-weight: 600;
+  transition: 0.2s ease;
 }
+
 .admin-nav button:hover {
   background-color: var(--primary-hover);
 }
+
 
 /* 메인 공통 레이아웃 */
 .dashboard {

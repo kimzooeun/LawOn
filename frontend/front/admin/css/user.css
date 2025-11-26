@@ -5,25 +5,6 @@ body {
   color: #222;
 }
 
-.admin-header {
-  background: #333;
-  color: white;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.admin-header nav a {
-  color: white;
-  margin-right: 10px;
-  text-decoration: none;
-}
-.admin-header nav a.active {
-  font-weight: bold;
-  text-decoration: underline;
-}
-
 .admin-container {
   padding: 20px;
 }
