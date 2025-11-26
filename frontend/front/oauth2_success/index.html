@@ -51,11 +51,15 @@
       const params = new URLSearchParams(window.location.search)
       const accessToken = params.get("token");
       const nickname = params.get("nickname");
+      const displaynickname = params.get("displayName");
       const provider = params.get("provider");
-
+      const USER_ID_KEY = "todak_user_id";
+      const NICK_KEY = "todak_nickname";
+      
       if(accessToken){
-      console.log("✅ OAuth2 로그인 완료:", { nickname, provider });
       TokenManager.setTokens(accessToken, false);
+      localStorage.setItem(USER_ID_KEY, resData.userId);
+      localStorage.setItem(NICK_KEY, resData.display_name);
       showToast(`${nickname}님 환영합니다! (${provider} 로그인)`);
   
       setTimeout(() => {

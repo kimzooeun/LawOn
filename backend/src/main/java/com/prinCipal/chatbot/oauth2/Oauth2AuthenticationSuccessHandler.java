@@ -66,7 +66,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	    String redisKey = "RT:" + member.getUserId();
 	    this.refreshTokenRepository.save(redisKey, refreshToken, refreshDays);
 
-	
+	    
 		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
 		Long encodedUserid = member.getUserId();
 		String encodedNickname = URLEncoder.encode(member.getNickname(), StandardCharsets.UTF_8);
