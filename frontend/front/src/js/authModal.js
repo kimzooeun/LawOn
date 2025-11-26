@@ -559,11 +559,13 @@ function openChat() {
   chatInput.focus();
 
   chatBody.innerHTML ="";
-  historyLoaded = false;
+  addMessage("안녕하세요! 무엇을 도와드릴까요? 😊", "bot");
 
-  if(!simpleSessionId){
-    addMessage("안녕하세요! 무엇을 도와드릴까요? 😊", "bot");
-  }
+  // 다음 오픈 시 히스토리 다시 가져오도록
+  historyLoaded = false;
+  inputDisabled = false;
+  chatInput.disabled = false;
+  chatSendBtn.disabled = false;
 
   loadSimpleChatHistory(); // 히스토리 복원
 }
