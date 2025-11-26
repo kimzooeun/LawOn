@@ -1,0 +1,31 @@
+# FastAPI
+fastapi==0.119.0
+uvicorn==0.37.0
+pydantic==2.12.2
+python-multipart
+
+# RAG/LangChain (모델 D)
+langchain-community==0.3.0
+langchain-huggingface
+faiss-cpu
+
+
+# ML/Torch (모델 A, B, C)
+torch==2.2.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+transformers
+numpy>=1.23,<2
+sentencepiece
+protobuf>=4.25.0
+
+
+# Data & Utils
+pandas
+
+# Database
+redis==5.0.1
+
+# OpenAI / 토큰 관련
+openai>=1.16.0
+tiktoken==0.7.0
+

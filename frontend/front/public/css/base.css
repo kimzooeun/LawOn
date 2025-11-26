@@ -1,0 +1,107 @@
+/* ================================
+  1. :root (기본 팔레트)
+  ================================ */
+:root {
+  /* 공통 변수 추가 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* 배경/텍스트 (새 기본값: 화이트/블랙) */
+  --bg: #ffffff;
+  --panel: #fafafa;
+  --panel-2: #fafafa;
+  --line: #b08d5733;
+  --ink: #1c1c1c;
+  --ink-muted: #666666;
+  --ink-dim: #aaaaaa;
+  --muted: #aaaaaa;
+
+  /* 포인트 색 (새 기본값: 골드) */
+  --primary: #b08d57;
+  --primary-700: #9a7c4e;
+  --lavender: #b08d57;
+  --lavender-600: #9a7c4e;
+
+  /* 버튼/입력 (새 기본값: 화이트/골드) */
+  --btn-bg: #ffffff;
+  --btn-bg-hover: #fafafa;
+  --btn-line: #b08d5780;
+  --input-bg: #ffffff;
+  --input-line: #b08d5780;
+  --placeholder: #bdbdbd;
+
+  /* 포커스 & 그림자 (새 기본값: 골드) */
+  --focus-ring: #b08d5744;
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  /* 스크롤바 (새 기본값: 골드) */
+  --scroll-track: #ffffff;
+  --scroll-thumb: #b08d5766;
+  --scroll-thumb-hover: #b08d5788;
+
+  /* 보조 포인트 */
+  --blue: #5b8def;
+  --violet: #b08d57;
+  --green: #22a06b;
+  --danger: #e74c3c;
+  --danger-hover: #c0392b;
+}
+
+/* ================================
+  2. 기본 스타일 (Global & Reset)
+  ================================ */
+body,
+html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* ================================
+  3. 레이아웃 (Layout)
+  ================================ */
+
+/* --- 3.1. 전체 레이아웃 (사이드바 + 메인 컨테이너) --- */
+.container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- 3.2. 페이지 섹션 (전환) --- */
+.page-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background-color: var(--bg);
+
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  opacity: 1;
+  transform: translateY(0);
+
+  position: relative;
+  z-index: 5;
+}
+.page-section.hidden {
+  display: flex !important;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: hidden;
+  z-index: 1;
+}

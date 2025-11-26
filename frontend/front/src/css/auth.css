@@ -1,0 +1,350 @@
+/* 기본 리셋 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f5f5f5;
+}
+/* 화면 전체 어두운 오버레이 (모달 제외 효과) */
+.c-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);  /* 전체를 어둡게 */
+  backdrop-filter: blur(2px);        /* 살짝 블러로 고급스럽게 */
+  z-index: 9;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: multiply; /* 밝은 영역(모달)은 영향 거의 없음 */
+}
+
+.c-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+
+/* 오버레이를 hero-image 영역 기준으로 (화면 전체 X) */
+.hero-image {
+  position: relative; /* 자식이 absolute로 위치할 수 있도록 기준점 지정 */
+}
+
+/* 로그인/회원가입 모달 */
+.auth-modal {
+  background: white;
+  border-radius: 16px;
+  position: absolute;
+  right: min(4vw, -117px);
+  bottom: calc(-5% + -9px);
+  width: clamp(460px, 24vw, 320px);
+  height: clamp(360px, 36vw, 460px);
+  box-shadow: 0 18px 58px rgba(101,69,189,0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95) translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 10;
+}
+
+.auth-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+/* 닫기 버튼 */
+.close-btn {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+/* ===== 탭 메뉴 ===== */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #999;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: #000;
+  border-bottom-color: #000;
+}
+
+/* ===== 탭 컨텐츠 ===== */
+.tab-content {
+  display: none;
+  padding: 20px;
+  
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ===== 섹션 타이틀 ===== */
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  margin-top: 10px;
+  padding-left: 30px;
+}
+
+.section-title1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  margin-top: 10px;
+  padding-left: 30px;
+}
+
+/* ===== 소셜 로그인 버튼 ===== */
+.social-buttons {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 10px;
+  justify-content: center;
+  transform: translateX(-50px);
+}
+
+/* 간편로그인 라벨과 버튼을 한 줄에 */
+.social-login-row {
+  display: flex;
+  align-items: center;    /* 세로 중앙 정렬 */
+  justify-content: space-between;/* ✅ 왼쪽: 텍스트 / 오른쪽: 버튼 */
+  width: 100%;                   /* 부모 영역 전체 차지 */
+  padding: 10 50px; 
+  margin-bottom: 20px;
+}
+
+.social-btn {
+  width: 48px;
+  height: 48px;
+  margin-top: 10px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.social-btn:hover {
+  transform: scale(1.05);
+}
+
+.social-btn.naver {
+  background-color: #03c75a;
+  color: white;
+}
+
+.social-btn.kakao {
+  background-color: #fee500;
+  color: #000;
+}
+
+.social-btn.google {
+  background-color: #ea4335;
+  color: white;
+}
+
+
+
+
+
+
+/* ===== 입력 필드 ===== */
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: #007bff;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+/* ===== 인증 버튼 ===== */
+.verification-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.verify-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.verify-btn:hover {
+  background-color: #f5f5f5;
+}
+
+/* ===== 체크박스 그룹 ===== */
+.checkbox-group {
+  margin: 16px 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.checkbox-all {
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.checkbox-sub {
+  padding-left: 28px;
+  font-size: 14px;
+  color: #666;
+}
+
+.arrow {
+  color: #ccc;
+  font-size: 18px;
+}
+
+/* ===== 제출 버튼 ===== */
+.submit-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #e0e0e0;
+  color: #999;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.submit-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.submit-btn.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* ===== 링크 그룹 ===== */
+.link-group {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.link-group button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+}
+
+.link-group button:hover {
+  color: #000;
+}
+
+.separator {
+  color: #ddd;
+}
+
+/* ===== 아이디 저장 ===== */
+.save-id {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+.save-id input {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+
+.c-error { display:none; color: #b91461; background: #ffeaf3; border:1px solid #ffd0e4; padding: 8px 10px; border-radius: 8px; margin: 8px 0; }
+.c-error.show { display:block; }
+
+

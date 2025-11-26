@@ -1,0 +1,247 @@
+/* 마이페이지 (Mypage) */
+
+/* 헤더 (Hero) */
+.mpx-hero {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.mpx-hero-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.mpx-back {
+  background: transparent;
+  border: none;
+  color: var(--lavender-600);
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+.mpx-hero h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+/* 리스트 레이아웃 */
+.mpx-list-layout {
+  max-width: 800px;
+  margin: 12px auto;
+  padding: 0 16px 24px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mpx-section {
+  width: 100%;
+}
+.mpx-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary);
+  margin: 0 0 12px 0;
+}
+
+.mpx-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.mpx-list-item:hover {
+  background: var(--bg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.mpx-item-icon {
+  font-size: 22px;
+  margin-right: 12px;
+  width: 24px;
+  text-align: center;
+}
+
+.mpx-item-text {
+  flex: 1;
+  min-width: 0;
+}
+.mpx-item-text strong {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.mpx-item-text p {
+  font-size: 14px;
+  color: var(--ink-muted);
+  margin: 4px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mpx-item-arrow {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  margin-left: 16px;
+}
+
+/* 3. 변호사 페이지 (Lawyer Page) */
+
+/* 컨트롤 (Controls) */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.controls .input,
+.controls .select {
+  flex: 1 1 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--input-line);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+}
+.controls .input:focus,
+.controls .select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* 그리드/리스트 (Grid/List) */
+.mpx-grid {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 12px;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 8px;
+}
+.section-title h2 {
+  font-size: 20px;
+  color: var(--ink);
+  margin: 0;
+}
+.section-title .count {
+  font-size: 14px;
+  color: var(--ink-muted);
+  background: var(--panel);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* 3.3. 개별 카드 (Card) */
+.card {
+  display: flex;
+  gap: 16px;
+  background: var(--btn-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+}
+
+.card__icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  border-radius: var(--radius-md);
+}
+
+.card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.card__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.card__meta {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--primary-700);
+  font-weight: 600;
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}

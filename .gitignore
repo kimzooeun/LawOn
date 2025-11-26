@@ -1,0 +1,52 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# ---- Node / Frontend ----
+node_modules/
+dist/
+.vite/
+*.log
+
+# ---- Java / Spring ----
+build/
+.gradle/
+out/
+*.class
+
+# ---- Virtual environments ----
+venv/
+.env
+.env.*
+
+# ---- OS / IDE ----
+.DS_Store
+.vscode/
+.idea/
+
+# ---- Docker ---- Docker가 만드는 임시 pid 파일도 제외
+*.pid
+
+# ---- 모델 파일 ----
+fastapi/models/
+
+# STS / Eclipse
+.metadata/
+bin/
+.settings/
+.classpath
+.project
+uploads/
+
+# IntelliJ
+.idea/
+*.iml
+
+# build output
+target/
+dist/
+node_modules/
+uploads/

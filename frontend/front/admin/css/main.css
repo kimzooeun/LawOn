@@ -1,0 +1,113 @@
+/* 헤더 */
+.admin-header {
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+}
+
+/* 헤더 안쪽 네비게이션 버튼들 */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 페이지 이동 버튼 그룹 */
+.page-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard {
+  padding: 30px;
+}
+
+.overview .cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+.card h3 {
+  color: #555;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 28px;
+  font-weight: bold;
+  color: #2c3e50;
+  transition: color 0.3s ease;
+}
+
+.card p.updated {
+  color: #16a085; /* 초록빛 강조 */
+}
+
+.recent-logs table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.recent-logs th, .recent-logs td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.recent-logs th {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.recent-logs tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.recent-logs tbody tr.new-row {
+  background-color: #f1f8e9;
+  transition: background-color 1s ease;
+}
+
+/* 푸터 */
+.admin-footer {
+  text-align: center;
+  padding: 16px;
+  color: #999;
+  font-size: 0.9em;
+  margin-top: 40px;
+}
