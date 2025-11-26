@@ -1,94 +1,21 @@
-/* 설정 탭 */
-.settings-tabs {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  padding: 20px;
+/* 설정 페이지 고유 스타일 */
+
+.settings-panel {
+  margin-top: 20px;
 }
 
-.tab-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.tab-btn {
-  border: none;
-  border-radius: 8px;
-  background: #f2f2f2;
-  color: #333;
-  padding: 10px 16px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-.tab-btn.active {
-  background: #ff4da0;
-  color: #fff;
-}
-
-.tab-content .tab-panel {
-  display: none;
-}
-
-.tab-content .tab-panel.active {
-  display: block;
-}
-
-
-/* 계정 관리 */
 .pw-box {
-  margin-top: 10px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.pw-box input {
-  border: 1px solid #ccc;
+.toast {
+  background-color: #444;
+  color: #fff;
+  padding: 12px 16px;
   border-radius: 6px;
-  padding: 8px 12px;
-  flex: 1;
-}
-
-/* 시스템 관리 */
-.sys-btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  margin-right: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  background-color: #4d88ff;
-  color: #fff;
-}
-
-.sys-btn.danger {
-  background-color: #ff4d4d;
-}
-
-.sys-btn:hover {
-  opacity: 0.9;
-}
-
-#toast {
-  visibility: hidden;
-  min-width: 240px;
-  background-color: #333;
-  color: #fff;
-  text-align: center;
-  border-radius: 8px;
-  padding: 10px;
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 9999;
-  font-size: 15px;
-  opacity: 0;
-  transition: opacity 0.3s, visibility 0.3s;
-}
-#toast.show {
-  visibility: visible;
-  opacity: 0.95;
+  bottom: 20px;
+  right: 20px;
 }
