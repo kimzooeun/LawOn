@@ -1,0 +1,41 @@
+name: Backend Deploy
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Upload Backend Folder to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "backend/"
+          target: "/home/ubuntu/app"
+
+      - name: Restart Backend on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/app
+            docker compose -f docker-compose.prod.yml stop backend || true
+            docker compose -f docker-compose.prod.yml rm -f backend || true
+            docker images -q finalproject-backend | xargs -r docker rmi -f
+            docker image prune -f
+            docker compose -f docker-compose.prod.yml build backend --no-cache
+            docker compose -f docker-compose.prod.yml up -d backend

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = TokenManager.getAccessToken();
 
   if (!token) {
-    window.location.href = "/admin/login.html";
+    window.location.href = "/admin/login";
     return;
   }
 
@@ -22,11 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadCounselLogs(isSearch = false) { 
     const token = TokenManager.getAccessToken();
 
-    // 1. 검색 조건 가져오기
+    // 검색 조건 가져오기
     const searchInput = document.getElementById("searchInput").value.trim();
     const statusFilter = document.getElementById("statusFilter").value;
     
-    // 2. 쿼리 파라미터 생성
+    // 쿼리 파라미터 생성
     const params = new URLSearchParams();
     
     if (searchInput) {
@@ -40,7 +40,7 @@ async function loadCounselLogs(isSearch = false) {
         params.append("status", statusFilter.toUpperCase());
     }
 
-    // 3. API URL 구성
+    // API URL 구성
     const queryString = params.toString();
     const url = `/api/admin/logs${queryString ? '?' + queryString : ''}`;
 

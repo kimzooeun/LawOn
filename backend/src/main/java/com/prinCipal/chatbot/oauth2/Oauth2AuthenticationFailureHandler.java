@@ -2,9 +2,11 @@ package com.prinCipal.chatbot.oauth2;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class Oauth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
+	
+	@Value("${app.frontend.url}")
+	private String frontendUrl;
 	
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -39,9 +44,13 @@ public class Oauth2AuthenticationFailureHandler implements AuthenticationFailure
 //                "}", errorMessage
 //        );
         
-        response.sendRedirect("http://localhost:3000/login_fail.html?error=auth_failed");
-
-
+		
+		String targetUrl = String.format(
+			    "%s/login_fail/?error=auth_failed",
+			    frontendUrl
+			);
+		
+		response.sendRedirect(targetUrl);
 	}
 
 }

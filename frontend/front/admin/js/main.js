@@ -2,10 +2,10 @@ import { TokenManager } from '/src/js/token.js';
 
 const DASHBOARD_API = "/api/admin/dashboard";
 
-// 1. 페이지 초기화 및 네비게이션
+// 페이지 초기화 및 네비게이션
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1) 토큰 체크
+  // 토큰 체크
   const token = TokenManager.getAccessToken();
   if (!token) {
     console.warn("토큰 없음 -> 로그인 페이지 이동");
@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // 2) 네비게이션 버튼 설정
+  // 네비게이션 버튼 설정
   setupNavigation();
 
-  // 3) 데이터 로딩 시작 (메인 페이지일 경우만)
+  // 데이터 로딩 시작 (메인 페이지일 경우만)
   // logTableBody가 존재하는지 확인하여 메인 페이지인지 판단
   if (document.getElementById("logTableBody")) {
       initializeMainPage();
@@ -25,18 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
 function setupNavigation() {
   const buttons = document.querySelectorAll(".admin-nav .page-buttons button");
 
+  // 클릭하면 이동
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const page = btn.dataset.page;
       const routes = {
-        main: "/admin/main.html",
-        settings: "/admin/settings.html",
-        lawyers: "/admin/lawyers.html",
-        user: "/admin/user.html",
-        logs: "/admin/logs.html"
+        main: "/admin/",
+        settings: "/admin/settings/",
+        lawyers: "/admin/lawyers/",
+        user: "/admin/user/",
+        logs: "/admin/logs/"
       };
 
       if (routes[page]) {
@@ -47,8 +50,33 @@ function setupNavigation() {
     });
   });
 
-  // active 효과
-  const current = window.location.pathname.split("/").pop().replace(".html", "");
+  // active 효과: 모든 경우를 완벽 지원하는 함수
+  function getCurrentPage() {
+    let path = window.location.pathname;
+
+    // 끝에 / 있으면 제거
+    if (path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
+
+    // 마지막 segment 가져오기
+    let last = path.split("/").pop();
+
+    // index.html 또는 공백인 경우 → main 처리
+    if (last === "" || last === "index.html") {
+      return "main";
+    }
+
+    // .html 확장자 제거
+    last = last.replace(".html", "");
+
+    return last;
+  }
+
+  const current = getCurrentPage();
+  console.log("CURRENT PAGE:", current);
+
+  // 버튼 active 처리
   buttons.forEach(btn => {
     btn.classList.remove("active");
     if (btn.dataset.page === current) {
@@ -56,6 +84,8 @@ function setupNavigation() {
     }
   });
 }
+
+
 
 function initializeMainPage() {
   loadDashboardSummary();
@@ -76,7 +106,7 @@ async function safeJson(res) {
 }
 
 
-// 2. 상단 요약 데이터 로딩
+// 상단 요약 데이터 로딩
 async function loadDashboardSummary() {
   const token = TokenManager.getAccessToken();
 
@@ -87,7 +117,7 @@ async function loadDashboardSummary() {
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login.html";
+      window.location.href = "/admin/login";
       return;
     }
 
@@ -122,7 +152,7 @@ function applySummaryData(data) {
 }
 
 
-// 3. 최근 상담 로그 로드 (핵심 수정 부분)
+// 최근 상담 로그 로드 (핵심 수정 부분)
 async function loadDashboardLogs() {
   const tbody = document.getElementById("logTableBody");
   
@@ -137,23 +167,23 @@ async function loadDashboardLogs() {
   try {
     const token = TokenManager.getAccessToken();
     
-    // 1. 백엔드에 데이터 요청
+    // 백엔드에 데이터 요청
     const res = await fetch(`${DASHBOARD_API}/logs`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
     if (res.status === 401) {
       TokenManager.clearTokens();
-      window.location.href = "/admin/login.html";
+      window.location.href = "/admin/login";
       return;
     }
 
     if (!res.ok) throw new Error(`로그 로드 실패 (상태코드: ${res.status})`);
 
-    // 2. 데이터 받기
+    // 데이터 받기
     const logs = await res.json();
 
-    // 3. 화면에 뿌리기
+    // 화면에 뿌리기
     applyLogData(logs, tbody);
 
   } catch (err) {

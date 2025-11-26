@@ -2,7 +2,6 @@ package com.prinCipal.chatbot.admin;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -12,9 +11,6 @@ import lombok.RequiredArgsConstructor;
 public class LawyerService {
 
 	private final LawyerRepository lawyerRepository;
-	
-	@Value("${file.upload-dir}")
-	private String uploadDir;
 
 	public List<Lawyer> getAllLawyers() {
 		return lawyerRepository.findAll();

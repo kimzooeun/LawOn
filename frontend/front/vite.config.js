@@ -1,24 +1,33 @@
 import { defineConfig } from "vite";
+import { resolve } from "path";
 
 export default defineConfig({
   root: ".", // 프로젝트 루트
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),  // ← src 절대경로 지정!
+    },
+  },
   build: {
     outDir: "dist",
     rollupOptions: {
       input: {
         index: "index.html",
-        chat: "chat.html",
-        oauth2_success: "oauth2_success.html",
+        chat: "chat/index.html",
+        oauth2_success: "oauth2_success/index.html",
+        login_fail:"login_fail/index.html",
+        lawyer:"lawyer/index.html",
         // 어드민 페이지들 추가
-        "admin/login": "admin/login.html",
-        "admin/main": "admin/main.html",
-        "admin/lawyers": "admin/lawyers.html",
-        "admin/user": "admin/user.html",
-        "admin/settings": "admin/settings.html",
-        "admin/logs": "admin/logs.html",
+        "admin/login": "admin/login/index.html",
+        "admin/index": "admin/index.html",
+        "admin/lawyers": "admin/lawyers/index.html",
+        "admin/user": "admin/user/index.html",
+        "admin/settings": "admin/settings/index.html",
+        "admin/logs": "admin/logs/index.html",
       },
     },
   },
+
   server: {
     host: "0.0.0.0", // 외부(도커 밖)에서도 접근 가능하게 함
     port: 3000,
@@ -29,7 +38,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       "/api": { target: "http://backend:8080" },
-      "/simple-chat": {target: "http://fastapi:8000"},
+      "/fastapi/simple-chat": {target: "http://fastapi:8000"},
     },
     strictPort: true,
     watch: {

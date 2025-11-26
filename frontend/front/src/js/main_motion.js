@@ -14,16 +14,37 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     },
     {
-      threshold: 0.2, // 20% 정도 보이면 트리거
+      threshold: 0,
+      rootMargin: "0px 0px -20% 0px"
     }
   );
 
   sections.forEach(section => observer.observe(section));
 });
 
+// reveal 클래스 처리
+document.addEventListener('DOMContentLoaded', () => {
+  const reveals = document.querySelectorAll('.reveal');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      } else {
+        // 화면에서 벗어나면 visible 제거
+        entry.target.classList.remove('visible');
+      }
+    });
+  }, { 
+    threshold: 0.1,
+    // rootMargin 추가로 약간 더 일찍 트리거
+    rootMargin: "0px 0px -10% 0px"
+  });
+
+  reveals.forEach((el) => observer.observe(el));
+});
 
 // 변호사 탭 전환 
-
 const wrapper = document.querySelector('.lawyer-lists');
 const tabs = document.querySelectorAll('.category-tab');
 const lawyerSections = document.querySelectorAll('.lawyer-category');
@@ -89,5 +110,4 @@ document.querySelectorAll('.mySwiper').forEach(swiperEl => {
       }
   });
 });
-
 

@@ -22,8 +22,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 90s
-    volumes:
-      - ./uploads:/app/uploads
     depends_on:
       fastapi:
         condition: service_started
@@ -33,8 +31,13 @@ services:
     build: 
       context: ./fastapi
       dockerfile: Dockerfile.prod
-    image: finalproject-fastapi
+    image: fastapi-prod:latest
     container_name: finalproject-fastapi
+    working_dir: /app
+    volumes:
+      - ./fastapi:/app      # ← FastAPI 코드를 외부에서 바로 붙임!
+      - ./models:/app/models
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - "${FASTAPI_PORT}:8000"
     env_file:
@@ -49,9 +52,7 @@ services:
       timeout: 5s
       retries: 3
       start_period : 5s
-    volumes:
-      - ./models:/app/models
-      - ./hf_cache:/root/.cache/huggingface
+
   redis:
     image: redis:7
     command: redis-server --appendonly yes

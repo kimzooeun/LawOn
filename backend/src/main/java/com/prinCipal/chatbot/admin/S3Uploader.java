@@ -30,7 +30,6 @@ public class S3Uploader {
                 .bucket(bucket)
                 .key(fileName)
                 .contentType(file.getContentType())
-                .acl("public-read") // 공개 URL 사용
                 .build();
 
         try {

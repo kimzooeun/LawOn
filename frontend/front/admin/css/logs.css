@@ -1,5 +1,5 @@
 /* 로그단 */ 
-/* --- 필터 박스 --- */
+/* 필터 박스 */
 .log-filter {
   margin-bottom: 20px;
 }
@@ -32,13 +32,12 @@
   background-color: #e74393;
 }
 
-/* --- 감정 표시 --- */
 .emotion {
   font-weight: 600;
   color: #333;
 }
 
-/* --- 모달 --- */
+/* 모달 */
 .modal.hidden {
   display: none;
 }

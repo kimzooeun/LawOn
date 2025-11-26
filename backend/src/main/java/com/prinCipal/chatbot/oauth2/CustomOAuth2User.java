@@ -61,5 +61,11 @@ public class CustomOAuth2User implements OAuth2User, UserDetails{
 	public String getSocial_accessToken() {
 		return social_accessToken;
 	}
+	
+
+	public void setSocialAccessToken(String socialAccessToken) {
+		social_accessToken = socialAccessToken;
+	}
+
 
 }

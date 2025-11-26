@@ -1,9 +1,8 @@
-/* 포털 루트: 화면 최상단에 고정 */
 #portal-root {
   position: fixed;
   inset: 0;
-  z-index: 2147483646; /* 브라우저 최상단급 */
-  pointer-events: none; /* 기본은 막고, 자식에서만 다시 열어줌 */
+  z-index: 2147483646;
+  pointer-events: none;
 }
 
 :root {
@@ -29,14 +28,11 @@ html {
   scroll-behavior: smooth;
 }
 
-
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
 
 body {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -46,7 +42,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden; /* 가로 스크롤 방지 */
+  overflow-x: hidden;
 }
 
 body.chat-open .hero-content {
@@ -59,18 +55,17 @@ body.chat-open .hero-image {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
 header {
-  background: #fff;
+  background:rgba(255, 255, 255, 0.5);
   box-shadow: none;
-  border-bottom: 1px solid #eee; /* ★ 수정: 아이보리 배경에 맞게 더 연하게 */
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  /**/
+  border-bottom: 1px solid rgba(255, 255, 255, 0);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  position: fixed;
+  width: 100%;
+  z-index: 10;
   padding: 20px 0;
-  position: sticky;
-
+  transition: background 0.3s ease;
 }
 
 header .container {
@@ -79,7 +74,6 @@ header .container {
   align-items: center;
 }
 
-/* 공통: 기본 상태 (숨김) */
 .reveal {
   opacity: 0;
   transform: translateY(40px);
@@ -93,26 +87,15 @@ header .container {
   filter: blur(0);
 }
 
-/* 방향별 */
 .reveal-left {
   transform: translateX(-60px);
 }
 .reveal-right {
   transform: translateX(60px);
 }
-.reveal-up {
-  transform: translateY(60px);
-}
+
 .reveal-down {
   transform: translateY(-60px);
-}
-
-/* 방향별 등장 시 원래 자리로 복귀 */
-.reveal-left.visible,
-.reveal-right.visible,
-.reveal-up.visible,
-.reveal-down.visible {
-  transform: translate(0, 0);
 }
 
 .section-hidden {
@@ -126,9 +109,6 @@ header .container {
   transform: translateY(0);
 }
 
-
-
-/* 첫 화면 정의하는 컨테이너 */
 .hero-container {
   display: flex;
   flex-direction: column;
@@ -141,7 +121,6 @@ header .container {
   padding: 0 20px;
 }
 
-/* 로고 영역 & 이미지 */
 .logo {
   display: flex;
   align-items: center;
@@ -151,7 +130,6 @@ header .container {
   margin-left: 80px;
 }
 
-/* 로고 이미지 오토 스케일 */
 .logo .logo-icon {
   height: clamp(28px, 6vw, 70px);
   width: auto;
@@ -163,7 +141,6 @@ header .container {
 .logo-text {
   margin-left: 8px; 
 }
-
 
 .nav-links {
   display: flex;
@@ -185,26 +162,24 @@ header .container {
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--accent); /* 수정: 골드 액센트 */
+  background-color: var(--accent);
   transform: scaleX(0);
   transform-origin: bottom right;
   transition: transform 0.4s var(--smooth-ease);
 }
-.nav-links a:hover { color: var(--primary); } /* 자동 적용 (블랙) */
+.nav-links a:hover { color: var(--primary); }
 .nav-links a:hover::after {
   transform: scaleX(1);
   transform-origin: bottom left;
 }
 
-
-/* --- 2. 히어로 섹션 --- */
 .hero {
-  overflow: hidden;
+  
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 10px;
+  padding-top: 100px;
   padding-bottom: 50px;
 }
 
@@ -215,7 +190,6 @@ header .container {
   right: 0;
   width: 600px;
   height: 600px;
-  /* ★ 수정: 골드 색상으로 배경 그라데이션 */
   background: radial-gradient(circle at center, rgba(176, 141, 87, 0.05), transparent 60%); 
   z-index: -1;
   pointer-events: none;
@@ -234,22 +208,13 @@ header .container {
   color: var(--text-dark);
 }
 
-.hero-text h1 span { color: var(--accent); } /* ★ 수정: 골드 액센트 */
+.hero-text h1 span { color: var(--accent); }
 .hero-text p {
   font-size: 18px;
   color: var(--text-gray);
   margin-bottom: 30px;
   line-height: 1.8;
 }
-
-
-/* .hero-buttons {
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 20px;
-  flex-wrap: wrap;
-} */
 
 .hero-buttons {
   display: flex;
@@ -290,7 +255,6 @@ header .container {
   transform: translateY(-3px);
 }
 
-/* 버튼이 너무 커질 때 한 줄 유지 */
 @media (max-width: 768px) {
   .hero-buttons {
     flex-direction: column;
@@ -302,62 +266,7 @@ header .container {
   }
 }
 
-
-/* --- 텍스트 콘텐츠 섹션 --- 
-.text-content {
-  padding: 60px 0 30px 0;
-}
-
-.text-box {
-  background: #fff;
-  border-radius: 15px;
-  padding: 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.text-input {
-  display: flex;
-  align-items: center;
-  background: #fff1f7;
-  border: 1px solid #ffe8f2; 
-  border-radius: 10px;
-  padding: 10px 15px;
-  flex: 1;
-  transition: all 0.3s ease;
-}
-.text-input i {
-  color: #999;
-  margin-right: 10px;
-}
-
-.text-input input {
-  border: none;
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font-size: 16px;
-}
-
-.text-input:focus-within {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(255, 77, 160, 0.1);
-}
-
-.text-box .btn {
-  box-shadow: none;
-  flex-shrink: 0;
-}
-*/
-
-
-/* =========================================
-★ 채팅 미리보기 - 블랙/화이트 테마 ★
-========================================= */
-
-/* ---------- 채팅 미리보기 프레임 ---------- */
+/* 채팅 미리보기 프레임  */
 .cp-chat-preview {
   position: absolute;
   right: min(4vw, -117px);
@@ -514,9 +423,7 @@ header .container {
   }
 }
 
-/* ---------- 채팅 미리보기 여기까지 ---------- */
-
-
+/* 채팅 미리보기 여기까지 */
 .cta {
   background: linear-gradient(135deg, var(--primary), var(--primary-light)); 
   color: #fff;
@@ -551,50 +458,13 @@ header .container {
   box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
-
-
-
-
-
-
-/* 아직 hero-image 손 안봄 */
-/* --- 히어로 이미지 카드들 --- */
+/* 히어로 이미지 카드들 */
 .hero-image {
   flex: 1;
   position: relative;
   text-align: center;
 }
-.hero-image img {
-  max-width: 100%;
-  height: auto;
-  position: relative;
-  z-index: 2;
-}
-.hero-image::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500px;
-  height: 500px;
-  background-color: var(--white-circle);
-  border-radius: 50%;
-  z-index: 1;
-}
-.hero-image .card {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  padding: 15px 20px;
-  box-shadow: 0 8px 30px rgba(185, 20, 97, 0.1);
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+
 .card-checkup {
   top: 30%;
   left: -30px;
@@ -612,8 +482,8 @@ header .container {
   font-size: 24px;
 }
 
-/* --- 반응형 디자인 --- */
-/* 1. 태블릿 사이즈 (1024px 이하) */
+/* 반응형 디자인 */
+/* 태블릿 사이즈 (1024px 이하) */
 @media (max-width: 1024px) {
   .hero-content {
     flex-direction: column;
@@ -702,9 +572,6 @@ header .container {
   }
 }
 
-
-
-/* -------------------------------------------------------------------------------------------------------- */
 /* 맞춤형 모달 관련 css */
 /* 오버레이 */
 /* 오버레이: 포털 안에서 z-index 1 */
@@ -748,7 +615,7 @@ header .container {
     visibility 0.35s;
   display: flex;
   flex-direction: column;
-  pointer-events: auto;           /* 클릭 가능 */
+  pointer-events: auto;   /* 클릭 가능 */
 }
 
 .auth-modal.is-open {
@@ -756,8 +623,6 @@ header .container {
   visibility: visible;
   transform: translate(-50%,-50%) scale(1);
 }
-
-
 
 /* 맞춤형 상담 닫기 버튼 */
 .auth-close-btn {
@@ -779,9 +644,6 @@ header .container {
 .auth-close-btn:hover {
   color: #1c1c1c;
 }
-
-
-
 
 /* 맞춤형 상담 탭 버튼 */
 .auth-tabs {
@@ -898,6 +760,7 @@ header .container {
   background: transparent; /* ← 흰 배경 제거! */
   z-index: 1; /* 텍스트는 위에 */
 }
+
 /* 폼 */
 .auth-form {
   display: flex;
@@ -941,14 +804,11 @@ header .container {
   display: block;
 }
 
-
 .text-success {
   color: #2f9e44;
   font-size: 12px;
   margin-top: 4px;
 }
-
-
 
 .password-strength {
   display: none;
@@ -960,7 +820,6 @@ header .container {
 .password-strength.show {
   display: block;
 }
-
 
 /* 막대기 배경 */
 .password-strength .strength-bar {
@@ -1003,8 +862,6 @@ header .container {
   background-color: transparent;
 }
 
-
-
 /* 회원가입 성공 토스트 css */
 .auth-toast {
   position: absolute;
@@ -1029,7 +886,6 @@ header .container {
   transform: translate(-50%, -55%);
 }
 
-
 /* 회원가입 버튼 */
 .auth-submit-btn {
   padding: 14px;
@@ -1044,7 +900,6 @@ header .container {
   margin-top: 8px;
 }
 
-
 .auth-submit-btn:hover {
   background: #2d2d2d;
   transform: translateY(-2px);
@@ -1054,7 +909,6 @@ header .container {
   transform: translateY(0);
 }
 
-
 /* 회원가입 버튼 비활성화 상태 */
 .auth-submit-btn:disabled {
   background: #b5b5b5;
@@ -1063,7 +917,6 @@ header .container {
   box-shadow: none;
   transform: none;
 }
-
 
 /* 하단 링크 */
 .auth-links {
@@ -1104,10 +957,7 @@ body.page-fading {
   transition: opacity 0.25s ease;
 }
 
-
-/* =========================================
-------------------간편 상담 채팅 위젯 (사이드 슬라이드)------------------------------------------------------------
-========================================= */
+/* 간편 상담 채팅 위젯 (사이드 슬라이드) */
 
 /* 배경 오버레이 */
 .chat-overlay {
@@ -1193,6 +1043,7 @@ body.page-fading {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  padding-top: 80px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1256,16 +1107,19 @@ body.page-fading {
 
 /* 로딩 인디케이터 */
 .chat-message.loading {
+  display: flex;
+  white-space: normal !important;
+  flex-direction: row !important;
   background: none;
   border: none;
   align-self: flex-start;
   padding: 8px 16px;
 }
 .chat-message.loading span {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: inline-block !important; 
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
   background: #d4af37;
   margin: 0 2px;
   animation: loading-bounce 1s infinite ease-in-out;
@@ -1286,8 +1140,6 @@ body.page-fading {
     transform: translateY(-6px);
   }
 }
-
-
 
 /* 채팅 입력창 */
 .chat-footer {
@@ -1339,8 +1191,6 @@ body.page-fading {
     max-width: 100%;
   }
 }
-
-
 
 .chat-login-banner {
   display: none;
@@ -1395,12 +1245,10 @@ body.page-fading {
   filter: brightness(0.98);
 }
 
-
-
-/*-------------------------=== 특징 섹션 --------------------------------=== */
+/* 특징 섹션 */
 .process-section {
   padding: 100px 40px;
-
+  
 }
 
 .section-header {
@@ -1456,7 +1304,6 @@ body.page-fading {
   transition: all 0.4s var(--smooth-ease);
 }
 
-
 .feature-card:hover .feature-icon {
   transform: scale(1.1) rotate(-5deg);
 }
@@ -1476,13 +1323,10 @@ body.page-fading {
   white-space: normal;   /* 엔터 무시하고, <br>만 줄바꿈으로 처리 */
 }
 
-
 .section-header p {
   font-size: 20px;
   color: #0b0a0a;
 }
-
-
 
 .lawyer-section {
     max-width: 1400px;
@@ -1641,7 +1485,6 @@ body.page-fading {
     margin-bottom: 4px;
 }
 
-
 .arrow-link {
   display: inline-flex;
   align-items: center;
@@ -1710,7 +1553,6 @@ body.page-fading {
     }
 }
 
-
 .office-map-section {
   padding: 90px min(6vw, 80px);
   background: #fff;
@@ -1735,7 +1577,6 @@ body.page-fading {
   font-weight: bold;
   color:  #8b7a52;
 }
-
 
 .office-sub {
   color: #777;
@@ -1882,14 +1723,7 @@ body.page-fading {
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-
-
-
-
-/* =========================================
-    ★★★ 추가: 하단 푸터 (Footer) ★★★
-=========================================
-*/
+/* 추가: 하단 푸터 (Footer) */
 .site-footer {
   background: #fff;
   border-top: 1px solid #e0e0e0;
@@ -1936,7 +1770,7 @@ body.page-fading {
 }
 
 .footer-links a:hover {
-  color: var(--accent); /* ★ 수정: 골드 액센트 */
+  color: var(--accent); /* 수정: 골드 액센트 */
 }
 
 .footer-divider {
@@ -1987,8 +1821,6 @@ body.page-fading {
   }
 }
 
-
-
 .chat-message.bot.loading {
   opacity: 0.7;
   font-style: italic;
@@ -2018,7 +1850,7 @@ body.page-fading {
 }
 
 
-/* -----------------반응형 관련 css ---------------------------*/
+/* 반응형 관련 css */
 @media (max-width: 768px) {
   .hero {
     grid-template-columns: 1fr;

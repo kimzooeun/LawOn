@@ -1,0 +1,48 @@
+name: FastAPI Deploy
+
+on:
+  push:
+    paths:
+      - 'fastapi/**'
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Clean old FastAPI folder
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo rm -rf /home/ubuntu/app/fastapi
+
+      - name: Upload FastAPI Folder to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "fastapi/"
+          target: "/home/ubuntu/app"
+
+      - name: Restart FastAPI on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          timeout: 3600s
+          script: |
+            cd /home/ubuntu/app
+            docker compose -f docker-compose.prod.yml stop fastapi || true
+            docker compose -f docker-compose.prod.yml up -d fastapi
+

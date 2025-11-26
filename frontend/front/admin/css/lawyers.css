@@ -1,4 +1,4 @@
-/* --- 변호사 등록 폼 전체 --- */
+/* 변호사 등록 폼 전체 */
 .lawyer-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -53,7 +53,7 @@
   background-color: #3a74e0;
 }
 
-/* --- 검색 섹션 --- */
+/* 검색 섹션 */
 .lawyer-search .filter-box {
   display: flex;
   gap: 10px;
@@ -81,7 +81,7 @@
   background-color: #e74393;
 }
 
-/* --- 테이블 스타일 --- */
+/* 테이블 스타일 */
 .table-wrapper {
   overflow-x: auto;
   margin-top: 15px;

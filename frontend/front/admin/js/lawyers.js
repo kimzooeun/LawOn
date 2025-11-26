@@ -1,6 +1,6 @@
 import { TokenManager } from '../../src/js/token.js';
 
-// === 변호사 등록 / 수정 / 삭제 / 실시간 검색 ===
+// 변호사 등록 / 수정 / 삭제 / 실시간 검색
 const API_BASE = "/api/admin/lawyers";
 
 // 바로 DOM 요소 가져옴 (module 스크립트에서는 즉시 접근 가능)
@@ -11,7 +11,7 @@ const searchInput = document.getElementById("searchLawyer");
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
 
-//   이미지 업로드 함수 (수정)
+// 이미지 업로드 함수 (수정)
 async function uploadImage() {
   const file = document.getElementById("imageFile").files[0];
   if (!file) return null;
@@ -59,7 +59,7 @@ form.addEventListener("submit", async (e) => {
   try {
     let res;
     if (editingId) {
-      // ✏️ 수정
+      // 수정
       res = await fetch(`${API_BASE}/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -88,7 +88,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-//   전체 목록 불러오기
+// 전체 목록 불러오기
 async function loadLawyers() {
   try {
     const res = await fetch(API_BASE);
@@ -101,7 +101,7 @@ async function loadLawyers() {
   }
 }
 
-//   실시간 검색 (프론트 필터링)
+// 실시간 검색 (프론트 필터링)
 searchInput.addEventListener("input", (e) => {
   const keyword = e.target.value.trim().toLowerCase();
 
@@ -122,7 +122,7 @@ searchInput.addEventListener("input", (e) => {
   renderTable(filtered);
 });
 
-//   테이블 렌더링
+// 테이블 렌더링
 function renderTable(list) {
   if (!list.length) {
     tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>`;
@@ -131,6 +131,12 @@ function renderTable(list) {
 
   tableBody.innerHTML = list.map(l => `
     <tr data-id="${l.id}">
+      <td>
+      ${lawyer.imageUrl 
+        ? `<img src="${lawyer.imageUrl}" class="lawyer-thumb">`
+        : `<div class="no-image">없음</div>`
+      }
+      </td>
       <td>${l.name}</td>
       <td>${l.gender}</td>
       <td>${l.detailSpecialty}</td>
@@ -167,7 +173,7 @@ function renderTable(list) {
   });
 }
 
-//   수정 모드 폼 채우기
+// 수정 모드 폼 채우기
 function fillFormForEdit(lawyer) {
   document.getElementById("name").value = lawyer.name;
   document.getElementById("gender").value = lawyer.gender;
@@ -185,12 +191,12 @@ function fillFormForEdit(lawyer) {
   submitBtn.style.color = "#fff";
 }
 
-//   버튼 초기화
+// 버튼 초기화
 function resetSubmitButton() {
   const submitBtn = document.querySelector("#lawyerForm button[type='submit']");
   submitBtn.textContent = "등록";
   submitBtn.style.background = "";
   submitBtn.style.color = "";
 }
-//   초기 로드
+// 초기 로드
 loadLawyers();

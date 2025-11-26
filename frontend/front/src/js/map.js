@@ -1,6 +1,6 @@
 // southKoreaHigh.svg 연동
 (function () {
-  // 1. 여기서 실제 지점 정보 매핑
+  // 여기서 실제 지점 정보 매핑
   const regions = {
     "KR-11": [{
       // 서울
