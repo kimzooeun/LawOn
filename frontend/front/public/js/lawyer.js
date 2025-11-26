@@ -7,38 +7,37 @@ const lawyerState = {
   data: [], // 서버에서 받아온 데이터를 여기에 저장합니다.
 };
 
-// 지역 분류 헬퍼 함수 (DB의 office_location을 기준으로 대분류)
+// 지역 분류 헬퍼 함수
+// 수정: startsWith -> includes로 변경 (주소 앞에 우편번호가 있어도 인식되도록)
 function classifyRegion(address) {
   if (!address) return "기타";
   const addr = address.trim();
-  if (
-    addr.startsWith("서울") ||
-    addr.startsWith("경기") ||
-    addr.startsWith("인천")
-  )
+
+  if (addr.includes("서울") || addr.includes("경기") || addr.includes("인천"))
     return "서울·수도권";
   if (
-    addr.startsWith("부산") ||
-    addr.startsWith("대구") ||
-    addr.startsWith("울산") ||
-    addr.startsWith("경남") ||
-    addr.startsWith("경북")
+    addr.includes("부산") ||
+    addr.includes("대구") ||
+    addr.includes("울산") ||
+    addr.includes("경남") ||
+    addr.includes("경북")
   )
     return "부산·영남권";
   if (
-    addr.startsWith("대전") ||
-    addr.startsWith("세종") ||
-    addr.startsWith("충남") ||
-    addr.startsWith("충북")
+    addr.includes("대전") ||
+    addr.includes("세종") ||
+    addr.includes("충남") ||
+    addr.includes("충북")
   )
     return "대전·충청권";
   if (
-    addr.startsWith("광주") ||
-    addr.startsWith("전남") ||
-    addr.startsWith("전북") ||
-    addr.startsWith("제주")
+    addr.includes("광주") ||
+    addr.includes("전남") ||
+    addr.includes("전북") ||
+    addr.includes("제주")
   )
     return "광주·전라·제주권";
+
   return "기타";
 }
 
@@ -53,15 +52,20 @@ function processLawyerData(dbList) {
   };
 
   dbList.forEach((item) => {
-    // DB 컬럼 -> 프론트엔드 객체 매핑
+    // ★ 수정: DB 컬럼명 매핑 안전장치 추가
+    // 백엔드(Spring)는 보통 camelCase(officeLocation)를 보내고,
+    // DB 컬럼은 snake_case(office_location)일 수 있으므로 둘 다 체크합니다.
+    const rawAddress = item.officeLocation || item.office_location || "";
+    const rawOfficeName = item.office || item.officeName || "";
+
     const lawyer = {
       id: item.id,
       name: item.name, // 변호사 이름
-      officeName: item.office, // 소속 (법무법인 등)
+      officeName: rawOfficeName, // 소속 (법무법인 등)
       tags: item.detail_specialty ? [item.detail_specialty] : [], // 전문분야를 태그로 변환
       phone: item.contact, // 연락처
-      address: item.office_location, // 주소
-      url: item.image_url || "#", // 이미지 URL이 있으면 쓰고 없으면 # (또는 상세페이지 링크)
+      address: rawAddress, // 주소
+      url: item.image_url || "#", // 이미지 URL
       note: item.description, // 설명
     };
 
@@ -85,11 +89,11 @@ function processLawyerData(dbList) {
 // 서버에서 변호사 목록 가져오기
 async function fetchLawyers() {
   try {
-    // ★ 중요: 백엔드에 이 경로(/api/lawyers)를 처리하는 Controller가 있어야 합니다.
     const response = await fetch("/api/lawyers");
     if (!response.ok) throw new Error("데이터 불러오기 실패");
 
     const dbList = await response.json();
+    // console.log("서버 데이터 확인:", dbList); // 디버깅용 로그 (필요시 주석 해제)
     lawyerState.data = processLawyerData(dbList); // 데이터 가공 후 상태 저장
     render(); // 화면 그리기
   } catch (error) {
@@ -145,16 +149,10 @@ function card(item) {
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
 
-  // ▼▼▼ [수정됨] 사이트 버튼 클릭 시 상세 페이지로 이동하도록 변경 ▼▼▼
-  // 1. 이동할 파일 이름 (같은 폴더에 lawfirm_view.html이 있어야 함)
   const targetPage = "/lawyer/lawfirm.html";
-
-  // 2. 데이터 포장 (URL에 한글/특수문자가 들어가도 깨지지 않게 안전포장)
-  // item.officeName이 없으면 '법률사무소', phone이 없으면 빈값
   const officeParam = encodeURIComponent(item.officeName || "법률사무소");
   const phoneParam = encodeURIComponent(item.phone || "");
 
-  // 3. 최종 주소 완성 (예: lawfirm_view.html?office=김앤장&phone=010-1234-5678)
   aSite.href = `${targetPage}?office=${officeParam}&phone=${phoneParam}`;
   aSite.target = "_blank";
   aSite.rel = "noopener";
@@ -199,8 +197,6 @@ export function render() {
   const sectionTpl = document.getElementById("section-tpl");
 
   if (!app || !sectionTpl) {
-    // console.error("app 또는 section-tpl 찾을 수 없음");
-    // 페이지 이동 시 에러 로그 방지를 위해 조용히 리턴
     return;
   }
 
@@ -240,8 +236,6 @@ export function render() {
     sec.querySelector(".count").textContent = `${list.length}개 표시`;
 
     if (list.length === 0) {
-      // 검색 결과가 없을 때 해당 섹션을 아예 숨길지, '없음'을 표시할지 결정
-      // 여기서는 섹션 자체를 렌더링하지 않거나 empty 메시지 표시
       const empty = document.createElement("div");
       empty.className = "empty";
       empty.textContent = "조건에 맞는 결과가 없습니다.";
