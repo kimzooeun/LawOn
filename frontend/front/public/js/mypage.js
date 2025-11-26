@@ -411,8 +411,9 @@ export function initMypageListeners() {
 
             localStorage.removeItem(USER_ID_KEY);
             localStorage.removeItem(NICK_KEY);
+            localStorage.removeItem("todak_sidebar_collapsed");
             TokenManager.clearTokens();
-            
+
             window.location.href = "/";
             return; 
           } catch (error) {
