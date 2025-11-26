@@ -2,25 +2,22 @@
 fastapi==0.119.0
 uvicorn==0.37.0
 pydantic==2.12.2
-pydantic_core==2.41.4
 python-multipart
 
 # RAG/LangChain (모델 D)
 langchain-community==0.3.0
 langchain-huggingface
-langchain==0.3.25
 faiss-cpu
-sentence-transformers
-protobuf
-sentencepiece
 
 
 # ML/Torch (모델 A, B, C)
-torch
+torch==2.2.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 transformers
-scikit-learn==1.6.1
 numpy>=1.23,<2
-joblib
+sentencepiece
+protobuf>=4.25.0
+
 
 # Data & Utils
 pandas
@@ -29,7 +26,6 @@ pandas
 redis==5.0.1
 
 # OpenAI / 토큰 관련
-openai==1.52.2
+openai>=1.16.0
 tiktoken==0.7.0
-httpx==0.27.2
 

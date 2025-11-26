@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -62,7 +64,7 @@ public class SecurityConfig {
 		})).httpBasic(httpBasic -> httpBasic.disable()) // HTTP Basic 인증 비활성화
 				.formLogin(formLogin -> formLogin.disable()) // Form Login 비활성화
 				// authenticationToken(Security가 만들어내는 토큰을 없애야, JWTToken이 활성화 가능하다.)
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 				// 정민 추가
 				.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -127,5 +129,7 @@ public class SecurityConfig {
 		filter.setAuthenticationFailureHandler(jwtFailureHandler); // 일반 로그인 실패시 JSON 에러 응답 핸들러
 		return filter;
 	}
+	
+	
 
 }

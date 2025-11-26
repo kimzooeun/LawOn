@@ -4,22 +4,17 @@ import json
 import uuid
 import redis
 import traceback
-import uvicorn
 import asyncio
 
-# stt tts 추가
+# stt - tts 추가
 import numpy as np
-import soundfile as sf
-import noisereduce as nr
 import tempfile
 import subprocess
-import aiofiles
 import io
 from typing import List,Optional
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, UploadFile, File 
-import models_load
-from pydub import AudioSegment               
+import models_load         
 from fastapi.responses import StreamingResponse  
 from pydantic import BaseModel
 
@@ -67,12 +62,11 @@ class SimpleChatRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"status": "AI RAG Server is running."} # STT 문구 제거
+    return {"status": "AI RAG Server is running."} 
 
-# [추가] Healthcheck 엔드포인트
+# Healthcheck 엔드포인트
 @app.get("/health")
 def health_check():
-    # 간단하게 200 OK 상태와 메시지를 반환합니다.
     return {"status": "healthy"}
 
 # [엔드포인트 2: RAG 응답 생성]
@@ -347,7 +341,7 @@ async def handle_generate_response(request: QueryRequest):
     return final_response_object
 
 # [엔드포인트 3: 간편 상담]
-@app.post("/simple-chat")
+@app.post("/fastapi/simple-chat")
 async def simple_chat(request:SimpleChatRequest):
     # 세션 ID 확인/생성
     session_id = request.session_id or str(uuid.uuid4())
@@ -485,7 +479,7 @@ async def simple_chat(request:SimpleChatRequest):
     }
 
 # [엔드포인트 4: 간편 상담 이력 조회]
-@app.get("/simple-chat/history")
+@app.get("/fastapi/simple-chat/history")
 async def get_simple_chat_history(session_id: str):
     redis_key = f"simple:session:{session_id}"
     
@@ -571,7 +565,8 @@ async def run_stt_memory(audio_file: UploadFile):
         if tmp_out_path and os.path.exists(tmp_out_path):
             os.remove(tmp_out_path)
 
-@app.post("/stt")
+
+@app.post("/fastapi/stt")
 async def stt_endpoint(audio_file: UploadFile = File(...)):
     try:
         text = await run_stt_memory(audio_file)

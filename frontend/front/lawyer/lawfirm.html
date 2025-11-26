@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>법률 사무소 상세 안내</title>
+    <style>
+      /* =========================================
+           1. 테마 및 색상 변수 정의 (여기가 핵심!)
+           ========================================= */
+      :root {
+        /* 기본값 (네이비) */
+        --primary-bg: #003366;
+        --primary-text: #ffffff;
+        --accent-color: #d9a500;
+        --footer-bg: #333333;
+        --text-color: #333;
+      }
+
+      /* [테마 1: 프리미엄] 김앤장 - 블랙 & 골드 */
+      body.theme-premium {
+        --primary-bg: #222222;
+        --primary-text: #f0f0f0;
+        --accent-color: #c5a059;
+      }
+
+      /* [테마 2: 열정/대형] 광장, 태평양, 화우 - 딥 레드/버건디 */
+      body.theme-passion {
+        --primary-bg: #7b1fa2; /* 보라/자주 계열 혹은 #800000 (적색) */
+        --primary-text: #ffffff;
+        --accent-color: #ffd54f;
+      }
+
+      /* [테마 3: 신뢰/바른] 바른, 지평, 서초 - 딥 그린 */
+      body.theme-trust {
+        --primary-bg: #004d40;
+        --primary-text: #ffffff;
+        --accent-color: #00e676;
+      }
+
+      /* [테마 4: 따뜻함/보호] 평화, 정의, 가온 - 웜 오렌지/브라운 */
+      body.theme-warm {
+        --primary-bg: #d84315;
+        --primary-text: #ffffff;
+        --accent-color: #ffeb3b;
+      }
+
+      /* =========================================
+           2. 기본 레이아웃 스타일 (화면 배치용)
+           ========================================= */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic",
+          "맑은 고딕", sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        color: var(--text-color);
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 0;
+      }
+
+      /* 헤더 */
+      header {
+        background: #f8f8f8;
+        border-bottom: 3px solid var(--primary-bg); /* 테마색 적용 */
+        padding: 15px 0;
+      }
+
+      header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 24px;
+        color: var(--primary-bg); /* 테마색 적용 */
+      }
+
+      nav ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex; /* 가로 정렬 */
+        gap: 20px;
+      }
+
+      nav a {
+        font-weight: bold;
+        color: #555;
+      }
+
+      nav a:hover {
+        color: var(--primary-bg);
+      }
+
+      /* 히어로 섹션 (배너) */
+      .hero {
+        background: var(--primary-bg); /* 테마색 적용 */
+        color: var(--primary-text); /* 테마색 적용 */
+        padding: 80px 20px;
+        text-align: center;
+      }
+
+      .hero h2 {
+        margin: 0 0 10px 0;
+        font-size: 36px;
+      }
+
+      /* 버튼 */
+      .cta-button {
+        display: inline-block;
+        background: var(--accent-color); /* 테마색 적용 */
+        color: #222; /* 버튼 글씨는 잘 보이게 어두운 색 */
+        padding: 12px 30px;
+        font-weight: bold;
+        border-radius: 5px;
+        margin-top: 20px;
+        transition: transform 0.2s;
+      }
+
+      .cta-button:hover {
+        transform: scale(1.05);
+      }
+
+      /* 섹션 공통 */
+      section {
+        padding: 50px 0;
+      }
+
+      section h3 {
+        font-size: 28px;
+        text-align: center;
+        margin-bottom: 40px;
+        color: var(--primary-bg); /* 테마색 적용 */
+      }
+
+      /* 그리드 레이아웃 */
+      .services-grid {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .service-item {
+        flex: 1;
+        min-width: 250px;
+        text-align: center;
+        padding: 30px 20px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        background: #fff;
+      }
+
+      .service-item h4 {
+        margin-top: 0;
+        color: var(--primary-bg);
+        font-size: 20px;
+      }
+
+      /* 푸터 */
+      footer {
+        background: var(--footer-bg);
+        color: #ccc;
+        padding: 40px 0;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      footer p {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="container">
+        <h1><a href="#" id="dynamic-office-name">ABC 법률 사무소</a></h1>
+        <nav>
+          <ul>
+            <li><a href="#about">사무소 소개</a></li>
+            <li><a href="#services">업무 분야</a></li>
+            <li><a href="#contact">상담 안내</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h2 id="dynamic-hero-text">여러분의 든든한 법률 동반자</h2>
+      <p>풍부한 경험과 전문성으로 최상의 법률 서비스를 제공합니다.</p>
+      <a href="#contact" class="cta-button">지금 바로 상담 예약하기</a>
+    </section>
+
+    <main class="container">
+      <section id="about">
+        <h3>사무소 소개</h3>
+        <p style="text-align: center; font-size: 1.1em">
+          <strong id="dynamic-about-name">ABC 법률 사무소</strong>는 고객의
+          신뢰를 최우선으로 생각하며,<br />
+          의뢰인의 권익 보호를 위해 최상의 법률 서비스를 제공합니다.
+        </p>
+      </section>
+
+      <hr style="border: 0; border-top: 1px solid #eee" />
+
+      <section id="services">
+        <h3>주요 업무 분야</h3>
+        <div class="services-grid">
+          <div class="service-item">
+            <h4>민사 소송</h4>
+            <p>대여금, 손해배상, 부동산 분쟁 등<br />각종 민사 사건 해결</p>
+          </div>
+          <div class="service-item">
+            <h4>형사 소송</h4>
+            <p>수사 단계부터 재판까지<br />의뢰인과 동행하는 변호</p>
+          </div>
+          <div class="service-item">
+            <h4>가사·이혼</h4>
+            <p>이혼, 재산분할, 양육권 등<br />복잡한 가사 분쟁 해결</p>
+          </div>
+          <div class="service-item">
+            <h4>기업 법무</h4>
+            <p>계약서 검토 및 법률 자문<br />기업 운영 리스크 관리</p>
+          </div>
+        </div>
+      </section>
+
+      <hr style="border: 0; border-top: 1px solid #eee" />
+
+      <section id="contact" style="text-align: center">
+        <h3>상담 안내</h3>
+        <p>전화 또는 온라인으로 간편하게 상담을 예약하실 수 있습니다.</p>
+        <div style="font-size: 1.2em; margin: 20px 0">
+          <p>
+            <strong>전화:</strong>
+            <span id="dynamic-phone" style="color: var(--primary-bg)"
+              >02-1234-5678</span
+            >
+          </p>
+          <p><strong>이메일:</strong> contact@lawfirm.com</p>
+        </div>
+        <a href="#" class="cta-button">온라인 상담 신청</a>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>
+          <span id="dynamic-footer-name">ABC 법률 사무소</span> | 대표 변호사:
+          OOO
+        </p>
+        <p>주소: 서울특별시 서초구 서초대로 123</p>
+        <p>사업자등록번호: 123-45-67890</p>
+        <p>
+          &copy; 2025 <span id="dynamic-copyright-name">Law Firm</span>. All
+          rights reserved.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        // 파라미터가 없으면 기본값 사용
+        const officeName = params.get("office") || "법률 사무소";
+        const phoneNumber = params.get("phone") || "02-1234-5678";
+
+        // 1. 텍스트 데이터 적용
+        document.title = officeName + " - 공식 홈페이지";
+
+        const elIds = [
+          "dynamic-office-name",
+          "dynamic-about-name",
+          "dynamic-footer-name",
+          "dynamic-copyright-name",
+        ];
+
+        elIds.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = officeName;
+        });
+
+        const elHero = document.getElementById("dynamic-hero-text");
+        if (elHero) elHero.textContent = officeName + "에 오신 것을 환영합니다";
+
+        const elPhone = document.getElementById("dynamic-phone");
+        if (elPhone) elPhone.textContent = phoneNumber;
+
+        // 2. 로펌 이름에 따른 테마(색상) 자동 적용
+        const nameCheck = officeName.trim();
+
+        if (nameCheck.includes("김앤장")) {
+          document.body.classList.add("theme-premium");
+        } else if (
+          nameCheck.includes("광장") ||
+          nameCheck.includes("태평양") ||
+          nameCheck.includes("화우") ||
+          nameCheck.includes("율촌")
+        ) {
+          document.body.classList.add("theme-passion");
+        } else if (
+          nameCheck.includes("바른") ||
+          nameCheck.includes("지평") ||
+          nameCheck.includes("서초") ||
+          nameCheck.includes("강남") ||
+          nameCheck.includes("대륙아주")
+        ) {
+          document.body.classList.add("theme-trust");
+        } else if (
+          nameCheck.includes("평화") ||
+          nameCheck.includes("정의") ||
+          nameCheck.includes("가온") ||
+          nameCheck.includes("동인")
+        ) {
+          document.body.classList.add("theme-warm");
+        }
+        // 해당 없으면 기본 네이비 테마 유지
+      });
+    </script>
+  </body>
+</html>
