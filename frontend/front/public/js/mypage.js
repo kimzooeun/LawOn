@@ -432,7 +432,7 @@ export function initMypageListeners() {
           provider === "kakao" || provider === "google" || provider === "naver" ? provider : "kakao"; // 혹시 모를 fallback
 
         // state=withdraw 붙여서, SuccessHandler에서 탈퇴 플로우로 분기
-        window.location.href = `/api/oauth2/authorization/${providerPath}?prompt=consent&state=withdraw`;
+        window.location.href = `/oauth2/authorization/${providerPath}?prompt=consent&state=withdraw`;
       } catch (error) {
         console.error(error);
         showToast("회원 탈퇴 실패", "error");

@@ -227,18 +227,8 @@ public class MemberService {
 
 	@Transactional
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
-		// 기존 jwt 로그아웃 (Redis에서 RefreshToken 제거 + AccessToken 블랙리스트_
+		// 기존 jwt 로그아웃 (Redis에서 RefreshToken 제거 + AccessToken 블랙리스트_)
 		this.jwtLogout(request, response);
-
-		// 소셜 로그인 여부 확인 후 소셜 로그아웃 추가 수행
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth != null && auth.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
-			Member member = oAuth2User.getMember();
-
-			if (member.getSocialProvider() != null && !"local".equalsIgnoreCase(member.getSocialProvider())) {
-				this.socialLogout(member, oAuth2User, auth);
-			}
-		}
 
 		// 쿠키도 정리
 		this.cookieHeader.clearRefreshCookie(response);
@@ -274,57 +264,6 @@ public class MemberService {
 		}
 	}
 
-	private void socialLogout(Member member, CustomOAuth2User oAuth2User, Authentication auth) {
-		String provider = member.getSocialProvider();
-		String socialToken = oAuth2User.getSocial_accessToken();
-
-		if (socialToken == null) {
-			System.out.println("소셜 액세스토큰 없음 !!! 로그아웃 스킵!!!");
-			return;
-		}
-
-		try {
-			switch (provider.toLowerCase()) {
-			case "kakao": {
-				// 카카오 API를 요청하기 전, 유효한 토큰인지 확인 먼저 함
-				String kakaoAccessToken = this.socialTokenService.refreshKakaoAccessToken(auth);
-
-				WebClient.create("https://kapi.kakao.com/v1/user/unlink").post()
-						.header("Authorization", "Bearer " + kakaoAccessToken).retrieve().bodyToMono(String.class)
-						.block();
-
-				WebClient.create("https://kapi.kakao.com/v1/user/logout").post()
-						.headers(h -> h.setBearerAuth(kakaoAccessToken)).retrieve().bodyToMono(String.class).block();
-				System.out.println("카카오 로그아웃 완료 !!!!!!!");
-				break;
-			}
-			case "google": {
-				WebClient.create("https://oauth2.googleapis.com/revoke").post().bodyValue(Map.of("token", socialToken))
-						.retrieve().bodyToMono(String.class).block();
-				System.out.println("구글 로그아웃(토큰 해제) 완료 !!!!");
-				break;
-			}
-			// 네이버는 AccessToken 삭제 API를 줘야함
-			case "naver": {
-				// naver API를 요청하기 전, 유효한 토큰인지 확인 먼저 함
-				String naverAccessToken = this.socialTokenService.refreshNaverAccessToken(auth);
-				WebClient.create("https://nid.naver.com/oauth2.0/token").post()
-						.uri(uriBuilder -> uriBuilder.queryParam("grant_type", "delete")
-								.queryParam("client_id", naverClientId).queryParam("client_secret", naverClientSecret)
-								.queryParam("access_token", naverAccessToken).queryParam("service_provider", "NAVER")
-								.build())
-						.retrieve().bodyToMono(String.class).block();
-				System.out.println("네이버 로그아웃 완료!!");
-				break;
-			}
-
-			default:
-				throw new IllegalArgumentException("예상치 못한 소셜 : " + provider);
-			}
-		} catch (Exception e) {
-			System.err.println("⚠️ 소셜 로그아웃 실패 (" + provider + "): " + e.getMessage());
-		}
-	}
 
 	// 회원탈퇴
 	@Transactional
