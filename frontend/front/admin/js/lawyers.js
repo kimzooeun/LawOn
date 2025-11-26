@@ -131,6 +131,12 @@ function renderTable(list) {
 
   tableBody.innerHTML = list.map(l => `
     <tr data-id="${l.id}">
+      <td>
+      ${lawyer.imageUrl 
+        ? `<img src="${lawyer.imageUrl}" class="lawyer-thumb">`
+        : `<div class="no-image">없음</div>`
+      }
+      </td>
       <td>${l.name}</td>
       <td>${l.gender}</td>
       <td>${l.detailSpecialty}</td>
