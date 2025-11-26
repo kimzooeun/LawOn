@@ -48,10 +48,16 @@ async function uploadImage() {
   const formData = new FormData();
   formData.append("image", file);
 
-  const res = await fetch(`${API_BASE}/upload`, {
+  const res = await fetch(`/api/admin/lawyers/upload`, {
     method: "POST",
     body: formData
   });
+
+
+
+  console.log("백엔드로 이미지 사진 요청 보냄 !!!");
+
+
 
   // 래퍼가 1차로 401을 걸러주지만,
   // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요

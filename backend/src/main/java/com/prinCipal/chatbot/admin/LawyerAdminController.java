@@ -43,14 +43,26 @@ public class LawyerAdminController {
 	/* 이미지 업로드 */
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) {
-		try {
-			String imageUrl = s3Uploader.upload(file,"lawyers");
-			return ResponseEntity.ok(imageUrl);
-		} catch (Exception e) {
-			e.printStackTrace();  
-		    throw e;
-			// return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
-		}
+		  System.out.println("🔥 업로드 컨트롤러 도착!");
+		    System.out.println("🔥 파일 null? " + (file == null));
+		    System.out.println("🔥 파일 isEmpty? " + (file != null && file.isEmpty()));
+		    if (file != null) {
+		        System.out.println("🔥 originalFilename = " + file.getOriginalFilename());
+		        System.out.println("🔥 size = " + file.getSize());
+		    }
+
+		    // 🔥🔥 임시: S3 안 타고 바로 성공 응답
+		    return ResponseEntity.ok("TEMP_OK");
+		    
 	}
+//		try {
+//			String imageUrl = s3Uploader.upload(file,"lawyers");
+//			return ResponseEntity.ok(imageUrl);
+//		} catch (Exception e) {
+//			e.printStackTrace();  
+//		    throw e;
+//			// return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
+//		}
+//	}
 
 }
