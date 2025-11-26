@@ -86,7 +86,6 @@ export async function updatePassword(userId, currentPassword, newPassword) {
 
 /* 회원 탈퇴 */
 export async function deleteUser() {
-  // userId 인자 추가
   const response = await fetch(`${API_BASE_URL}/withdraw`, {
     headers: getAuthHeaders(),
     method: "POST",
@@ -98,8 +97,7 @@ export async function deleteUser() {
 }
 
 /**
- * (C) 새 세션 생성
- * (백엔드에서 새 세션 객체를 만들어 반환한다고 가정)
+ * 새 세션 생성 (백엔드에서 새 세션 객체를 만들어 반환한다고 가정)
  */
 export async function createSession(userId) {
   const response = await fetch(`${API_BASE_URL}/sessions`, {
