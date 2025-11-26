@@ -16,6 +16,8 @@ const chatWidget = document.getElementById("chat-widget");
 const chatOverlay = document.getElementById("chat-overlay");
 const USER_ID_KEY = "todak_user_id";
 const NICK_KEY = "todak_nickname";
+const PROVIDER_KEY = "todak_provider"; // 예: local / kakao / google / naver
+
 
 // 세션 관리용 변수
 const SIMPLE_SESSION_KEY = "simpleChatSessionId";
@@ -194,8 +196,8 @@ document
         if (resData.userId && resData.display_name) {
           localStorage.setItem(USER_ID_KEY, resData.userId);
           localStorage.setItem(NICK_KEY, resData.display_name);
-          console.log("로그인 성공: ", resData.display_name);
-          console.log("userId:", resData.userId);
+          localStorage.setItem(PROVIDER_KEY, resData.provider);
+
         } else {
           // 백엔드 응답에 userId나 display_name이 없는 경우 경고
           console.warn(
