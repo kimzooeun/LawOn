@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         TokenManager.setTokens(resData.accessToken, false);
         showToast("로그인 성공!");
         setTimeout(() => {
-        window.location.href = "/admin/";
+        window.location.href = "/admin";
       }, 400);
       } else if (res.status === 400 && resData) {
         alert("로그인 실패. 아이디/비밀번호 확인");
