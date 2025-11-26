@@ -24,9 +24,6 @@ async function uploadImage() {
 
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
-    headers: {
-    Authorization: `Bearer ${token}`
-    },
     body: formData
   });
 
@@ -97,7 +94,7 @@ async function loadLawyers() {
     renderTable(allLawyers);
   } catch (err) {
     console.error(err);
-    tableBody.innerHTML = `<tr><td colspan="8">데이터를 불러올 수 없습니다.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9">데이터를 불러올 수 없습니다.</td></tr>`;
   }
 }
 
@@ -125,15 +122,15 @@ searchInput.addEventListener("input", (e) => {
 // 테이블 렌더링
 function renderTable(list) {
   if (!list.length) {
-    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>`;
     return;
   }
 
   tableBody.innerHTML = list.map(l => `
     <tr data-id="${l.id}">
       <td>
-      ${lawyer.imageUrl 
-        ? `<img src="${lawyer.imageUrl}" class="lawyer-thumb">`
+      ${l.imageUrl 
+        ? `<img src="${l.imageUrl}" class="lawyer-thumb">`
         : `<div class="no-image">없음</div>`
       }
       </td>
