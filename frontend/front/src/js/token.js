@@ -57,6 +57,7 @@ export const TokenManager = (() => {
           localStorage.removeItem("todak_nickname");
           localStorage.removeItem("todak_user_id");
           localStorage.removeItem("hard_theme");
+          localStorage.removeItem("todak_provider");
 
           // 2-3. mypage.js에서 사용하는 키 삭제
           localStorage.removeItem("todak_recents"); //

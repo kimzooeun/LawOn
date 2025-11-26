@@ -16,22 +16,22 @@ async function uploadImage() {
   const file = document.getElementById("imageFile").files[0];
   if (!file) return null;
 
-  // [삭제] 토큰 가져오기, 유효성 검사 모두 래퍼가 합니다.
-  // const token = TokenManager.getAccessToken();
-  // if (!token) { ... }
+  // 토큰 가져오기, 유효성 검사 
+  const token = TokenManager.getAccessToken();
 
   const formData = new FormData();
   formData.append("image", file);
 
-  // fetch를 그냥 호출하면 래퍼가 알아서 토큰을 넣어줍니다.
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
-    // [삭제] credentials, headers 모두 래퍼가 설정합니다.
+    headers: {
+    Authorization: `Bearer ${token}`
+    },
     body: formData
   });
 
   // 래퍼가 1차로 401을 걸러주지만,
-  // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요합니다.
+  // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요
   if (!res.ok) {
     throw new Error(`이미지 업로드 실패: ${res.status}`);
   }
