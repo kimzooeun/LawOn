@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = TokenManager.getAccessToken();
   if (!token) {
     console.warn("토큰 없음 -> 로그인 페이지 이동");
-    window.location.href = "/admin/login.html";
+    window.location.href = "/admin/login";
     return;
   }
 
@@ -35,11 +35,11 @@ function setupNavigation() {
     btn.addEventListener("click", () => {
       const page = btn.dataset.page;
       const routes = {
-        main: "/admin/",
-        settings: "/admin/settings/",
-        lawyers: "/admin/lawyers/",
-        user: "/admin/user/",
-        logs: "/admin/logs/"
+        main: "/admin",
+        settings: "/admin/settings",
+        lawyers: "/admin/lawyers",
+        user: "/admin/user",
+        logs: "/admin/logs"
       };
 
       if (routes[page]) {
