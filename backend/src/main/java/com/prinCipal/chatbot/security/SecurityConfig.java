@@ -75,10 +75,11 @@ public class SecurityConfig {
 					response.setContentType("application/json;charset=UTF-8");
 					response.getWriter().write("{\"error\": \"forbidden\"}");
 				}))
-
 				.oauth2Login(
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-								.successHandler(oauth2SuccessHandler).failureHandler(oauth2FailureHandler))
+						.authorizationEndpoint( endpoint -> endpoint
+						        .baseUri("/oauth2/authorization"))
+						.successHandler(oauth2SuccessHandler).failureHandler(oauth2FailureHandler))
 				.logout(logout -> logout.disable())
 				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests.requestMatchers("/api/auth/**")
 						.permitAll().requestMatchers(HttpMethod.OPTIONS, "/api/admin/lawyers/upload").permitAll()

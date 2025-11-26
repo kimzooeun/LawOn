@@ -53,9 +53,9 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
 		
-		 // state 파라미터 확인
-	    String state = request.getParameter("state");
-	    if("withdraw".equals(state)) {
+	
+		String requestUri = request.getRequestURI();
+	    if(requestUri.contains("withdraw")) {
 	    	CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
 	        Member member = oAuth2User.getMember();
 	    	handleSocialWithdraw(request, response, authentication, oAuth2User, member);
