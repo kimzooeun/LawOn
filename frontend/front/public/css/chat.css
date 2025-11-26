@@ -252,6 +252,7 @@
 
 /* 점 3개 애니메이션 */
 .typing-dot {
+  display: inline-block !important;
   width: 6px;
   height: 6px;
   background-color: #aaa;
