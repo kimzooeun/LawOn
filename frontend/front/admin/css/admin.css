@@ -98,8 +98,8 @@ button {
 
 /* hover만 별도로 유지 */
 .admin-nav a:hover {
-  background-color: #e74393 !important;
-  color: #fff !important;
+  background: #e74393;
+  transform: translateY(-2px);
 }
 
 /* 현재 페이지(active) 표시 */
