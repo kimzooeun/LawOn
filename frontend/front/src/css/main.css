@@ -458,7 +458,6 @@ header .container {
   box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
-/* 아직 hero-image 손 안봄 */
 /* 히어로 이미지 카드들 */
 .hero-image {
   flex: 1;
@@ -1108,16 +1107,19 @@ body.page-fading {
 
 /* 로딩 인디케이터 */
 .chat-message.loading {
+  display: flex;
+  white-space: normal !important;
+  flex-direction: row !important;
   background: none;
   border: none;
   align-self: flex-start;
   padding: 8px 16px;
 }
 .chat-message.loading span {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: inline-block !important; 
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
   background: #d4af37;
   margin: 0 2px;
   animation: loading-bounce 1s infinite ease-in-out;
