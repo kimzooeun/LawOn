@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = TokenManager.getAccessToken();
   if (!token) {
     console.warn("토큰 없음 -> 로그인 페이지 이동");
-    window.location.href = "/admin/login.html";
+    window.location.href = "/admin/login";
     return;
   }
 
