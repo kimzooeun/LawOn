@@ -60,6 +60,7 @@ LIMIT_SIMPLE = 5
 class QueryRequest(BaseModel):
     query: str
     session_id: str  # 세션 유지를 위해 필수
+    prev_summary: Optional[str] = None # 👈 Spring에서 보내준 요약본 받기
 
 class SimpleChatRequest(BaseModel):
     session_id: Optional[str] = None
@@ -70,6 +71,34 @@ class EndSessionRequest(BaseModel):
 
 class TTSRequest(BaseModel):
     text: str
+
+class ReportRequest(BaseModel):
+    session_id: str
+    prev_summary: Optional[str] = None
+
+# [엔드포인트 추가] 최종 리포트 생성
+@app.post("/generate-report")
+async def generate_session_report(request: ReportRequest):
+    session_id = request.session_id
+    
+    # 1. Redis에서 데이터 조회
+    session_data = get_session_data(session_id)
+    
+    # 2. Redis에 데이터가 없으면(1시간 경과 등), Spring이 준 요약본 사용
+    current_summary = session_data["summary"]
+    if not current_summary and request.prev_summary:
+        current_summary = request.prev_summary
+        
+    if not current_summary:
+        return {"final_report": "상담 내용이 충분하지 않아 요약할 수 없습니다."}
+
+    # 3. GPT-4o-mini를 이용해 [법률 상담 기초 조사서] 포맷으로 변환 (함수 이미 있음)
+    final_report = await asyncio.to_thread(generate_final_report, current_summary)
+    
+    # 4. Redis 데이터 정리 (선택 사항: 종료했으니 TTL을 줄이거나 삭제)
+    # redis_client.delete(f"rag:session:{session_id}") 
+    
+    return {"final_report": final_report}
 
 # ===================================================================================================
 # [Helper Functions] test24.py에서 가져온 로직 함수들
@@ -242,6 +271,13 @@ async def handle_generate_response(request: QueryRequest):
     
     # 1. Redis 세션 로드
     session_data = get_session_data(session_id)
+
+    # ⭐ [핵심 로직] Redis 기억이 날아갔는데(history 비어있음), DB 요약본(prev_summary)이 있다면?
+    # => "아, 이거 1시간 지나서 다시 오신 분이구나. 요약본으로 기억 복구하자!"
+    if not session_data["history"] and request.prev_summary:
+        print(f"♻️ 세션 만료됨. DB 요약본으로 기억 복원: {session_id}")
+        session_data["summary"] = request.prev_summary
+
     history = session_data["history"]
     turn_count = len([x for x in history if x['role'] == 'user']) + 1
 

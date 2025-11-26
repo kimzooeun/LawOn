@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class FastApiRequestDto {
 	private String session_id;
     private String query; // FastAPI(main.py)가 기대하는 필드명
+    private String prev_summary;
 }

@@ -55,11 +55,20 @@
   max-width: 75%; /* 화면의 75%까지만 차지하도록 제한 */
   display: flex;
   flex-direction: column;
+
+  align-items: flex-start;
 }
 
+/* [추가] 사용자 메시지는 오른쪽 정렬이므로 끝으로 붙임 */
+.msg.user > div {
+  align-items: flex-end;
+}
+
+/* .msg.user는 flex 컨테이너 자체의 정렬 (기존 코드 유지) */
 .msg.user {
   justify-content: flex-end;
 }
+
 .bubble {
   max-width: 100%; /* 기존 75% -> 100%로 변경 */
   padding: 10px 12px;
