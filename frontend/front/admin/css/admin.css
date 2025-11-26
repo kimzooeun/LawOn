@@ -6,7 +6,7 @@
   --primary-hover: #e74393;
   --secondary-color: #4d88ff;      /* 보조 블루 */
   --accent-yellow: #ffd93d;
-  --text-color: #222;
+  --text-color: #ffffff;
   --muted-text: #666;
   --border-color: #ddd;
   --bg-color: #f8f9fb;
@@ -102,6 +102,7 @@ button {
   padding: 6px 10px;
   border-radius: 6px;
   transition: 0.2s ease;
+  background-color: #ff4da0;
 }
 
 .admin-nav a:hover {
