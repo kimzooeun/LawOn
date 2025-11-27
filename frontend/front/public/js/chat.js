@@ -792,7 +792,7 @@ function appendLawyerGridMessage(lawyers) {
       // lawyer.js에 있는 검색 로직을 활용하기 위해 URL 파라미터 사용 또는 새창
       // 예: /lawyer/detail.html?id=...
       // 여기서는 구글 검색 또는 특정 페이지로 이동시킴
-      window.open(`/lawyers?office=${encodeURIComponent(office)}`, "_blank");
+      window.open(`/lawyer?office=${encodeURIComponent(office)}`, "_blank");
     };
 
     gridDiv.appendChild(card);
