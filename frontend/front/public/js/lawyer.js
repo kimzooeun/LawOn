@@ -199,7 +199,11 @@ function card(item) {
     tagRow.style.flexWrap = "wrap";
     tagRow.style.gap = "6px";
 
-    item.tags.forEach((t) => {
+    // [추가] 태그와 버튼 사이 간격 벌리기 (12px ~ 16px 정도 추천)
+    tagRow.style.marginBottom = "16px";
+
+    // [수정] 태그 배열을 앞에서부터 3개만 잘라서(.slice(0, 3)) 반복
+    item.tags.slice(0, 3).forEach((t) => {
       const tagSpan = document.createElement("span");
       tagSpan.textContent = "#" + t;
 
@@ -220,7 +224,7 @@ function card(item) {
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
 
-  const targetPage = "/lawyer/index";
+  const targetPage = "/lawyers";
   const officeParam = encodeURIComponent(item.officeName || "법률사무소");
   const phoneParam = encodeURIComponent(item.phone || "");
 
