@@ -411,3 +411,78 @@
   color: #bbb;
   margin-left: 10px;
 }
+
+/* ================================
+  6. 채팅창 내 변호사 추천 카드 스타일
+  ================================ */
+
+/* 채팅창 내 변호사 추천 그리드 */
+.lawyer-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2열 */
+  gap: 10px;
+  width: 100%;
+  max-width: 500px; /* 너무 넓어지지 않게 */
+  margin-top: 10px;
+}
+
+/* 카드 스타일 */
+.chat-lawyer-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.chat-lawyer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chat-lawyer-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+  background: #f0f0f0;
+}
+
+.chat-lawyer-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.chat-lawyer-office {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.chat-lawyer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.chat-lawyer-tag {
+  background: #f0f2f5;
+  color: #555;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
