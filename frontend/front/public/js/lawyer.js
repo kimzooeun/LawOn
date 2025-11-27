@@ -58,6 +58,7 @@ function processLawyerData(dbList) {
     const rawAddress = item.officeLocation || item.office_location || "";
     const rawOfficeName = item.office || item.officeName || "";
 
+    const imageUrl = item.imageUrl || item.image_url || "";
     const lawyer = {
       id: item.id,
       name: item.name, // 변호사 이름
@@ -65,10 +66,10 @@ function processLawyerData(dbList) {
       tags: item.detail_specialty ? [item.detail_specialty] : [], // 전문분야를 태그로 변환
       phone: item.contact, // 연락처
       address: rawAddress, // 주소
-      url: item.image_url || "#", // 이미지 URL
+      url: imageUrl, // 이미지 URL
       note: item.description, // 설명
     };
-    console.log(url);
+    
     const region = classifyRegion(lawyer.address);
     if (grouped[region]) {
       grouped[region].push(lawyer);
@@ -94,6 +95,8 @@ async function fetchLawyers() {
 
     const dbList = await response.json();
     // console.log("서버 데이터 확인:", dbList); // 디버깅용 로그 (필요시 주석 해제)
+
+    console.log(dbList[0]);
     lawyerState.data = processLawyerData(dbList); // 데이터 가공 후 상태 저장
     render(); // 화면 그리기
   } catch (error) {
