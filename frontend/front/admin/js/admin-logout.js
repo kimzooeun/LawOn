@@ -23,11 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("서버 로그아웃 API 호출 실패 : ", err);
       } finally {
           TokenManager.clearTokens();
-          // 3. 피드백 및 리디렉션
-          const toastMsg = apiFailed
-            ? "로그아웃. 로컬 데이터만 삭제합니다."
-            : "로그아웃 되었습니다.";
-          TokenManager.showToast_auth(toastMsg); 
+          alert("관리자 로그아웃합니다!")
           setTimeout(() => (window.location.href = "/admin/login"), 600);
       }
     });
