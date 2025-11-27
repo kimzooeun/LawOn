@@ -444,11 +444,21 @@ async def handle_generate_response(request: QueryRequest):
     is_lawyer_request = any(k in query for k in lawyer_keywords) and \
                         ("추천" in query or "선임" in query or "연결" in query or "상담" in query or "필요" in query)
 
+    # [1] 공감 레벨 설정용 (기존 유지)
+    # 용도: 말투, 위로의 강도 결정 (0.8 이상)
     high_emotion = False
     if probs_a:
-        top_label, top_score = probs_a[0] # (label, score) 튜플 형태 가정
+        top_label, top_score = probs_a[0]
         if top_score >= 0.8 and top_label in ["분노", "슬픔", "불안", "상처"]:
             high_emotion = True
+
+    # [2] 안전 경고 트리거용 (신규 추가)
+    # 용도: 112/1366 경고문 출력 여부 결정 (0.9 이상 & 슬픔/불안 한정)
+    critical_emotion = False
+    if probs_a:
+        top_label, top_score = probs_a[0]
+        if top_score >= 0.9 and top_label in ["슬픔", "불안"]:
+            critical_emotion = True
 
     # (3) 시나리오 분기 (Empathy & CTA)
     empathy_instruction = ""
@@ -498,12 +508,6 @@ async def handle_generate_response(request: QueryRequest):
         - 예: "선생님이 증언해 준대" -> "그 증언을 서면(진술서)으로 받아두실 수 있나요?"
         """
 
-    # (4) 안전 경고 트리거
-    safety_footer_trigger = ""
-    # 폭력 관련 상황이거나 충격 키워드가 있으면 경고 문구 추가 (단, 이미 경고했는지 여부를 세션에 저장하면 좋지만, 여기선 매번 체크)
-    if "폭력" in final_s or "부당대우" in final_s or is_shocking:
-        safety_footer_trigger = "\n[Safety Warning]\n답변 최하단에 '※ 긴급한 위험이 있다면 112나 1366에 도움을 요청하세요.' 문구를 반드시 추가하세요."
-
     # (5) 의도별 스타일 가이드
     intent_guidelines = {
         "법률.판례": """[모드: RAG 법률 해설] [5. 법률 근거 자료]의 판례/법령만 인용하세요. 없는 내용은 지어내지 마세요.""",
@@ -540,7 +544,6 @@ async def handle_generate_response(request: QueryRequest):
     1. **Check Previous Answer**: 아래 제공될 `[3. 🚫 직전 답변]`을 반드시 확인하세요.
     2. **Don't Repeat Introductions**: 직전 답변에서 썼던 도입부나 안전 경고 멘트를 **절대 다시 쓰지 마세요.**
     3. **Source of Truth**: 법률 정보는 **[5. 법률 근거 자료]**에서만 가져오세요.
-    {safety_footer_trigger}
     """
     
     # 4. 사용자 메시지 조립
@@ -583,7 +586,35 @@ async def handle_generate_response(request: QueryRequest):
             temperature=0.1
         )
         ai_answer = completion.choices[0].message.content
+
+        # ------------------------------------------------------------------
+        # [수정] 위기 등급 판별 로직 (우선순위: DANGER > HIGH > MEDIUM)
+        # ------------------------------------------------------------------
+        alert_severity = None  # 기본값 없음
         
+        # 1. 자살/살해 암시 (가장 위험 -> DANGER)
+        suicide_keywords = ["죽고 싶", "자살", "살해", "죽어버", "같이 죽", "살고 싶지 않아", "죽여버"]
+        if any(k in query for k in suicide_keywords):
+            alert_severity = "DANGER"
+
+        # 2. 우울/불안 감정 0.9 이상 (심각 -> HIGH)
+        # (이미 DANGER가 설정되었다면 건너뜀)
+        elif alert_severity is None and critical_emotion: 
+            alert_severity = "HIGH"
+
+        # 3. 폭력/부당대우 상황 키워드 (주의 -> MEDIUM)
+        # (이미 DANGER나 HIGH가 설정되었다면 건너뜀)
+        elif alert_severity is None and ("폭력" in final_s or "부당대우" in final_s or is_shocking):
+            alert_severity = "MEDIUM"
+
+
+        # [경고문 강제 추가 로직]
+        # alert_severity가 하나라도 설정되었다면 경고문 부착
+        if alert_severity:
+            safety_msg = "\n\n※ 긴급한 위험이 있다면 112나 1366에 도움을 요청하세요."
+            if "112" not in ai_answer and "1366" not in ai_answer:
+                ai_answer += safety_msg
+
         # 면책 조항 추가 (LLM이 빼먹었을 경우 강제 추가)
         DISCLAIMER_MSG = "\n\n※ 본 답변은 법적 조언이 아닌 참고용 정보이며, 정확한 판단을 위해서는 전문가 상담이 필요합니다."
         if "본 답변은 법적 조언이 아닌" not in ai_answer:
@@ -629,7 +660,8 @@ async def handle_generate_response(request: QueryRequest):
         "topic": final_t,
         "intent": final_i,
         "situation": final_s,
-        "retrievedData": session_data["last_rag_data"] # 검색 결과 원본
+        "retrievedData": session_data["last_rag_data"], # 검색 결과 원본
+        "alertSeverity": alert_severity
     }
 
     return {
