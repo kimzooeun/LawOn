@@ -191,6 +191,35 @@
   white-space: nowrap;
 }
 
+/* 소개글 열 줄이기 + 말줄임 */
+#lawyerTable td:nth-child(5),
+#lawyerTable th:nth-child(5) {
+  max-width: 180px;      /* 너비 제한 */
+  width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 전문분야 열 줄이기 */
+#lawyerTable td:nth-child(4),
+#lawyerTable th:nth-child(4) {
+  max-width: 140px;
+  width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 관리 열 크기 조정 */
+#lawyerTable td:last-child,
+#lawyerTable th:last-child {
+  width: 120px;
+  max-width: 120px;
+  text-align: center;
+  white-space: nowrap;
+}
+
 #lawyerTable td {
   padding: 18px 12px;
   border-bottom: 1px solid #e6e6e6;
@@ -303,7 +332,7 @@
   transition: all 0.3s ease;
   display: block;
   white-space: nowrap;
-  width: 100%;
+  width: 50%;
   text-align: center;
 }
 
@@ -328,3 +357,4 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
 }
+
