@@ -14,6 +14,9 @@ import { showPage } from "./init.js";
 
 const USER_ID_KEY = "todak_user_id";
 
+// 현재 재생 중인 음성 객체
+let currentUtterance = null;
+
 /**
  * 로그인이 필요할 때 로그인 페이지로 리디렉션합니다.
  */
@@ -168,7 +171,7 @@ export async function addMessage(role, text) {
         };
         sess.messages.push(botMessageData);
       }
-      
+
       // 대화 제목 자동 설정 로직 개선
       if (botResponse && botResponse.newTitle) {
         // 메시지가 2개 이하(첫 턴)일 때만 제목 적용
@@ -289,6 +292,54 @@ export async function animateAndDeleteRecent(li, id) {
   );
 }
 
+// [신규 기능] TTS 토글 함수
+function toggleTTS(text, btnElement) {
+  const synth = window.speechSynthesis;
+
+  // 1. 이미 말하고 있는 경우 (중지 기능)
+  if (synth.speaking && currentUtterance) {
+    synth.cancel();
+    currentUtterance = null;
+
+    // 모든 버튼의 speaking 클래스 제거
+    document
+      .querySelectorAll(".tts-btn")
+      .forEach((btn) => btn.classList.remove("speaking"));
+    return;
+  }
+
+  // 2. 새로운 텍스트 읽기
+  // 기존에 켜진 버튼들 초기화
+  document
+    .querySelectorAll(".tts-btn")
+    .forEach((btn) => btn.classList.remove("speaking"));
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ko-KR"; // 한국어 설정
+  utterance.rate = 1.0; // 속도 (1.0이 기본)
+  utterance.pitch = 1.0; // 높낮이
+
+  // 읽기 시작 이벤트
+  utterance.onstart = () => {
+    btnElement.classList.add("speaking");
+  };
+
+  // 읽기 종료 이벤트
+  utterance.onend = () => {
+    btnElement.classList.remove("speaking");
+    currentUtterance = null;
+  };
+
+  // 에러 발생 시
+  utterance.onerror = () => {
+    btnElement.classList.remove("speaking");
+    currentUtterance = null;
+  };
+
+  currentUtterance = utterance;
+  synth.speak(utterance);
+}
+
 // 렌더링
 export function renderRecents() {
   const ul = qs("#recentList");
@@ -388,6 +439,30 @@ export function renderChat() {
     const textP = document.createElement("p");
     textP.textContent = m.text;
     bubble.appendChild(textP);
+    contentWrapper.appendChild(bubble);
+
+    // [추가] 봇 메시지인 경우 TTS(스피커) 버튼 추가
+    if (m.role === "bot" && m.text) {
+      const ttsBtn = document.createElement("button");
+      ttsBtn.className = "tts-btn";
+      ttsBtn.title = "내용 듣기";
+      // 스피커 아이콘 SVG (마이크 대신 듣기 기능엔 스피커가 적합하여 스피커 아이콘 적용)
+      ttsBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      `;
+
+      // 버튼 클릭 이벤트
+      ttsBtn.onclick = (e) => {
+        e.stopPropagation(); // 버블 클릭 이벤트 전파 방지
+        toggleTTS(m.text, ttsBtn);
+      };
+
+      bubble.appendChild(ttsBtn);
+    }
+
     contentWrapper.appendChild(bubble);
 
     // (2) 카드형 버튼 (여기에 로직 추가)
