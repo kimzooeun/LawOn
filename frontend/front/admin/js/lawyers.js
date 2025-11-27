@@ -53,8 +53,7 @@ async function uploadToS3(presignedUrl,file) {
   await fetch(presignedUrl, {
     method: "PUT",
     headers:{
-      "Content-Type": file.type,
-      "x-amz-acl": "public-read"
+      "Content-Type": file.type
     },
     body:file
   });
