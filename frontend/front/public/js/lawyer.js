@@ -348,14 +348,8 @@ function exportCSV() {
   const currentRegion =
     lawyerState.region === "ALL" ? "전체지역" : lawyerState.region;
 
-  // 3. 날짜 (YYYYMMDD)
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}${(today.getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}${today.getDate().toString().padStart(2, "0")}`;
-
   // 최종 파일명 예시: LawOn_이혼_서울·수도권_20250814.csv
-  const fileName = `${siteName}_${query}_${currentRegion}_${dateStr}.csv`;
+  const fileName = `${siteName}_${query}_${currentRegion}.csv`;
   // ------------------------------------------------------------------
 
   const blob = new Blob(["\uFEFF" + toCSV(all)], {
