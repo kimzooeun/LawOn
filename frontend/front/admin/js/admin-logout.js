@@ -1,4 +1,7 @@
 // admin 로그아웃 스크립트
+
+import { TokenManager } from '/src/js/token.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
 
