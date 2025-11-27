@@ -32,7 +32,7 @@ window.fetch = async(url, options = {}) => {
 	// 로그인 후 API 요청 시 인증을 위해 꼭 필요한 부분
 	if(accessToken && !isSkipAuth)  options.headers['Authorization'] = `Bearer ${accessToken}`;	
 	options.credentials = "include";  // refreshToken 쿠키 자동 전송
-
+	console.log(url);
 	let res = await originalFetch(`${url}`, options);
 
 
