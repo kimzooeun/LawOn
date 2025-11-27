@@ -153,22 +153,45 @@ function card(item) {
   }
 
   // 이름 옆에 소속(office)도 같이 보여주면 좋습니다.
-  title.textContent = `${item.name} (${item.officeName || "변호사"})`;
+  title.textContent = `${item.name} [${item.officeName || "변호사"}]`;
 
   meta.innerHTML = "";
-  // DB의 office(소속) 정보를 태그로 추가
-  if (item.officeName) {
-    meta.appendChild(makeTag(item.officeName));
-  }
-  if (item.phone) {
-    meta.appendChild(makeTag(item.phone));
-  }
-  if (item.address) {
-    meta.appendChild(makeTag(item.address));
-  }
-  if (Array.isArray(item.tags))
-    item.tags.forEach((t) => meta.appendChild(makeTag("#" + t)));
 
+  // (1) 전화번호 (줄바꿈)
+  if (item.phone) {
+    const row = document.createElement("div");
+    row.textContent = item.phone;
+    row.style.marginBottom = "4px"; // 간격 추가
+    row.style.fontWeight = "bold"; // 강조
+    row.style.color = "#333";
+    meta.appendChild(row);
+  }
+
+  // (2) 주소 (줄바꿈)
+  if (item.address) {
+    const row = document.createElement("div");
+    row.textContent = item.address;
+    row.style.marginBottom = "8px"; // 태그와 간격 벌리기
+    row.style.fontSize = "0.95em";
+    row.style.color = "#666";
+    meta.appendChild(row);
+  }
+
+  // (3) 태그 (줄바꿈 후 가로 나열)
+  if (Array.isArray(item.tags) && item.tags.length > 0) {
+    const tagRow = document.createElement("div");
+    // 태그끼리는 옆으로 붙고, 줄 넘침 시 아래로 내려가게(wrap)
+    tagRow.style.display = "flex";
+    tagRow.style.flexWrap = "wrap";
+    tagRow.style.gap = "6px"; // 태그 사이 간격
+
+    item.tags.forEach((t) => {
+      tagRow.appendChild(makeTag("#" + t));
+    });
+    meta.appendChild(tagRow);
+  }
+
+  // 4. 설명 (비고)
   desc.textContent = item.note || "";
 
   // actions
