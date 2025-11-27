@@ -192,6 +192,13 @@ function renderTable(list) {
       const id = e.target.dataset.id;
       const lawyer = list.find(l => l.id == id);
       fillFormForEdit(lawyer);
+
+      // 🔼 수정 버튼 누르면 페이지 맨 위로 스크롤
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
     });
   });
 }
