@@ -117,6 +117,10 @@ export async function addMessage(role, text) {
   // 1. 화면에 사용자 메시지 먼저 그리기
   renderChat();
 
+  // [추가] 봇 응답이 왔을 때는 무조건 가장 아래로 스크롤 (사용자 알림)
+  const msgsContainer = qs("#messages");
+  msgsContainer.scrollTop = msgsContainer.scrollHeight;
+
   // [핵심] 사용자가 보낸 메시지일 때만 서버 전송 로직 수행
   if (role === "user") {
     const currentUserId = localStorage.getItem(USER_ID_KEY); // USER_ID_KEY는 상단 선언 필요
