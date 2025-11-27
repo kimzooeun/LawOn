@@ -14,6 +14,8 @@ import software.amazon.awssdk.services.s3.presigner.model.*;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -38,26 +40,28 @@ public class SttController {
             @RequestParam String contentType
     ) {
 
-        String key = "stt/" + UUID.randomUUID() + "_" + fileName;
+    	String key = "stt/" + UUID.randomUUID() + "_" + fileName;
 
-        PutObjectRequest objectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(contentType)
-                .build();
+    	PutObjectRequest objectRequest = PutObjectRequest.builder()
+    	        .bucket(bucket)
+    	        .key(key)
+    	        .contentType(contentType)
+    	        .build();
 
-        PresignedPutObjectRequest presigned = 
-                s3Presigner.presignPutObject(
-                    PresignPutObjectRequest.builder()
-                        .signatureDuration(Duration.ofMinutes(5))
-                        .putObjectRequest(objectRequest)
-                        .build()
-                );
+    	PutObjectPresignRequest presignRequest =
+    	        PutObjectPresignRequest.builder()
+    	                .signatureDuration(Duration.ofMinutes(5))
+    	                .putObjectRequest(objectRequest)
+    	                .build();
 
-        return new PresignResponse(
-                presigned.url().toString(),
-                key
-        );
+    	PresignedPutObjectRequest presigned =
+    	        s3Presigner.presignPutObject(presignRequest);
+
+    	return new PresignResponse(
+    	        presigned.url().toString(),
+    	        key
+    	);
+
     }
 
     // 2) STT 수행
