@@ -14,4 +14,5 @@ public class KeywordAnalysisDto {
     private String intent;
     private String situation;
     private Map<String, Object> retrievedData; 
+    private String alertSeverity;
 }

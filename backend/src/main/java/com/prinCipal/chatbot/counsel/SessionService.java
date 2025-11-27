@@ -2,6 +2,10 @@ package com.prinCipal.chatbot.counsel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prinCipal.chatbot.ChatService;
+import com.prinCipal.chatbot.alert.AlertSeverity;
+import com.prinCipal.chatbot.alert.AlertStatus;
+import com.prinCipal.chatbot.alert.CrisisAlert;
+import com.prinCipal.chatbot.alert.CrisisAlertRepository;
 import com.prinCipal.chatbot.content.*;
 import com.prinCipal.chatbot.dto.*;
 import com.prinCipal.chatbot.member.Member;
@@ -32,6 +36,7 @@ public class SessionService {
 	private final KeywordRepository keywordAnalysisRepository;
 	private final ChatService chatService;
 	private final ObjectMapper objectMapper;
+	private final CrisisAlertRepository crisisAlertRepository;
 
 	// [핵심] 비동기 처리를 위한 자기 자신 주입 (순환 참조 방지 @Lazy)
 	@Lazy
@@ -272,7 +277,13 @@ public class SessionService {
 
             // 4. 분석 데이터 저장
             KeywordAnalysisDto analysisDto = fastApiResponse.getKeywordAnalysis();
+            
             if (analysisDto != null) {
+            	
+            	// 1. Python에서 보낸 등급 문자열 가져오기 ("DANGER", "HIGH", "MEDIUM" or null)
+                String severityStr = analysisDto.getAlertSeverity();
+                boolean isDanger = (severityStr != null && !severityStr.isEmpty());
+            	
                 KeywordAnalysis analysis = KeywordAnalysis.builder()
                         .session(session)
                         .content(userMessage)
@@ -282,9 +293,35 @@ public class SessionService {
                         .intent(analysisDto.getIntent())
                         .situation(analysisDto.getSituation())
                         .retrievedData(convertMapToJsonString(analysisDto.getRetrievedData()))
-                        .alertTriggered(false)
+                        .alertTriggered(isDanger)
                         .build();
                 keywordAnalysisRepository.save(analysis);
+                
+                // [4-2] 위기 상황(isDanger)이라면 CrisisAlert 테이블에도 저장
+                if (isDanger) {
+                    
+                    // 문자열(String) -> 이넘(Enum) 변환
+                    AlertSeverity severityEnum = AlertSeverity.LOW; // 기본값
+                    try {
+                        // "DANGER" -> AlertSeverity.DANGER 변환
+                        severityEnum = AlertSeverity.valueOf(severityStr);
+                    } catch (Exception e) {
+                        // 혹시 오타가 났거나 매칭 안 되면 기본값 HIGH로 설정
+                        severityEnum = AlertSeverity.HIGH;
+                    }
+
+                    CrisisAlert alert = CrisisAlert.builder()
+                            .member(member)
+                            .session(session)
+                            .analysis(analysis)
+                            .alertSeverity(severityEnum) 
+                            .alertStatus(AlertStatus.RESOLVED) 
+                            .build();
+                    
+                    crisisAlertRepository.save(alert);
+                    
+                    logger.warn("🚨 위기 상황 감지됨! User: {}, Session: {}", member.getNickname(), sessionId);
+                }
             }
 
             // 5. 세션 업데이트 (시간, 제목)
