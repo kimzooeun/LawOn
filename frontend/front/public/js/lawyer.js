@@ -123,8 +123,21 @@ function card(item) {
   const desc = $.querySelector(".desc");
   const actions = $.querySelector(".actions");
 
-  icon.classList.add("law");
-  icon.textContent = "법";
+
+  icon.innerHTML = ""; // 초기화
+
+  if (item.url && item.url !== "#" && item.url.startsWith("https")) {
+  // 변호사 사진 있는 경우
+  const img = document.createElement("img");
+  img.src = item.url;
+  img.alt = `${item.name} 변호사 사진`;
+  img.className = "lawyer-photo";
+  icon.appendChild(img);
+  } else {
+    // 기존 아이콘 fallback
+    icon.classList.add("law");
+    icon.textContent = "법";
+  }
 
   // 이름 옆에 소속(office)도 같이 보여주면 좋습니다.
   title.textContent = `${item.name} (${item.officeName || "변호사"})`;
