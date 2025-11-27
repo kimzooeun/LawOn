@@ -339,20 +339,23 @@ function exportCSV() {
   });
 
   // [수정된 부분] 파일명 생성 로직 ---------------------------------------
-  const siteName = "LawOn"; // 사이트 이름
+  const siteName = "LawOn";
 
-  // 선택된 지역 이름 가져오기 (ALL인 경우 '전체'로 표시)
+  // 1. 검색어 (없으면 '전체목록'으로 표시)
+  const query = lawyerState.query.trim() || "전체목록";
+
+  // 2. 지역 (ALL이면 '전체지역')
   const currentRegion =
-    lawyerState.region === "ALL" ? "전체" : lawyerState.region;
+    lawyerState.region === "ALL" ? "전체지역" : lawyerState.region;
 
-  // 날짜 추가 (선택사항: 파일명 중복 방지용)
+  // 3. 날짜 (YYYYMMDD)
   const today = new Date();
   const dateStr = `${today.getFullYear()}${(today.getMonth() + 1)
     .toString()
     .padStart(2, "0")}${today.getDate().toString().padStart(2, "0")}`;
 
-  // 최종 파일명: LawOn_서울·수도권_20250813.csv
-  const fileName = `${siteName}_${currentRegion}_${dateStr}.csv`;
+  // 최종 파일명 예시: LawOn_이혼_서울·수도권_20250814.csv
+  const fileName = `${siteName}_${query}_${currentRegion}_${dateStr}.csv`;
   // ------------------------------------------------------------------
 
   const blob = new Blob(["\uFEFF" + toCSV(all)], {
@@ -361,7 +364,7 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "lawyers_list.csv";
+  a.download = fileName;
   a.click();
   URL.revokeObjectURL(url);
 }
