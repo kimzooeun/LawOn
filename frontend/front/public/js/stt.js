@@ -70,7 +70,7 @@ async function startRecording() {
 
         const fd = new FormData();
         // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
-        fd.append("audio_file", blob, "speech.webm"); 
+        fd.append("audio_file", blob); 
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
