@@ -3,6 +3,7 @@ import re
 import json
 import uuid
 import redis
+import base64
 import traceback
 import asyncio
 
@@ -55,7 +56,7 @@ LIMIT_SIMPLE = 5
 class QueryRequest(BaseModel):
     query: str
     session_id: str  # 세션 유지를 위해 필수
-    prev_summary: Optional[str] = None # 👈 Spring에서 보내준 요약본 받기
+    prev_summary: Optional[str] = None # Spring에서 보내준 요약본 받기
 
 class SimpleChatRequest(BaseModel):
     session_id: Optional[str] = None
@@ -70,6 +71,10 @@ class TTSRequest(BaseModel):
 class ReportRequest(BaseModel):
     session_id: str
     prev_summary: Optional[str] = None
+
+class AudioPayload(BaseModel):
+    audio_base64: str   # 브라우저에서 넘기는 base64 문자열
+    mime_type: str      # "audio/webm" 같은 MIME 타입
 
 # [엔드포인트 추가] 최종 리포트 생성
 @app.post("/generate-report")
@@ -721,6 +726,72 @@ async def run_stt_memory(audio_file: UploadFile):
             os.remove(tmp_out_path)
 
 
+# base64 -> Whisper 변환 (Multipart 필요 없음)
+async def run_stt_from_bytes(raw_bytes: bytes):
+    tmp_in_path = None
+    tmp_out_path = None
+
+    try:
+        # 1) webm 임시 파일 생성
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp_in:
+            tmp_in.write(raw_bytes)
+            tmp_in_path = tmp_in.name
+
+        # 2) 변환 wav 파일 경로
+        tmp_out_path = tmp_in_path + ".wav"
+
+        # 3) ffmpeg 변환
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", tmp_in_path,
+            "-ar", "16000",
+            "-ac", "1",
+            tmp_out_path
+        ]
+        process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if process.returncode != 0:
+            raise Exception(process.stderr.decode("utf-8"))
+
+        # 4) wav 읽기
+        with open(tmp_out_path, "rb") as f:
+            wav_bytes = f.read()
+
+        wav_buf = io.BytesIO(wav_bytes)
+
+        # 5) Whisper
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=("audio.wav", wav_buf, "audio/wav"),
+            response_format="text",
+            language="ko"
+        )
+        return transcription
+
+    finally:
+        if tmp_in_path and os.path.exists(tmp_in_path):
+            os.remove(tmp_in_path)
+        if tmp_out_path and os.path.exists(tmp_out_path):
+            os.remove(tmp_out_path)
+
+
+@app.post("/fastapi/stt-json")
+async def stt_json(payload: AudioPayload):
+    try:
+        # base64 → bytes
+        audio_bytes = base64.b64decode(payload.audio_base64)
+
+        # Whisper 처리
+        text = await run_stt_from_bytes(audio_bytes)
+
+        return {"text": text}
+
+    except Exception as e:
+        print("STT JSON 오류:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @app.post("/fastapi/stt")
 async def stt_endpoint(audio_file: UploadFile = File(...)):
     try:
@@ -753,6 +824,13 @@ async def tts_endpoint(req: TTSRequest):
     except Exception as e:
         print("TTS 오류:", e)
         return {"error": str(e)}
+
+
+
+
+
+
+
 
 # voice-chat (음성 전체 파이프라인)
 # STT → generate-response → TTS

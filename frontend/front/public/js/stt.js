@@ -11,7 +11,6 @@ let activeMicBtn = null;
 let targetInputEl = null;
 let autoSubmitAfterSTT = false;
 let micStream = null;
-const FASTAPI_ALB = "http://divorcechatbot-alb-777077770.ap-northeast-2.elb.amazonaws.com";
 
 function pickSupportedMime() {
   const candidates = [
@@ -37,6 +36,18 @@ async function initMicStream() {
     },
   });
 }
+
+
+async function blobToBase64(blob) {
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 
 async function startRecording() {
   try {
@@ -66,19 +77,28 @@ async function startRecording() {
         }
         
         const mime = chosenMime || "audio/webm";
-
         const blob = new Blob(audioChunks, { type: mime });
-        const file = new File([blob], "speech", { type: blob.type });
-        const fd = new FormData();
-        // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
-        fd.append("audio_file", file);
+
+        // Blob → base64
+        const base64 = await blobToBase64(blob);
+
+        // JSON payload
+        const payload = {
+          audio_base64: base64,
+          mime_type: mime
+        };
+
+        // const file = new File([blob], "speech", { type: blob.type });
+        // const fd = new FormData();
+        // // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
+        // fd.append("audio_file", file);
 
 
         // fd.append("audio_file", blob); 
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch(`${FASTAPI_ALB}/fastapi/stt`, { method: "POST", body: fd, credentials: "include"});
+        const res = await fetch(`/fastapi/stt-json`, { method: "POST", body: JSON.stringify(payload)});
         
         if (!res.ok) {
           // 서버에서 오류 메시지가 있다면 가져와서 출력
