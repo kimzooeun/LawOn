@@ -220,7 +220,7 @@ function card(item) {
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
 
-  const targetPage = "/lawyer/lawfirm.html";
+  const targetPage = "/lawyer/index";
   const officeParam = encodeURIComponent(item.officeName || "법률사무소");
   const phoneParam = encodeURIComponent(item.phone || "");
 

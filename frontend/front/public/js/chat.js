@@ -793,7 +793,7 @@ function appendLawyerGridMessage(lawyers) {
       // 예: /lawyer/detail.html?id=...
       // 여기서는 구글 검색 또는 특정 페이지로 이동시킴
       window.open(
-        `/lawyer/lawfirm.html?office=${encodeURIComponent(office)}`,
+        `/lawyer/index?office=${encodeURIComponent(office)}`,
         "_blank"
       );
     };
