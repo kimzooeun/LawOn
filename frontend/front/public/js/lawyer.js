@@ -68,7 +68,7 @@ function processLawyerData(dbList) {
       url: item.image_url || "#", // 이미지 URL
       note: item.description, // 설명
     };
-
+    console.log(url);
     const region = classifyRegion(lawyer.address);
     if (grouped[region]) {
       grouped[region].push(lawyer);
