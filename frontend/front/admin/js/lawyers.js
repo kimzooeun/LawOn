@@ -53,7 +53,8 @@ async function uploadToS3(presignedUrl,file) {
   await fetch(presignedUrl, {
     method: "PUT",
     headers:{
-      "Content-Type": file.type
+      "Content-Type": file.type,
+      "x-amz-acl": "public-read"
     },
     body:file
   });
@@ -68,14 +69,10 @@ async function uploadImage() {
   let file = document.getElementById("imageFile").files[0];
   if (!file) return null;
   file = await resizeImage(file);
-  console.log(file.name, file.size);
 
   const presignedUrl = await getPresignedUrl(file);
-  console.log(presignedUrl);
 
   const imageUrl = await uploadToS3(presignedUrl,file);
-  console.log(imageUrl);
-
   return imageUrl; // DB 저장할 URL
 }
 

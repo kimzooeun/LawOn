@@ -29,10 +29,6 @@ window.fetch = async (url, options = {}) => {
   }
 
   let res = await originalFetch(`${url}`, options);     
-  console.log(url);
-  console.log(res);
-
-
 
   // 백엔드에서 새 AccessToken이 헤더에 왔는지 확인 
   const newAuth = res.headers.get("Authorization");
