@@ -70,7 +70,12 @@ function processLawyerData(dbList) {
       name: item.name,
       gender: item.gender || "", // [추가] 성별 데이터 저장
       officeName: rawOfficeName,
-      tags: rawTag ? [rawTag] : [],
+      tags: rawTag
+        ? rawTag
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [],
       phone: item.contact,
       address: rawAddress,
       url: imageUrl,
@@ -133,34 +138,52 @@ function card(item) {
   const $ = cardTpl.content.firstElementChild.cloneNode(true);
   const icon = $.querySelector(".card__icon");
   const title = $.querySelector(".card__title");
-  const meta = $.querySelector(".card__meta");
-  const desc = $.querySelector(".desc");
+  const meta = $.querySelector(".card__meta"); // 태그 영역
+  const desc = $.querySelector(".desc"); // 설명 영역
   const actions = $.querySelector(".actions");
 
-  icon.innerHTML = ""; // 초기화
+  // [수정 1] 이미지 영역(icon) 수직 중앙 정렬을 위한 스타일 강제 적용
+  icon.innerHTML = "";
+  icon.style.display = "flex";
+  icon.style.alignItems = "center"; // 세로 중앙
+  icon.style.justifyContent = "center"; // 가로 중앙
 
   if (item.url && item.url !== "#" && item.url.startsWith("https")) {
-    // 변호사 사진 있는 경우
     const img = document.createElement("img");
     img.src = item.url;
-    img.alt = `${item.name} 변호사 사진`;
+    img.alt = `${item.name} 변호사`;
     img.className = "lawyer-photo";
+    // 이미지가 영역을 꽉 채우지 않고 가운데 오도록 스타일 조정
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "100%";
+    img.style.objectFit = "cover";
     icon.appendChild(img);
   } else {
-    // 기존 아이콘 fallback
     icon.classList.add("law");
     icon.textContent = "법";
   }
 
-  // 2. 제목 (이름 + 소속) - 대괄호[] 대신 소괄호() 사용 추천
-  // 소속은 조금 연하게(span) 처리해서 이름 강조
+  // --- 제목 ---
   const firmName = item.officeName || "변호사";
-  title.innerHTML = `${item.name} <span style="font-size:0.8em; color:#666; font-weight:normal;">(${firmName})</span>`;
+  title.innerHTML = `${item.name} <span style="font-size:0.75em; color:#999; font-weight:400;">${firmName}</span>`;
+  title.style.marginBottom = "8px";
 
-  // 3. 메타 정보 구성
+  // [수정 2] 위치 바꾸기: 설명글(desc)을 태그(meta)보다 먼저 보여주기
+  // DOM 트리에서 desc 요소를 meta 요소 앞으로 이동시킵니다.
+  if (desc && meta && desc.parentNode === meta.parentNode) {
+    meta.parentNode.insertBefore(desc, meta);
+  }
+
+  // --- 설명 (위로 올라옴) ---
+  desc.textContent = item.note || "";
+  desc.style.marginTop = "0px";
+  desc.style.marginBottom = "12px"; // 태그와의 간격
+  desc.style.color = "#555";
+  desc.style.fontSize = "0.95em";
+  desc.style.lineHeight = "1.5";
+
+  // --- 태그 (아래로 내려감) ---
   meta.innerHTML = "";
-
-  // (2) 태그 (뱃지 스타일)
   if (Array.isArray(item.tags) && item.tags.length > 0) {
     const tagRow = document.createElement("div");
     tagRow.style.display = "flex";
@@ -168,26 +191,20 @@ function card(item) {
     tagRow.style.gap = "6px";
 
     item.tags.forEach((t) => {
-      // 태그 스타일 직접 적용 (CSS 클래스가 있다면 classList.add로 대체 가능)
       const tagSpan = document.createElement("span");
-      tagSpan.textContent = "#" + t;
-      tagSpan.style.backgroundColor = "#f3f4f6"; // 연한 회색 배경
-      tagSpan.style.color = "#4b5563"; // 진한 회색 글자
-      tagSpan.style.padding = "2px 8px";
-      tagSpan.style.borderRadius = "12px"; // 둥글게
-      tagSpan.style.fontSize = "0.85em";
-      tagSpan.style.fontWeight = "500";
+      tagSpan.textContent = "#" + t; // 앞에 # 붙이기
+
+      tagSpan.style.backgroundColor = "#FFF8E1";
+      tagSpan.style.color = "#8D6E63";
+      tagSpan.style.padding = "4px 10px";
+      tagSpan.style.borderRadius = "12px";
+      tagSpan.style.fontSize = "0.8em";
+      tagSpan.style.fontWeight = "600";
 
       tagRow.appendChild(tagSpan);
     });
     meta.appendChild(tagRow);
   }
-
-  // 4. 설명 (한 줄 요약)
-  // 설명이 너무 길면 잘리도록 처리해도 좋음
-  desc.textContent = item.note || "";
-  desc.style.marginTop = "10px";
-  desc.style.color = "#444";
 
   // actions
   const aSite = document.createElement("a");
