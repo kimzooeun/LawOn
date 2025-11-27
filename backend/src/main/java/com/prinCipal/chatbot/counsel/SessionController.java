@@ -191,6 +191,7 @@ public class SessionController {
     @PostMapping(value = "/stt-proxy", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> sttProxy(@RequestParam("audio_file") MultipartFile file) {
         try {
+            System.out.println("stt 쪽 들어오나요??????????????????????????");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
