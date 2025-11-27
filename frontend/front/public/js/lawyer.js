@@ -148,7 +148,7 @@ function card(item) {
   icon.style.flexDirection = "column"; // 세로 배치
   icon.style.justifyContent = "center"; // (세로 방향) 중앙 정렬
   icon.style.alignItems = "center"; // (가로 방향) 중앙 정렬
-  // icon 자체는 높이를 꽉 채우도록 설정 (그래야 중앙을 잡을 수 있음)
+  icon.style.backgroundColor = "transparent";
   icon.style.minHeight = "100%";
 
   if (item.url && item.url !== "#" && item.url.startsWith("https")) {
@@ -224,7 +224,7 @@ function card(item) {
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
 
-  const targetPage = "/lawyers";
+  const targetPage = "/lawyer";
   const officeParam = encodeURIComponent(item.officeName || "법률사무소");
   const phoneParam = encodeURIComponent(item.phone || "");
 
