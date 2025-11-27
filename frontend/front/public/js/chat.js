@@ -404,22 +404,20 @@ export function renderRecents() {
   });
 }
 
+// [수정됨] 렌더링 함수
 export function renderChat() {
   const msgs = qs("#messages");
 
-  // [수정 1] 렌더링 전, 사용자가 '바닥 근처'를 보고 있었는지 확인
-  // (scrollTop + clientHeight가 scrollHeight와 비슷하면 바닥에 있는 것임)
-  const threshold = 100; // 오차 범위 (픽셀)
+  // 스크롤 위치 계산 (기존 로직 유지)
+  const threshold = 100;
   const isNearBottom =
     msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + threshold;
-
-  // 현재 스크롤 위치 저장
   const prevScrollTop = msgs.scrollTop;
 
   msgs.innerHTML = "";
   const sess = current();
 
-  // 1. 빈 화면 처리
+  // 1. 빈 화면 처리 (기존 로직 유지)
   if (!sess || !sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
     const template = document.getElementById("emptyChatTemplate");
@@ -435,7 +433,7 @@ export function renderChat() {
     return;
   }
 
-  // 2. 메시지 루프
+  // 2. 메시지 루프 시작
   sess.messages.forEach((m) => {
     const div = document.createElement("div");
     div.className = "msg " + (m.role === "user" ? "user" : "bot");
@@ -447,103 +445,180 @@ export function renderChat() {
     contentWrapper.style.alignItems =
       m.role === "user" ? "flex-end" : "flex-start";
 
-    // (1) 말풍선 (기존 코드 유지)
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    const textP = document.createElement("p");
-    textP.textContent = m.text;
-    bubble.appendChild(textP);
+    // ============================================================
+    // [CASE A] 변호사 추천 특수 메시지인 경우
+    // ============================================================
+    if (
+      m.role === "bot" &&
+      m.text &&
+      m.text.startsWith(":::LAWYER_RECOMMENDATION:::")
+    ) {
+      try {
+        // (1) 데이터 파싱
+        const jsonPart = m.text.split(":::LAWYER_RECOMMENDATION:::")[1];
+        const lawyerList = JSON.parse(jsonPart);
 
-    // [추가] 봇 메시지인 경우 TTS(스피커) 버튼 추가
-    if (m.role === "bot" && m.text) {
-      const ttsBtn = document.createElement("button");
-      ttsBtn.className = "tts-btn";
-      ttsBtn.title = "내용 듣기";
-      // 스피커 아이콘 SVG (마이크 대신 듣기 기능엔 스피커가 적합하여 스피커 아이콘 적용)
-      ttsBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        </svg>
-      `;
+        // (2) 안내 멘트 버블 생성
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        const introText =
+          "고객님의 상황에 맞는 지역별 전문 변호사님들을 찾았습니다.";
+        const textP = document.createElement("p");
+        textP.textContent = introText;
+        bubble.appendChild(textP);
 
-      // 버튼 클릭 이벤트
-      ttsBtn.onclick = (e) => {
-        e.stopPropagation(); // 버블 클릭 이벤트 전파 방지
-        toggleTTS(m.text, ttsBtn);
-      };
+        // (3) [TTS 버튼 추가] - 변호사 추천 메시지에도 듣기 버튼 추가
+        const ttsBtn = document.createElement("button");
+        ttsBtn.className = "tts-btn";
+        ttsBtn.title = "내용 듣기";
+        ttsBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>`;
+        ttsBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleTTS(introText, ttsBtn);
+        };
+        bubble.appendChild(ttsBtn);
+        contentWrapper.appendChild(bubble);
 
-      bubble.appendChild(ttsBtn);
+        // (4) 그리드(카드) 생성
+        const gridDiv = document.createElement("div");
+        gridDiv.className = "lawyer-grid-container";
+
+        lawyerList.forEach((lawyer) => {
+          const card = document.createElement("div");
+          card.className = "chat-lawyer-card";
+
+          const name = lawyer.name;
+          const office = lawyer.office || lawyer.officeName || "법률사무소";
+          // 이미지 처리
+          const imgTag =
+            (lawyer.imageUrl || lawyer.image_url || "") &&
+            (lawyer.imageUrl || lawyer.image_url).startsWith("http")
+              ? `<img src="${
+                  lawyer.imageUrl || lawyer.image_url
+                }" class="chat-lawyer-img">`
+              : `<div class="chat-lawyer-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#999;font-size:24px;">⚖️</div>`;
+
+          // 태그 처리
+          let tags = (lawyer.detailSpecialty || lawyer.detail_specialty || "")
+            .split(",")
+            .filter(Boolean)
+            .slice(0, 2);
+          let tagsHtml = tags
+            .map((t) => `<span class="chat-lawyer-tag">#${t.trim()}</span>`)
+            .join("");
+
+          card.innerHTML = `${imgTag}<div class="chat-lawyer-name">${name} 변호사</div><div class="chat-lawyer-office">${office}</div><div class="chat-lawyer-tags">${tagsHtml}</div>`;
+
+          // 클릭 시 이동
+          card.onclick = () =>
+            window.open(
+              `/lawyer?office=${encodeURIComponent(office)}`,
+              "_blank"
+            );
+          gridDiv.appendChild(card);
+        });
+        contentWrapper.appendChild(gridDiv);
+      } catch (e) {
+        console.error("추천 메시지 파싱 에러", e);
+        // 에러 시 원본 텍스트라도 보여줌
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = "추천 정보를 불러올 수 없습니다.";
+        contentWrapper.appendChild(bubble);
+      }
     }
+    // ============================================================
+    // [CASE B] 일반 메시지 처리 (기존 로직 유지)
+    // ============================================================
+    else {
+      // (1) 말풍선
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      const textP = document.createElement("p");
+      textP.textContent = m.text;
+      bubble.appendChild(textP);
 
-    contentWrapper.appendChild(bubble);
-
-    // (2) 카드형 버튼 (여기에 로직 추가)
-    if (m.text) {
-      const actionsDiv = document.createElement("div");
-      actionsDiv.className = "card-actions";
-      let hasButton = false; // 버튼이 추가되었는지 확인용 플래그
-
-      // [기존] 상황 1: 경고 메시지 (상담 종료 유도)
-      if (
-        m.text.includes("5분 뒤 상담이") ||
-        m.text.includes("상담을 종료하시려면")
-      ) {
-        const btnEl = createCardButton(
-          "🛑",
-          "상담 종료하기",
-          "대화를 지금 바로 끝냅니다",
-          () => handleEndSessionAction(sess.id)
-        );
-        actionsDiv.appendChild(btnEl);
-        hasButton = true;
+      // [기존 TTS 버튼 로직]
+      if (m.role === "bot" && m.text) {
+        const ttsBtn = document.createElement("button");
+        ttsBtn.className = "tts-btn";
+        ttsBtn.title = "내용 듣기";
+        ttsBtn.innerHTML = `
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+               </svg>`;
+        ttsBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleTTS(m.text, ttsBtn);
+        };
+        bubble.appendChild(ttsBtn);
       }
+      contentWrapper.appendChild(bubble);
 
-      // [기존] 상황 2: 종료 메시지 (재시작 유도)
-      if (
-        m.text.includes("상담이 종료되었습니다") ||
-        m.text.includes("상담 재시작")
-      ) {
-        const btnEl = createCardButton(
-          "🔄",
-          "상담 재시작하기",
-          "이어서 계속 대화합니다",
-          () => handleRestartSessionAction(sess.id)
-        );
-        actionsDiv.appendChild(btnEl);
-        hasButton = true;
-      }
+      // (2) 카드형 버튼 (기존 로직 + 추천 버튼 트리거)
+      if (m.text) {
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "card-actions";
+        let hasButton = false;
 
-      // [⭐ 신규] 상황 3: 변호사 추천 요청 응답 감지
-      // main.py의 Special Scenario 멘트를 감지합니다.
-      if (
-        m.text.includes("변호사님들이 등록되어 있습니다") ||
-        m.text.includes("상담 내용 요약 리포트")
-      ) {
-        // 버튼 1: 변호사 추천
-        const btnLawyer = createCardButton(
-          "⚖️",
-          "변호사 추천 보기",
-          "내 상황에 딱 맞는 전문가 찾기",
-          () => handleRecommendLawyerAction() // 하단에 함수 정의 필요
-        );
-        actionsDiv.appendChild(btnLawyer);
+        // 상담 종료 버튼
+        if (
+          m.text.includes("5분 뒤 상담이") ||
+          m.text.includes("상담을 종료하시려면")
+        ) {
+          actionsDiv.appendChild(
+            createCardButton(
+              "🛑",
+              "상담 종료하기",
+              "대화를 지금 바로 끝냅니다",
+              () => handleEndSessionAction(sess.id)
+            )
+          );
+          hasButton = true;
+        }
+        // 상담 재시작 버튼
+        if (
+          m.text.includes("상담이 종료되었습니다") ||
+          m.text.includes("상담 재시작")
+        ) {
+          actionsDiv.appendChild(
+            createCardButton(
+              "🔄",
+              "상담 재시작하기",
+              "이어서 계속 대화합니다",
+              () => handleRestartSessionAction(sess.id)
+            )
+          );
+          hasButton = true;
+        }
+        // 변호사 추천 및 요약 버튼
+        if (
+          m.text.includes("변호사님들이 등록되어 있습니다") ||
+          m.text.includes("상담 내용 요약 리포트")
+        ) {
+          const btnLawyer = createCardButton(
+            "⚖️",
+            "변호사 추천 보기",
+            "내 상황에 딱 맞는 전문가 찾기",
+            () => handleRecommendLawyerAction()
+          );
+          actionsDiv.appendChild(btnLawyer);
+          const btnReport = createCardButton(
+            "📝",
+            "상담 요약하기",
+            "지금까지의 대화를 리포트로 저장",
+            () => handleSummaryAndDownloadAction(sess.id)
+          );
+          actionsDiv.appendChild(btnReport);
+          hasButton = true;
+        }
 
-        // 버튼 2: 상담 요약하기 (실제 기능은 상담 종료 및 리포트 생성)
-        const btnReport = createCardButton(
-          "📝",
-          "상담 요약하기",
-          "지금까지의 대화를 리포트로 저장",
-          () => handleSummaryAndDownloadAction(sess.id)
-        );
-        actionsDiv.appendChild(btnReport);
-
-        hasButton = true;
-      }
-
-      // 버튼이 하나라도 생성되었다면 래퍼에 추가
-      if (hasButton) {
-        contentWrapper.appendChild(actionsDiv);
+        if (hasButton) contentWrapper.appendChild(actionsDiv);
       }
     }
 
@@ -551,12 +626,10 @@ export function renderChat() {
     msgs.appendChild(div);
   });
 
-  // [수정 2] 스크롤 위치 결정 (스마트 스크롤)
+  // 스크롤 위치 복원 (기존 로직 유지)
   if (isNearBottom) {
-    // 이전에 바닥을 보고 있었다면(혹은 첫 로딩) -> 맨 아래로
     msgs.scrollTop = msgs.scrollHeight;
   } else {
-    // 이전에 위쪽을 보고 있었다면 -> 읽던 위치 유지
     msgs.scrollTop = prevScrollTop;
   }
 
@@ -583,26 +656,27 @@ function createCardButton(icon, title, subtitle, onClickHandler) {
 }
 
 /**
- * [수정] 변호사 추천 핸들러
- * 1. API로 변호사 전체 목록 조회
- * 2. 현재 세션의 키워드 분석
- * 3. 지역별 1명씩 랜덤/추천 선별
- * 4. 채팅창에 카드 렌더링
+ * 변호사 추천 핸들러
  */
+// [수정 완료] 실제 데이터 연동 및 메시지 저장
 async function handleRecommendLawyerAction() {
   const sess = current();
   if (!sess) return;
+  const currentUserId = localStorage.getItem("todak_user_id");
 
-  // 1. 로딩 표시 (선택 사항)
   showToast("맞춤 변호사를 찾고 있습니다...", "info");
 
   try {
-    // 2. 변호사 데이터 가져오기 (api.js에 함수가 없다면 fetch 직접 사용)
+    // 1. [실제 API 호출] 서버에서 변호사 목록 가져오기
     const response = await fetch("/api/lawyers");
-    if (!response.ok) throw new Error("데이터 로드 실패");
-    const allLawyers = await response.json();
 
-    // 3. 추천 로직 실행
+    if (!response.ok) {
+      throw new Error(`데이터 로드 실패 (Status: ${response.status})`);
+    }
+
+    const allLawyers = await response.json(); // 실제 DB 데이터 파싱
+
+    // 2. 추천 로직 실행
     const recommended = selectBestLawyers(allLawyers, sess);
 
     if (recommended.length === 0) {
@@ -610,8 +684,23 @@ async function handleRecommendLawyerAction() {
       return;
     }
 
-    // 4. 채팅창에 봇 메시지로 결과 뿌리기
-    appendLawyerGridMessage(recommended);
+    // 3. 데이터를 특수 문자열로 변환 (화면 사라짐 방지용)
+    const specialText =
+      ":::LAWYER_RECOMMENDATION:::" + JSON.stringify(recommended);
+    const botMsgData = {
+      role: "bot",
+      text: specialText,
+      at: Date.now(),
+    };
+
+    // 4. 로컬 화면 즉시 갱신
+    sess.messages.push(botMsgData);
+    renderChat();
+
+    // 5. 서버에 메시지 저장 (새로고침 유지)
+    if (currentUserId) {
+      await saveMessage(sess.id, currentUserId, botMsgData);
+    }
   } catch (err) {
     console.error("변호사 추천 실패:", err);
     showToast("추천 정보를 불러오는데 실패했습니다.", "error");
