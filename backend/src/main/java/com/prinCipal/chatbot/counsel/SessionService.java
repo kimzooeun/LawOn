@@ -241,7 +241,11 @@ public class SessionService {
         session.updateStatus(CompletionStatus.COMPLETED);
         session.updateendTime(LocalDateTime.now()); // 👈 endTime은 여기서!
         
-        saveSystemMessage(session, "상담이 종료되었습니다. ※이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
+        saveSystemMessage(session,
+                            "상담이 종료되었습니다.\n" +
+                            "마이페이지에서 상담 요약을 확인하실 수 있습니다.\n" +
+                            "계속 상담을 원하시면 “상담 재시작” 버튼을 눌러주세요."
+                        );
     }
 
     /**

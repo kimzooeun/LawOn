@@ -570,8 +570,8 @@ export function renderChat() {
         let hasButton = false;
 
         if (
-          m.text.includes("5분 뒤 상담이") ||
-          m.text.includes("상담을 종료하시려면")
+          m.text.includes("5분 동안 메시지가 없으면") ||
+          m.text.includes("상담을 마치고 싶으시다면")
         ) {
           actionsDiv.appendChild(
             createCardButton(
@@ -585,7 +585,7 @@ export function renderChat() {
         }
         if (
           m.text.includes("상담이 종료되었습니다") ||
-          m.text.includes("상담 재시작")
+          m.text.includes("계속 상담을 원하시면")
         ) {
           actionsDiv.appendChild(
             createCardButton(
@@ -599,7 +599,7 @@ export function renderChat() {
         }
         if (
           m.text.includes("변호사님들이 등록되어 있습니다") ||
-          m.text.includes("상담 내용 요약 리포트")
+          m.text.includes("상담 요약하기")
         ) {
           const btnLawyer = createCardButton(
             "⚖️",
