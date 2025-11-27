@@ -402,6 +402,16 @@ export function renderRecents() {
 
 export function renderChat() {
   const msgs = qs("#messages");
+
+  // [수정 1] 렌더링 전, 사용자가 '바닥 근처'를 보고 있었는지 확인
+  // (scrollTop + clientHeight가 scrollHeight와 비슷하면 바닥에 있는 것임)
+  const threshold = 100; // 오차 범위 (픽셀)
+  const isNearBottom =
+    msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + threshold;
+
+  // 현재 스크롤 위치 저장
+  const prevScrollTop = msgs.scrollTop;
+
   msgs.innerHTML = "";
   const sess = current();
 
@@ -537,7 +547,15 @@ export function renderChat() {
     msgs.appendChild(div);
   });
 
-  msgs.scrollTop = msgs.scrollHeight;
+  // [수정 2] 스크롤 위치 결정 (스마트 스크롤)
+  if (isNearBottom) {
+    // 이전에 바닥을 보고 있었다면(혹은 첫 로딩) -> 맨 아래로
+    msgs.scrollTop = msgs.scrollHeight;
+  } else {
+    // 이전에 위쪽을 보고 있었다면 -> 읽던 위치 유지
+    msgs.scrollTop = prevScrollTop;
+  }
+
   renderRecents();
   startPolling();
 }
@@ -591,8 +609,8 @@ export async function handleSend(e) {
     if (!success) return;
   }
 
-  await addMessage("user", text);
   input.value = "";
+  await addMessage("user", text);
 }
 
 // [추가] 상담 종료 핸들러
