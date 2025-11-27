@@ -11,6 +11,7 @@ let activeMicBtn = null;
 let targetInputEl = null;
 let autoSubmitAfterSTT = false;
 let micStream = null;
+const FASTAPI_ALB = "http://divorcechatbot-alb-777077770.ap-northeast-2.elb.amazonaws.com";
 
 function pickSupportedMime() {
   const candidates = [
@@ -77,7 +78,7 @@ async function startRecording() {
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch("/fastapi/stt", { method: "POST", body: fd});
+        const res = await fetch(`${FASTAPI_ALB}/fastapi/stt`, { method: "POST", body: fd, credentials: "include"});
         
         if (!res.ok) {
           // 서버에서 오류 메시지가 있다면 가져와서 출력
