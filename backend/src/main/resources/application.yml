@@ -115,7 +115,7 @@ app:
 cloud:
   aws:
     s3:
-      bucket: principalbbucket
+      bucket: lawcounsel-front
       
       
 # Health check, actuator 설정
