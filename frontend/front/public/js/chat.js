@@ -9,9 +9,13 @@ import {
   endSession,
   restartSession,
 } from "./api.js";
+import { downloadChatPdf } from "./mypage.js";
 import { showPage } from "./init.js";
 
 const USER_ID_KEY = "todak_user_id";
+
+// 현재 재생 중인 음성 객체
+let currentUtterance = null;
 
 /**
  * 로그인이 필요할 때 로그인 페이지로 리디렉션합니다.
@@ -113,6 +117,10 @@ export async function addMessage(role, text) {
   // 1. 화면에 사용자 메시지 먼저 그리기
   renderChat();
 
+  // [추가] 봇 응답이 왔을 때는 무조건 가장 아래로 스크롤 (사용자 알림)
+  const msgsContainer = qs("#messages");
+  msgsContainer.scrollTop = msgsContainer.scrollHeight;
+
   // [핵심] 사용자가 보낸 메시지일 때만 서버 전송 로직 수행
   if (role === "user") {
     const currentUserId = localStorage.getItem(USER_ID_KEY); // USER_ID_KEY는 상단 선언 필요
@@ -167,7 +175,7 @@ export async function addMessage(role, text) {
         };
         sess.messages.push(botMessageData);
       }
-      
+
       // 대화 제목 자동 설정 로직 개선
       if (botResponse && botResponse.newTitle) {
         // 메시지가 2개 이하(첫 턴)일 때만 제목 적용
@@ -288,6 +296,54 @@ export async function animateAndDeleteRecent(li, id) {
   );
 }
 
+// [신규 기능] TTS 토글 함수
+function toggleTTS(text, btnElement) {
+  const synth = window.speechSynthesis;
+
+  // 1. 이미 말하고 있는 경우 (중지 기능)
+  if (synth.speaking && currentUtterance) {
+    synth.cancel();
+    currentUtterance = null;
+
+    // 모든 버튼의 speaking 클래스 제거
+    document
+      .querySelectorAll(".tts-btn")
+      .forEach((btn) => btn.classList.remove("speaking"));
+    return;
+  }
+
+  // 2. 새로운 텍스트 읽기
+  // 기존에 켜진 버튼들 초기화
+  document
+    .querySelectorAll(".tts-btn")
+    .forEach((btn) => btn.classList.remove("speaking"));
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ko-KR"; // 한국어 설정
+  utterance.rate = 1.0; // 속도 (1.0이 기본)
+  utterance.pitch = 1.0; // 높낮이
+
+  // 읽기 시작 이벤트
+  utterance.onstart = () => {
+    btnElement.classList.add("speaking");
+  };
+
+  // 읽기 종료 이벤트
+  utterance.onend = () => {
+    btnElement.classList.remove("speaking");
+    currentUtterance = null;
+  };
+
+  // 에러 발생 시
+  utterance.onerror = () => {
+    btnElement.classList.remove("speaking");
+    currentUtterance = null;
+  };
+
+  currentUtterance = utterance;
+  synth.speak(utterance);
+}
+
 // 렌더링
 export function renderRecents() {
   const ul = qs("#recentList");
@@ -350,6 +406,16 @@ export function renderRecents() {
 
 export function renderChat() {
   const msgs = qs("#messages");
+
+  // [수정 1] 렌더링 전, 사용자가 '바닥 근처'를 보고 있었는지 확인
+  // (scrollTop + clientHeight가 scrollHeight와 비슷하면 바닥에 있는 것임)
+  const threshold = 100; // 오차 범위 (픽셀)
+  const isNearBottom =
+    msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + threshold;
+
+  // 현재 스크롤 위치 저장
+  const prevScrollTop = msgs.scrollTop;
+
   msgs.innerHTML = "";
   const sess = current();
 
@@ -381,60 +447,102 @@ export function renderChat() {
     contentWrapper.style.alignItems =
       m.role === "user" ? "flex-end" : "flex-start";
 
-    // (1) 말풍선
+    // (1) 말풍선 (기존 코드 유지)
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     const textP = document.createElement("p");
     textP.textContent = m.text;
     bubble.appendChild(textP);
+
+    // [추가] 봇 메시지인 경우 TTS(스피커) 버튼 추가
+    if (m.role === "bot" && m.text) {
+      const ttsBtn = document.createElement("button");
+      ttsBtn.className = "tts-btn";
+      ttsBtn.title = "내용 듣기";
+      // 스피커 아이콘 SVG (마이크 대신 듣기 기능엔 스피커가 적합하여 스피커 아이콘 적용)
+      ttsBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      `;
+
+      // 버튼 클릭 이벤트
+      ttsBtn.onclick = (e) => {
+        e.stopPropagation(); // 버블 클릭 이벤트 전파 방지
+        toggleTTS(m.text, ttsBtn);
+      };
+
+      bubble.appendChild(ttsBtn);
+    }
+
     contentWrapper.appendChild(bubble);
 
-    // (2) 카드형 버튼 (안전장치 추가)
-    // m.text가 존재할 때만 includes 검사를 수행합니다.
+    // (2) 카드형 버튼 (여기에 로직 추가)
     if (m.text) {
-      // 상황 1: 경고 메시지
+      const actionsDiv = document.createElement("div");
+      actionsDiv.className = "card-actions";
+      let hasButton = false; // 버튼이 추가되었는지 확인용 플래그
+
+      // [기존] 상황 1: 경고 메시지 (상담 종료 유도)
       if (
         m.text.includes("5분 뒤 상담이") ||
         m.text.includes("상담을 종료하시려면")
       ) {
-        const actionsDiv = document.createElement("div");
-        actionsDiv.className = "card-actions";
-
-        const btnEl = document.createElement("button");
-        btnEl.className = "card-btn";
-        btnEl.innerHTML = `
-            <div class="card-btn-icon">🛑</div>
-            <div class="card-btn-content">
-                <span class="card-btn-title">상담 종료하기</span>
-                <span class="card-btn-subtitle">대화를 지금 바로 끝냅니다</span>
-            </div>
-            <div class="card-btn-arrow">›</div>
-        `;
-        btnEl.onclick = () => handleEndSessionAction(sess.id);
+        const btnEl = createCardButton(
+          "🛑",
+          "상담 종료하기",
+          "대화를 지금 바로 끝냅니다",
+          () => handleEndSessionAction(sess.id)
+        );
         actionsDiv.appendChild(btnEl);
-        contentWrapper.appendChild(actionsDiv);
+        hasButton = true;
       }
 
-      // 상황 2: 종료 메시지
+      // [기존] 상황 2: 종료 메시지 (재시작 유도)
       if (
         m.text.includes("상담이 종료되었습니다") ||
         m.text.includes("상담 재시작")
       ) {
-        const actionsDiv = document.createElement("div");
-        actionsDiv.className = "card-actions";
-
-        const btnEl = document.createElement("button");
-        btnEl.className = "card-btn";
-        btnEl.innerHTML = `
-            <div class="card-btn-icon">🔄</div>
-            <div class="card-btn-content">
-                <span class="card-btn-title">상담 재시작하기</span>
-                <span class="card-btn-subtitle">이어서 계속 대화합니다</span>
-            </div>
-            <div class="card-btn-arrow">›</div>
-        `;
-        btnEl.onclick = () => handleRestartSessionAction(sess.id);
+        const btnEl = createCardButton(
+          "🔄",
+          "상담 재시작하기",
+          "이어서 계속 대화합니다",
+          () => handleRestartSessionAction(sess.id)
+        );
         actionsDiv.appendChild(btnEl);
+        hasButton = true;
+      }
+
+      // [⭐ 신규] 상황 3: 변호사 추천 요청 응답 감지
+      // main.py의 Special Scenario 멘트를 감지합니다.
+      if (
+        m.text.includes("변호사님들이 등록되어 있습니다") ||
+        m.text.includes("상담 내용 요약 리포트")
+      ) {
+        // 버튼 1: 변호사 추천
+        const btnLawyer = createCardButton(
+          "⚖️",
+          "변호사 추천 보기",
+          "내 상황에 딱 맞는 전문가 찾기",
+          () => handleRecommendLawyerAction() // 하단에 함수 정의 필요
+        );
+        actionsDiv.appendChild(btnLawyer);
+
+        // 버튼 2: 상담 요약하기 (실제 기능은 상담 종료 및 리포트 생성)
+        const btnReport = createCardButton(
+          "📝",
+          "상담 요약하기",
+          "지금까지의 대화를 리포트로 저장",
+          () => handleSummaryAndDownloadAction(sess.id)
+        );
+        actionsDiv.appendChild(btnReport);
+
+        hasButton = true;
+      }
+
+      // 버튼이 하나라도 생성되었다면 래퍼에 추가
+      if (hasButton) {
         contentWrapper.appendChild(actionsDiv);
       }
     }
@@ -443,9 +551,53 @@ export function renderChat() {
     msgs.appendChild(div);
   });
 
-  msgs.scrollTop = msgs.scrollHeight;
+  // [수정 2] 스크롤 위치 결정 (스마트 스크롤)
+  if (isNearBottom) {
+    // 이전에 바닥을 보고 있었다면(혹은 첫 로딩) -> 맨 아래로
+    msgs.scrollTop = msgs.scrollHeight;
+  } else {
+    // 이전에 위쪽을 보고 있었다면 -> 읽던 위치 유지
+    msgs.scrollTop = prevScrollTop;
+  }
+
   renderRecents();
-  startPolling(); // 폴링 시작 확인
+  startPolling();
+}
+
+// --------------------------------------------------------
+// [Helper] 버튼 HTML 중복 제거를 위한 헬퍼 함수 (추가 권장)
+// --------------------------------------------------------
+function createCardButton(icon, title, subtitle, onClickHandler) {
+  const btnEl = document.createElement("button");
+  btnEl.className = "card-btn";
+  btnEl.innerHTML = `
+      <div class="card-btn-icon">${icon}</div>
+      <div class="card-btn-content">
+          <span class="card-btn-title">${title}</span>
+          <span class="card-btn-subtitle">${subtitle}</span>
+      </div>
+      <div class="card-btn-arrow">›</div>
+  `;
+  btnEl.onclick = onClickHandler;
+  return btnEl;
+}
+
+// --------------------------------------------------------
+// [Action Handlers] 하단에 추가
+// --------------------------------------------------------
+
+// [신규] 변호사 추천 페이지 이동 핸들러
+function handleRecommendLawyerAction() {
+  // 실제 변호사 추천 페이지 URL로 이동하거나 모달을 띄우세요.
+  // 예시: 변호사 리스트 페이지로 이동
+  const lawyerPageLink = document.getElementById("lawyerPage"); // 네비게이션용 요소가 있다면
+  if (lawyerPageLink) {
+    // SPA 방식 이동 (프로젝트 구조에 맞춰 수정하세요)
+    // showPage(lawyerPageLink);
+    alert("변호사 추천 페이지로 이동합니다. (기능 연결 필요)");
+  } else {
+    window.location.href = "/lawyer-match"; // 혹은 실제 URL
+  }
 }
 
 // 전송
@@ -461,8 +613,8 @@ export async function handleSend(e) {
     if (!success) return;
   }
 
-  await addMessage("user", text);
   input.value = "";
+  await addMessage("user", text);
 }
 
 // [추가] 상담 종료 핸들러
@@ -488,5 +640,34 @@ async function handleRestartSessionAction(sessionId) {
   } catch (err) {
     console.error(err);
     showToast("상담 재시작 실패", "error");
+  }
+}
+
+// 2. [⭐ 신규 추가] '상담 요약하기' 버튼용 (종료 + 자동 다운로드)
+async function handleSummaryAndDownloadAction(sessionId) {
+  if (!confirm("상담을 종료하고 요약 리포트를 PDF로 저장하시겠습니까?")) return;
+
+  try {
+    // (1) 상담 종료 요청 (서버에서 요약 생성 및 저장)
+    await endSession(sessionId);
+    showToast("상담 요약본 생성 중...", "info");
+
+    // (2) 최신 데이터(요약 포함)를 서버에서 다시 불러옴
+    await loadInitialData();
+
+    // (3) 갱신된 세션 데이터로 PDF 다운로드 실행
+    const updatedSession = state.sessions[sessionId];
+    if (updatedSession) {
+      showToast("PDF 다운로드를 시작합니다.", "success");
+      // 데이터 로딩 시간 고려하여 약간의 딜레이 후 실행
+      setTimeout(() => {
+        downloadChatPdf(updatedSession);
+      }, 500);
+    } else {
+      showToast("데이터를 불러오지 못해 다운로드에 실패했습니다.", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("요약 및 다운로드 처리 실패", "error");
   }
 }

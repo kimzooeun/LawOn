@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>변호사 관리 | 토닥토닥이 어드민</title>
+  <title>변호사 관리 | LawON ADMIN</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/black.png?v=2">
   <link rel="stylesheet" href="/admin/css/lawyers.css" />
   <link rel="stylesheet" href="/admin/css/admin.css?v=1">
@@ -24,8 +24,8 @@
       <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
       <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
       <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
-      <button id="logoutBtn">로그아웃</button>
       </div>
+      <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
   </header>
 
@@ -34,31 +34,31 @@
     <section class="lawyer-register">
       <h2>👨‍⚖️ 새 변호사 등록</h2>
         <form id="lawyerForm" class="lawyer-form">
-
-        <input type="text" id="name" placeholder="이름" required>
-
-        <select id="gender" required>
-          <option value="">성별 선택</option>
-          <option value="남">남</option>
-          <option value="여">여</option>
-        </select>
-
-        <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
-
-        <textarea id="description" placeholder="소개글" required></textarea>
-
-        <input type="text" id="office" placeholder="사무실명" required>
-
-        <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
-
-        <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
-
-        <!-- 이미지 업로드 추가 -->
-        <label>프로필 이미지</label>
-        <input type="file" id="imageFile">
-
-        <button type="submit">등록</button>
-      </form>
+          <!-- 첫 번째 줄 -->
+          <input type="text" id="name" placeholder="이름" required>
+          
+          <select id="gender" required>
+            <option value="">성별 선택</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
+          
+          <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
+          
+          <!-- 소개글은 전체 너비 -->
+          <textarea id="description" placeholder="소개글" required></textarea>
+          
+          <!-- 두 번째 줄: 한 줄로 배치 -->
+          <input type="text" id="office" placeholder="사무실명" required>
+          
+          <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
+          
+          <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
+          
+          <input type="file" id="imageFile">
+          
+          <button type="submit">등록</button>
+        </form>
 
     </section>
 
@@ -90,7 +90,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="6" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>
+            <tr><td colspan="9" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>
           </tbody>
         </table>
       </div>
@@ -98,7 +98,7 @@
   </main>
 
   <footer class="admin-footer">
-    © 2025 TodakTodak Admin Panel
+    © 2025 LawON ADMIN Panel
   </footer>
 
   <script type="module" src="../../src/js/token.js"></script>
@@ -107,6 +107,6 @@
   <!-- 3) 마지막에 페이지 스크립트 실행 -->
   <script type="module" src="../js/lawyers.js"></script>
   <script type="module" src="../js/admin-logout.js"></script>
-
+  
 </body>
 </html>

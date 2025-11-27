@@ -53,10 +53,12 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
 			CustomAuthenticationFilter customLoginFilter) throws Exception {
 		String[] cookiesToClear = { "JSESSIONID", "refreshToken" };
-		return http.csrf((csrf) -> csrf.disable()).cors(cors -> cors.configurationSource(request -> {
+		return http
+				.csrf((csrf) -> csrf.disable())
+				.cors(cors -> cors.configurationSource(request -> {
 			var config = new org.springframework.web.cors.CorsConfiguration();
 			config.setAllowedOrigins(List.of("http://localhost:3000", frontendUrl)); // 프론트 주소
-			config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+			config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 			config.setAllowCredentials(true);
 			config.setAllowedHeaders(List.of("*"));
 			config.setExposedHeaders(List.of("Authorization"));
@@ -79,11 +81,15 @@ public class SecurityConfig {
 						oauth2 -> oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(oauth2SuccessHandler).failureHandler(oauth2FailureHandler))
 				.logout(logout -> logout.disable())
-				.authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests.requestMatchers("/api/auth/**")
-						.permitAll().requestMatchers(HttpMethod.OPTIONS, "/api/admin/lawyers/upload").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").permitAll()
-						.requestMatchers("/api/admin/**").hasRole("ADMIN").requestMatchers("/admin/**").permitAll()
-						.requestMatchers(PERMIT_URL).permitAll().requestMatchers("/auth/**").authenticated() // 인증 필요
+				.authorizeHttpRequests((authorizeHttpRequests) -> 
+					    authorizeHttpRequests
+					    .requestMatchers("/api/auth/**").permitAll()
+					    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").hasRole("ADMIN")
+						.requestMatchers("/api/admin/**").hasRole("ADMIN")
+						.requestMatchers("/admin/**").permitAll()
+						.requestMatchers(PERMIT_URL).permitAll()
+						.requestMatchers("/auth/**").authenticated() // 인증 필요
 						.anyRequest().authenticated())
 				.authenticationProvider(authenticationProvider())
 				// API 요청이 들어올 때마다 JWT 토큰을 검증할 커스텀 필터 => JwtAuthenticationFilter

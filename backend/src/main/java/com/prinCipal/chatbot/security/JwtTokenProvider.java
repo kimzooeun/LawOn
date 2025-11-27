@@ -1,8 +1,7 @@
 package com.prinCipal.chatbot.security;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
+
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,12 +18,11 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.prinCipal.chatbot.security.MemberDetailService;
 import com.prinCipal.chatbot.counsel.SessionService;
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
@@ -89,9 +87,9 @@ public class JwtTokenProvider {
 			throw new IllegalArgumentException("지원하지 않는 principal 타입: " + principal.getClass());
 		}
 
-		return Jwts.builder().id(UUID.randomUUID().toString()) // 토큰 고유 식별자 -> JTI 부여
+		return Jwts.builder() 
 				.subject(nickname).claim("auth", authorities).issuedAt(new Date()).expiration(validity)
-				.id(UUID.randomUUID().toString())
+				.id(UUID.randomUUID().toString())  // 토큰 고유 식별자 -> JTI 부여
 				.signWith(this.getSigningKey()).compact();
 	}
 
@@ -121,7 +119,6 @@ public class JwtTokenProvider {
 
 		return Jwts.builder().id(UUID.randomUUID().toString()).subject(nickname).claim("auth", authorities)
 				.issuedAt(new Date()).expiration(validity)
-				.id(UUID.randomUUID().toString())
 				.signWith(this.getSigningKey()).compact();
 	}
 
@@ -173,24 +170,27 @@ public class JwtTokenProvider {
 
 	// Refresh Token이 곧 만료될지 체크해서, 필요하면 새 토큰을 발급할지 결정
 	public boolean isRefreshTokenExpiringSoon(String refreshToken) {
+		if (refreshToken == null) return false;
 		// JWT 토큰은 Payload에 exp 클레임이 있어서 만료 시간을 알 수있음
+		Claims claims;
 		try {
-			Claims claims = Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(refreshToken)
+			claims = Jwts.parser()
+					.verifyWith(this.getSigningKey())
+					.build()
+					.parseSignedClaims(refreshToken)
 					.getPayload(); // Payload에 실제 Claims 객체 포함
-
-			Date expiration = claims.getExpiration();
-			Date now = new Date();
-
-			// 만료 1일 이내면 "곧 만료"로 판단
-			long expired = 24 * 60 * 60 * 1000L;
-			// true => 남은시간이 expired보다 작다 (곧 만료된다)
-			// false => 남은시간이 expired보다 크다 (만료될려면 아직 멀었다)
-			return expiration.getTime() - now.getTime() < expired;
-
 		} catch (JwtException e) {
-			// 토큰 파싱 실패시, 안전하게 true로 처리해 새로운 토큰 발급
-			return true;
+			return false;
 		}
+		Date expiration = claims.getExpiration();
+		Date now = new Date();
+
+		// 만료 1일 이내면 "곧 만료"로 판단
+		long expired = 24 * 60 * 60 * 1000L;
+		// true => 남은시간이 expired보다 작다 (곧 만료된다)
+		// false => 남은시간이 expired보다 크다 (만료될려면 아직 멀었다)
+		return expiration.getTime() - now.getTime() < expired;
+
 	}
 
 	public String getUsernameFromToken(String refreshToken) {

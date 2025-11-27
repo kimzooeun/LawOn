@@ -1,5 +1,3 @@
-import { TokenManager } from '../../src/js/token.js';
-
 // 변호사 등록 / 수정 / 삭제 / 실시간 검색
 const API_BASE = "/api/admin/lawyers";
 
@@ -10,40 +8,64 @@ const searchInput = document.getElementById("searchLawyer");
 
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
+let currentImageUrl = null;  // 현재 편집 중인 변호사의 기존 이미지 URL
 
-// 이미지 업로드 함수 (수정)
-async function uploadImage() {
-  const file = document.getElementById("imageFile").files[0];
-  if (!file) return null;
 
-  // 토큰 가져오기, 유효성 검사 
-  const token = TokenManager.getAccessToken();
-
-  const formData = new FormData();
-  formData.append("image", file);
-
-  const res = await fetch(`${API_BASE}/upload`, {
-    method: "POST",
-    headers: {
-    Authorization: `Bearer ${token}`
-    },
-    body: formData
+// 변호사 이미지 Presigned URL 요청 
+async function getPresignedUrl(file) {
+  const res = await fetch(`/api/admin/lawyers/upload?fileName=${file.name}&contentType=${file.type}`,{
+    method: "POST"
   });
-
-  // 래퍼가 1차로 401을 걸러주지만,
-  // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요
-  if (!res.ok) {
-    throw new Error(`이미지 업로드 실패: ${res.status}`);
-  }
-
   return await res.text();
 }
+
+// 프론트쪽에서 S3에 직접 업로드 (put)
+async function uploadToS3(presignedUrl,file) {
+  await fetch(presignedUrl, {
+    method: "PUT",
+    headers:{
+      "Content-Type": file.type
+    },
+    body:file
+  });
+}
+
+// S3 업로드 후 최종 이미지 주소 만들기
+function toCloudFrontUrl(presignedUrl) {
+  const { pathname } = new URL(presignedUrl);
+  return `https://dalx21vo2yqen.cloudfront.net${pathname}`;
+}
+
+
+// 이미지 업로드 함수
+async function uploadImage() {
+  let file = document.getElementById("imageFile").files[0];
+  if (!file) return null;
+
+  const presignedUrl = await getPresignedUrl(file);
+
+  await uploadToS3(presignedUrl,file);
+  return toCloudFrontUrl(presignedUrl); // DB 저장용 CloudFront URL
+}
+
+
+
 
 //   등록 & 수정
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  
+  const fileInput = document.getElementById("imageFile");
+  const hasNewFile = fileInput && fileInput.files && fileInput.files[0];
 
-  const imageUrl = await uploadImage(); // 이미지 업로드 먼저 수행
+  let imageUrl = currentImageUrl; // 기본값 = 기존 이미지
+
+  // 신규 등록일 때는 currentImageUrl가 항상 null
+  if (hasNewFile) {
+    // 새 파일이 있으면 S3 업로드 후 URL 교체
+    imageUrl = await uploadImage();
+  }
+
 
   const lawyer = {
     name: document.getElementById("name").value,
@@ -53,7 +75,7 @@ form.addEventListener("submit", async (e) => {
     office: document.getElementById("office").value,
     officeLocation: document.getElementById("officeLocation").value,
     contact: document.getElementById("contact").value,
-    imageUrl: imageUrl
+    imageUrl: imageUrl   // 새 이미지 or 기존 이미지 or null
   };
 
   try {
@@ -66,8 +88,8 @@ form.addEventListener("submit", async (e) => {
         body: JSON.stringify(lawyer),
       });
     } else {
-      // ➕ 신규 등록
-      res = await fetch(API_BASE, {
+      // 신규 등록
+      res = await fetch('/api/admin/lawyers', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(lawyer),
@@ -80,6 +102,7 @@ form.addEventListener("submit", async (e) => {
 
     form.reset();
     editingId = null;
+    currentImageUrl = null; // 초기화
     resetSubmitButton();
     loadLawyers();
   } catch (err) {
@@ -91,13 +114,13 @@ form.addEventListener("submit", async (e) => {
 // 전체 목록 불러오기
 async function loadLawyers() {
   try {
-    const res = await fetch(API_BASE);
+    const res = await fetch('/api/admin/lawyers');
     const data = await res.json();
     allLawyers = data;
     renderTable(allLawyers);
   } catch (err) {
     console.error(err);
-    tableBody.innerHTML = `<tr><td colspan="8">데이터를 불러올 수 없습니다.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9">데이터를 불러올 수 없습니다.</td></tr>`;
   }
 }
 
@@ -125,15 +148,15 @@ searchInput.addEventListener("input", (e) => {
 // 테이블 렌더링
 function renderTable(list) {
   if (!list.length) {
-    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>`;
     return;
   }
 
   tableBody.innerHTML = list.map(l => `
     <tr data-id="${l.id}">
       <td>
-      ${lawyer.imageUrl 
-        ? `<img src="${lawyer.imageUrl}" class="lawyer-thumb">`
+      ${l.imageUrl 
+        ? `<img src="${l.imageUrl}" class="lawyer-thumb">`
         : `<div class="no-image">없음</div>`
       }
       </td>
@@ -169,6 +192,13 @@ function renderTable(list) {
       const id = e.target.dataset.id;
       const lawyer = list.find(l => l.id == id);
       fillFormForEdit(lawyer);
+
+      // 🔼 수정 버튼 누르면 페이지 맨 위로 스크롤
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
     });
   });
 }
@@ -184,6 +214,13 @@ function fillFormForEdit(lawyer) {
   document.getElementById("contact").value = lawyer.contact;
 
   editingId = lawyer.id;
+  currentImageUrl = lawyer.imageUrl || null;  
+
+   // 파일 인풋 초기화 (수정 들어갈 때 이전 선택 파일 남아있지 않도록)
+  const fileInput = document.getElementById("imageFile");
+  if (fileInput) {
+    fileInput.value = "";
+  }
 
   const submitBtn = document.querySelector("#lawyerForm button[type='submit']");
   submitBtn.textContent = "✏️ 수정 완료";

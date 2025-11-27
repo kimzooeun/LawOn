@@ -87,18 +87,22 @@ button {
 
 /* 네비 링크 */
 .admin-nav a {
-  color: var(--text-color);
+  color: #fff;
   font-weight: 500;
-  padding: 6px 10px;
+  padding: 10px 10px;        /* 사이즈 동일 */
   border-radius: 6px;
-  transition: 0.2s ease;
   background-color: #ff4da0;
   text-decoration: none !important;
+
+  display: inline-flex;     /* 버튼처럼 동작 */
+  align-items: center;      /* 텍스트 수직 정렬 */
+  line-height: 1;           /* 높이 불필요한 증가 제거 */
+  font-size: 14px;          /* 버튼과 동일 폰트로 맞추기 (옵션) */
 }
 
 /* hover만 별도로 유지 */
 .admin-nav a:hover {
-  background: #e74393;
+  color: #e74393;
   transform: translateY(-2px);
 }
 
@@ -115,7 +119,7 @@ button {
   color: #fff;
   border-radius: 6px;
   padding: 8px 14px;
-  font-weight: 600;
+  font-weight: 500;
   transition: 0.2s ease;
 }
 
@@ -164,7 +168,7 @@ input:focus, select:focus {
 
 /* 공통 버튼 */
 .btn {
-  background-color: var(--primary-color);
+  
   color: #fff;
   border-radius: 8px;
   padding: 10px 16px;
@@ -196,7 +200,6 @@ input:focus, select:focus {
 }
 
 .page-buttons button {
-  background: #ff4da0;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -323,7 +326,6 @@ tr:hover {
 .sub-btn:hover {
   background-color: #d3e3ff;
 }
-
 
 /* 네비바 클릭(active/focus/visited) 색 변화 제거 */
 .admin-nav a,

@@ -37,6 +37,18 @@ async function initMicStream() {
   });
 }
 
+
+async function blobToBase64(blob) {
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+
 async function startRecording() {
   try {
     if (isRecording) {
@@ -65,17 +77,20 @@ async function startRecording() {
         }
         
         const mime = chosenMime || "audio/webm";
-
         const blob = new Blob(audioChunks, { type: mime });
 
+        const file = new File([blob], "speech", { type: blob.type });
         const fd = new FormData();
         // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
-        fd.append("audio_file", blob, "speech.webm"); 
+        fd.append("audio_file", file);
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch("/fastapi/stt", { method: "POST", body: fd});
-        
+        const res = await fetch("/api/stt-proxy", {
+          method: "POST",
+          body: fd
+        });
+
         if (!res.ok) {
           // 서버에서 오류 메시지가 있다면 가져와서 출력
           let errorText = `STT HTTP ${res.status}`;
@@ -114,7 +129,6 @@ async function startRecording() {
 
     mediaRecorder.start();
     activeMicBtn?.classList.add("recording");
-    activeMicBtn.textContent = "⏺";
     activeMicBtn.title = "녹음 중지";
     showToast("🎙 녹음 시작", "info", 1200);
   } catch (err) {
@@ -135,7 +149,6 @@ function cleanupRecording() {
   isRecording = false;
   if (activeMicBtn) {
     activeMicBtn.classList.remove("recording");
-    activeMicBtn.textContent = "🎙";
     activeMicBtn.title = "음성 입력";
   }
   activeMicBtn = null;

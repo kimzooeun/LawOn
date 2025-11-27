@@ -22,8 +22,8 @@
       <a href="/admin/user" class="nav-link">👥 회원 관리</a>
       <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
       <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
-      <button id="logoutBtn">로그아웃</button>
       </div>
+      <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
   </header>
 
@@ -53,13 +53,13 @@
   </main>
 
   <footer class="admin-footer">
-    © 2025 TodakTodak Admin Panel
+    © 2025 LawON ADMIN Panel
   </footer>
  
   <!-- 1) TokenManager 먼저 로드 -->
   <script type="module" src="/src/js/token.js"></script>
   <!-- 2) 관리자용 fetch 인터셉트 적용 -->
-  <script type="module" src="/admin/js/tokenApi_Admin.js"></script>
+  <script type="module" src="../js/tokenApi_Admin.js"></script>
   <!-- 3) 마지막에 페이지 스크립트 실행 -->
   <script type="module" src="/admin/js/settings.js"></script>
   <script type="module" src="/admin/js/admin-logout.js"></script>

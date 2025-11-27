@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequestMapping("/api/admin/lawyers")
@@ -12,45 +12,43 @@ import org.springframework.web.multipart.MultipartFile;
 public class LawyerAdminController {
 
 	private final LawyerService lawyerService;
-	private final S3Uploader s3Uploader;
+	private final S3PreSignedService s3PresignedService;
 	
-	/* 전체 변호사 조회 */
+	// 전체 변호사 조회 
 	@GetMapping
 	public ResponseEntity<List<Lawyer>> getAllLawyers() {
 		return ResponseEntity.ok(lawyerService.getAllLawyers());
 	}
 
-	/* 변호사 등록 */
+	// 변호사 등록 
 	@PostMapping
 	public ResponseEntity<Lawyer> addLawyer(@RequestBody Lawyer lawyer) {
 		System.out.println("변호사 등록 요청: " + lawyer.getName());
 		return ResponseEntity.ok(lawyerService.addLawyer(lawyer));
 	}
 
-	/* 변호사 정보 수정 */
+	//  변호사 정보 수정 
 	@PutMapping("/{id}")
 	public ResponseEntity<Lawyer> updateLawyer(@PathVariable Long id, @RequestBody Lawyer updatedLawyer) {
 		return ResponseEntity.ok(lawyerService.updateLawyer(id, updatedLawyer));
 	}
 
-	/* 변호사 삭제 */
+	// 변호사 삭제 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteLawyer(@PathVariable Long id) {
 		lawyerService.deleteLawyer(id);
 		return ResponseEntity.noContent().build();
 	}
 
-	/* 이미지 업로드 */
+	// 이미지 업로드 
 	@PostMapping("/upload")
-	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) {
+	public ResponseEntity<String> uploadImage(@RequestParam String fileName, @RequestParam String contentType) {
 		try {
-			String imageUrl = s3Uploader.upload(file,"lawyers");
-			return ResponseEntity.ok(imageUrl);
+			String url = this.s3PresignedService.generateUploadUrl(fileName, contentType);
+			return ResponseEntity.ok(url);
 		} catch (Exception e) {
 			e.printStackTrace();  
 		    throw e;
-			// return ResponseEntity.status(500).body("변호사 이미지 업로드 실패");
-		}
+		}    
 	}
-
 }
