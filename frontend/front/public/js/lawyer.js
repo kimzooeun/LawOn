@@ -160,22 +160,6 @@ function card(item) {
   // 3. 메타 정보 구성
   meta.innerHTML = "";
 
-  // (1) 주소 (전화번호 텍스트는 삭제 -> 버튼으로 대체)
-  if (item.address) {
-    const row = document.createElement("div");
-    // 아이콘 추가로 시각적 포인트
-    row.innerHTML = `<span style="margin-right:4px;">📍</span>${item.address}`;
-
-    // 스타일: 회색조, 약간 작게
-    row.style.fontSize = "0.9em";
-    row.style.color = "#777";
-    row.style.marginBottom = "8px";
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-
-    meta.appendChild(row);
-  }
-
   // (2) 태그 (뱃지 스타일)
   if (Array.isArray(item.tags) && item.tags.length > 0) {
     const tagRow = document.createElement("div");
