@@ -68,6 +68,7 @@ function processLawyerData(dbList) {
     const lawyer = {
       id: item.id,
       name: item.name,
+      gender: item.gender || "", // [추가] 성별 데이터 저장
       officeName: rawOfficeName,
       tags: rawTag ? [rawTag] : [],
       phone: item.contact,
@@ -203,7 +204,7 @@ function card(item) {
   aCopy.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(item.address || "");
-      aCopy.textContent = "복사됨!";
+      aCopy.textContent = "복사 완료";
       setTimeout(() => (aCopy.textContent = "주소복사"), 1200);
     } catch (e) {
       console.error("클립보드 복사 실패:", e);
@@ -279,10 +280,18 @@ export function render() {
 // CSV 내보내기 (한글 헤더 적용)
 function toCSV(rows) {
   // 1) 엑셀 첫 줄에 들어갈 한글 제목
-  const krHeader = ["지역", "이름", "소속", "전화번호", "주소", "비고"];
+  const krHeader = ["지역", "이름", "성별", "소속", "전화번호", "주소", "비고"];
 
   // 2) 데이터 객체에서 꺼낼 키 (순서 일치 필수)
-  const keys = ["region", "name", "officeName", "phone", "address", "note"];
+  const keys = [
+    "region",
+    "name",
+    "gender",
+    "officeName",
+    "phone",
+    "address",
+    "note",
+  ];
 
   // 헤더 추가
   const lines = [krHeader.join(",")];
@@ -292,10 +301,7 @@ function toCSV(rows) {
     const vals = keys.map((k) => {
       let val = r[k];
 
-      // 태그 배열이나 null 값 처리
       const v = Array.isArray(val) ? val.join("|") : val ?? "";
-
-      // 쉼표/따옴표가 포함된 내용이 깨지지 않게 따옴표로 감싸기
       return '"' + String(v).replaceAll('"', '""') + '"';
     });
     lines.push(vals.join(","));
