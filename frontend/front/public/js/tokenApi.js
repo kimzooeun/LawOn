@@ -33,6 +33,7 @@ window.fetch = async(url, options = {}) => {
 	if(accessToken && !isSkipAuth)  options.headers['Authorization'] = `Bearer ${accessToken}`;	
 	options.credentials = "include";  // refreshToken 쿠키 자동 전송
 
+	console.log(url);
 	let res = await originalFetch(`${url}`, options);
 
 
