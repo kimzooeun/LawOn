@@ -57,9 +57,12 @@ async function uploadToS3(presignedUrl,file) {
     },
     body:file
   });
+}
 
-  // S3 업로드는 presigned URL의 쿼리스트링 제거한 URL이 최종 이미지 주소
-  return presignedUrl.split("?")[0]; // 실제 이미지 접근 URL 추출
+// S3 업로드 후 최종 이미지 주소 만들기
+function toCloudFrontUrl(presignedUrl) {
+  const { pathname } = new URL(presignedUrl);
+  return `https://dalx21vo2yqen.cloudfront.net${pathname}`;
 }
 
 
@@ -71,9 +74,11 @@ async function uploadImage() {
 
   const presignedUrl = await getPresignedUrl(file);
 
-  const imageUrl = await uploadToS3(presignedUrl,file);
-  return imageUrl; // DB 저장할 URL
+  await uploadToS3(presignedUrl,file);
+  return toCloudFrontUrl(presignedUrl); // DB 저장용 CloudFront URL
 }
+
+
 
 
 //   등록 & 수정
