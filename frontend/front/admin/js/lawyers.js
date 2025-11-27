@@ -39,34 +39,51 @@ function resizeImage(file) {
 }
 
 
+
+// 변호사 이미지 Presigned URL 요청 
+async function getPresignedUrl(file) {
+  const res = await fetch(`/api/admin/lawyers/upload?fileName=${file.name}&contentType=${file.type}`,{
+    method: "POST"
+  });
+  return await res.text();
+}
+
+// 프론트쪽에서 S3에 직접 업로드 (put)
+async function uploadToS3(presignedUrl,file) {
+  await fetch(presignedUrl, {
+    method: "PUT",
+    headers:{
+      "Content-Type": file.type
+    },
+    body:file
+  });
+
+  // S3 업로드는 presigned URL의 쿼리스트링 제거한 URL이 최종 이미지 주소
+  return presignedUrl.split("?")[0]; // 실제 이미지 접근 URL 추출
+}
+
+
 // 이미지 업로드 함수
 async function uploadImage() {
   let file = document.getElementById("imageFile").files[0];
   if (!file) return null;
   file = await resizeImage(file);
   console.log(file.name, file.size);
-  const formData = new FormData();
-  formData.append("image", file);
 
-  const res = await fetch(`/api/admin/lawyers/upload`, {
-    method: "POST",
-    body: formData
-  });
+  const presignedUrl = await getPresignedUrl(file);
+  console.log(presignedUrl);
 
+  const imageUrl = await uploadToS3(presignedUrl,file);
+  console.log(imageUrl);
 
-  // 래퍼가 1차로 401을 걸러주지만,
-  // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요
-  if (!res.ok) {
-    throw new Error(`이미지 업로드 실패: ${res.status}`);
-  }
-
-  return await res.text();
+  return imageUrl; // DB 저장할 URL
 }
+
 
 //   등록 & 수정
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-
+  
   const imageUrl = await uploadImage(); // 이미지 업로드 먼저 수행
 
   const lawyer = {
@@ -90,7 +107,7 @@ form.addEventListener("submit", async (e) => {
         body: JSON.stringify(lawyer),
       });
     } else {
-      // ➕ 신규 등록
+      // 신규 등록
       res = await fetch('/api/admin/lawyers', {
         method: "POST",
         headers: { "Content-Type": "application/json" },

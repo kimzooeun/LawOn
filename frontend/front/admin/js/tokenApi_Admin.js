@@ -5,6 +5,11 @@ const originalFetch = window.fetch;
 const skipAuth = ["/api/login", "/api/refresh"];   // 관리자 로그인, 리프레시
 
 window.fetch = async (url, options = {}) => {
+  // S3 prsigned 또는 외부 요청은 전역 인터셉터 제외  
+  if(typeof url === "string" && url.startsWith("https://")){
+    return await originalFetch(url, options);
+  }
+
   const isSkip = skipAuth.some((p) => url.includes(p));
   let token = TokenManager.getAccessToken();
 
@@ -22,7 +27,6 @@ window.fetch = async (url, options = {}) => {
     options.headers["Authorization"] = `Bearer ${token}`;
     
   }
-
 
   let res = await originalFetch(`${url}`, options);     
   console.log(url);
