@@ -89,9 +89,9 @@ public class JwtTokenProvider {
 			throw new IllegalArgumentException("지원하지 않는 principal 타입: " + principal.getClass());
 		}
 
-		return Jwts.builder().id(UUID.randomUUID().toString()) // 토큰 고유 식별자 -> JTI 부여
+		return Jwts.builder() 
 				.subject(nickname).claim("auth", authorities).issuedAt(new Date()).expiration(validity)
-				.id(UUID.randomUUID().toString())
+				.id(UUID.randomUUID().toString())  // 토큰 고유 식별자 -> JTI 부여
 				.signWith(this.getSigningKey()).compact();
 	}
 
@@ -121,7 +121,6 @@ public class JwtTokenProvider {
 
 		return Jwts.builder().id(UUID.randomUUID().toString()).subject(nickname).claim("auth", authorities)
 				.issuedAt(new Date()).expiration(validity)
-				.id(UUID.randomUUID().toString())
 				.signWith(this.getSigningKey()).compact();
 	}
 

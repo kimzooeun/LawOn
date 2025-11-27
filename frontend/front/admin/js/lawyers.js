@@ -54,11 +54,6 @@ async function uploadImage() {
   });
 
 
-
-  console.log("백엔드로 이미지 사진 요청 보냄 !!!");
-
-
-
   // 래퍼가 1차로 401을 걸러주지만,
   // 500 에러 등 다른 서버 에러에 대한 방어 코드는 여전히 필요
   if (!res.ok) {
@@ -96,7 +91,7 @@ form.addEventListener("submit", async (e) => {
       });
     } else {
       // ➕ 신규 등록
-      res = await fetch(API_BASE, {
+      res = await fetch('/api/admin/lawyers', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(lawyer),
@@ -120,7 +115,7 @@ form.addEventListener("submit", async (e) => {
 // 전체 목록 불러오기
 async function loadLawyers() {
   try {
-    const res = await fetch(API_BASE);
+    const res = await fetch('/api/admin/lawyers');
     const data = await res.json();
     allLawyers = data;
     renderTable(allLawyers);
