@@ -62,7 +62,7 @@ async function uploadToS3(presignedUrl,file) {
 // S3 업로드 후 최종 이미지 주소 만들기
 function toCloudFrontUrl(presignedUrl) {
   const { pathname } = new URL(presignedUrl);
-  return `blob:https://dalx21vo2yqen.cloudfront.net${pathname}`;
+  return `https://dalx21vo2yqen.cloudfront.net${pathname}`;
 }
 
 
