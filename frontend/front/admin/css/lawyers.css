@@ -181,7 +181,6 @@
 #lawyerTable td {
   padding: 14px 12px;
   border-bottom: 1px solid #e6e6e6;
-  text-align: left;
 }
 
 #lawyerTable th {
@@ -189,6 +188,11 @@
   color: #333;
   font-weight: 600;
   font-size: 0.95em;
+  text-align: center;
+}
+
+#lawyerTable td {
+  text-align: left;
 }
 
 #lawyerTable tbody tr {
