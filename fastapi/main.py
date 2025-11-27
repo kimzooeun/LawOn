@@ -734,7 +734,7 @@ async def stt_endpoint(audio_file: UploadFile = File(...)):
 class TTSRequest(BaseModel):
     text: str
 
-@app.post("/tts")
+@app.post("/fastapi/tts")
 async def tts_endpoint(req: TTSRequest):
     try:
         speech = client.audio.speech.create(
