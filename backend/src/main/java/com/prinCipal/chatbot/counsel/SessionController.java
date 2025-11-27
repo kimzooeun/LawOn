@@ -31,7 +31,7 @@ import com.prinCipal.chatbot.member.Member;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import org.springframework.data.redis.core.StringRedisTemplate; //1. Redis 템플릿 임포트
 import com.fasterxml.jackson.databind.ObjectMapper;//2. JSON 변환기 임포트
-
+import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,8 +41,9 @@ public class SessionController {
 
 	private final SessionService sessionService;
 	private final StringRedisTemplate stringRedisTemplate;
-  private final ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
 
+	
 	/* 1. 초기 데이터 로드 (GET /api/chats) */
 	 
 	@GetMapping("/chats")
@@ -188,26 +189,5 @@ public class SessionController {
     }
 	
     
-    @PostMapping(value = "/stt-proxy", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> sttProxy(@RequestParam("audio_file") MultipartFile file) {
-        try {
-            System.out.println("stt 쪽 들어오나요??????????????????????????");
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("audio_file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
-
-            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            RestTemplate rt = new RestTemplate();
-
-            ResponseEntity<String> fastapiRes =
-                rt.postForEntity("http://finalproject-fastapi:8000/fastapi/stt", requestEntity, String.class);
-
-            return ResponseEntity.ok(fastapiRes.getBody());
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Spring Proxy Error: " + e.getMessage());
-        }
-    }
+    
 }
