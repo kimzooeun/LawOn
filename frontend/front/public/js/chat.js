@@ -408,7 +408,7 @@ export function renderRecents() {
 export function renderChat() {
   const msgs = qs("#messages");
 
-  // 스크롤 위치 계산 (기존 로직 유지)
+  // 스크롤 위치 계산
   const threshold = 100;
   const isNearBottom =
     msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + threshold;
@@ -417,7 +417,7 @@ export function renderChat() {
   msgs.innerHTML = "";
   const sess = current();
 
-  // 1. 빈 화면 처리 (기존 로직 유지)
+  // 1. 빈 화면 처리
   if (!sess || !sess.messages.length) {
     const nick = (localStorage.getItem("todak_nickname") || "게스트").trim();
     const template = document.getElementById("emptyChatTemplate");
@@ -436,26 +436,32 @@ export function renderChat() {
   // 2. 메시지 루프 시작
   sess.messages.forEach((m) => {
     const div = document.createElement("div");
-    div.className = "msg " + (m.role === "user" ? "user" : "bot");
+
+    // [수정] 만약 추천 메시지라면 강제로 'bot' 스타일 적용 (user로 저장되어 있어도 왼쪽 배치)
+    const isRecommendation =
+      m.text && m.text.trim().startsWith(":::LAWYER_RECOMMENDATION:::");
+    const msgRole = isRecommendation
+      ? "bot"
+      : m.role === "user"
+      ? "user"
+      : "bot";
+
+    div.className = "msg " + msgRole;
 
     const contentWrapper = document.createElement("div");
     contentWrapper.style.display = "flex";
     contentWrapper.style.flexDirection = "column";
     contentWrapper.style.gap = "8px";
     contentWrapper.style.alignItems =
-      m.role === "user" ? "flex-end" : "flex-start";
+      msgRole === "user" ? "flex-end" : "flex-start";
 
     // ============================================================
-    // [CASE A] 변호사 추천 특수 메시지인 경우
+    // [CASE A] 변호사 추천 특수 메시지인 경우 (조건 완화됨)
     // ============================================================
-    if (
-      m.role === "bot" &&
-      m.text &&
-      m.text.startsWith(":::LAWYER_RECOMMENDATION:::")
-    ) {
+    if (isRecommendation) {
       try {
-        // (1) 데이터 파싱
-        const jsonPart = m.text.split(":::LAWYER_RECOMMENDATION:::")[1];
+        // (1) 데이터 파싱 (trim 처리 후 split)
+        const jsonPart = m.text.trim().split(":::LAWYER_RECOMMENDATION:::")[1];
         const lawyerList = JSON.parse(jsonPart);
 
         // (2) 안내 멘트 버블 생성
@@ -467,7 +473,7 @@ export function renderChat() {
         textP.textContent = introText;
         bubble.appendChild(textP);
 
-        // (3) [TTS 버튼 추가] - 변호사 추천 메시지에도 듣기 버튼 추가
+        // (3) TTS 버튼
         const ttsBtn = document.createElement("button");
         ttsBtn.className = "tts-btn";
         ttsBtn.title = "내용 듣기";
@@ -493,7 +499,7 @@ export function renderChat() {
 
           const name = lawyer.name;
           const office = lawyer.office || lawyer.officeName || "법률사무소";
-          // 이미지 처리
+
           const imgTag =
             (lawyer.imageUrl || lawyer.image_url || "") &&
             (lawyer.imageUrl || lawyer.image_url).startsWith("http")
@@ -502,7 +508,6 @@ export function renderChat() {
                 }" class="chat-lawyer-img">`
               : `<div class="chat-lawyer-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#999;font-size:24px;">⚖️</div>`;
 
-          // 태그 처리
           let tags = (lawyer.detailSpecialty || lawyer.detail_specialty || "")
             .split(",")
             .filter(Boolean)
@@ -513,7 +518,6 @@ export function renderChat() {
 
           card.innerHTML = `${imgTag}<div class="chat-lawyer-name">${name} 변호사</div><div class="chat-lawyer-office">${office}</div><div class="chat-lawyer-tags">${tagsHtml}</div>`;
 
-          // 클릭 시 이동
           card.onclick = () =>
             window.open(
               `/lawyer?office=${encodeURIComponent(office)}`,
@@ -524,7 +528,6 @@ export function renderChat() {
         contentWrapper.appendChild(gridDiv);
       } catch (e) {
         console.error("추천 메시지 파싱 에러", e);
-        // 에러 시 원본 텍스트라도 보여줌
         const bubble = document.createElement("div");
         bubble.className = "bubble";
         bubble.textContent = "추천 정보를 불러올 수 없습니다.";
@@ -532,7 +535,7 @@ export function renderChat() {
       }
     }
     // ============================================================
-    // [CASE B] 일반 메시지 처리 (기존 로직 유지)
+    // [CASE B] 일반 메시지 처리
     // ============================================================
     else {
       // (1) 말풍선
@@ -542,7 +545,7 @@ export function renderChat() {
       textP.textContent = m.text;
       bubble.appendChild(textP);
 
-      // [기존 TTS 버튼 로직]
+      // TTS 버튼
       if (m.role === "bot" && m.text) {
         const ttsBtn = document.createElement("button");
         ttsBtn.className = "tts-btn";
@@ -560,13 +563,12 @@ export function renderChat() {
       }
       contentWrapper.appendChild(bubble);
 
-      // (2) 카드형 버튼 (기존 로직 + 추천 버튼 트리거)
+      // (2) 카드형 버튼들
       if (m.text) {
         const actionsDiv = document.createElement("div");
         actionsDiv.className = "card-actions";
         let hasButton = false;
 
-        // 상담 종료 버튼
         if (
           m.text.includes("5분 뒤 상담이") ||
           m.text.includes("상담을 종료하시려면")
@@ -581,7 +583,6 @@ export function renderChat() {
           );
           hasButton = true;
         }
-        // 상담 재시작 버튼
         if (
           m.text.includes("상담이 종료되었습니다") ||
           m.text.includes("상담 재시작")
@@ -596,7 +597,6 @@ export function renderChat() {
           );
           hasButton = true;
         }
-        // 변호사 추천 및 요약 버튼
         if (
           m.text.includes("변호사님들이 등록되어 있습니다") ||
           m.text.includes("상담 내용 요약 리포트")
@@ -626,7 +626,6 @@ export function renderChat() {
     msgs.appendChild(div);
   });
 
-  // 스크롤 위치 복원 (기존 로직 유지)
   if (isNearBottom) {
     msgs.scrollTop = msgs.scrollHeight;
   } else {
@@ -812,87 +811,6 @@ function selectBestLawyers(dbList, session) {
   }
 
   return finalSelection.slice(0, 4); // 딱 4명만 리턴
-}
-
-// 추천 결과(그리드)를 채팅창에 붙이는 함수
-function appendLawyerGridMessage(lawyers) {
-  const msgs = document.getElementById("messages");
-
-  // 1. 봇 메시지 컨테이너 생성
-  const div = document.createElement("div");
-  div.className = "msg bot"; // 봇 스타일
-
-  const contentWrapper = document.createElement("div");
-  contentWrapper.style.display = "flex";
-  contentWrapper.style.flexDirection = "column";
-  contentWrapper.style.gap = "8px";
-  contentWrapper.style.alignItems = "flex-start";
-
-  // 2. 안내 멘트 버블
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  bubble.innerHTML =
-    "<p>고객님의 상황에 맞는 지역별 전문 변호사님들을 찾았습니다.</p>";
-  contentWrapper.appendChild(bubble);
-
-  // 3. 2x2 그리드 컨테이너
-  const gridDiv = document.createElement("div");
-  gridDiv.className = "lawyer-grid-container";
-
-  lawyers.forEach((lawyer) => {
-    // 데이터 필드 정리
-    const name = lawyer.name;
-    const office = lawyer.office || lawyer.officeName || "법률사무소";
-    const imgUrl = lawyer.imageUrl || lawyer.image_url || "";
-    // 태그: 문자열이면 배열로 변환, 최대 2개만 노출
-    let tags = (lawyer.detailSpecialty || lawyer.detail_specialty || "").split(
-      ","
-    );
-    tags = tags.filter(Boolean).slice(0, 2);
-
-    // 카드 HTML 생성
-    const card = document.createElement("div");
-    card.className = "chat-lawyer-card";
-
-    // 이미지 처리
-    if (imgUrl && imgUrl.startsWith("http")) {
-      card.innerHTML += `<img src="${imgUrl}" alt="${name}" class="chat-lawyer-img">`;
-    } else {
-      // 이미지가 없으면 기본 아이콘
-      card.innerHTML += `
-        <div class="chat-lawyer-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#999;">
-           ⚖️
-        </div>`;
-    }
-
-    // 텍스트 정보
-    let tagsHtml = tags
-      .map((t) => `<span class="chat-lawyer-tag">#${t.trim()}</span>`)
-      .join("");
-
-    card.innerHTML += `
-      <div class="chat-lawyer-name">${name} 변호사</div>
-      <div class="chat-lawyer-office">${office}</div>
-      <div class="chat-lawyer-tags">${tagsHtml}</div>
-    `;
-
-    // 클릭 시 해당 변호사 페이지로 이동 (예시 URL)
-    card.onclick = () => {
-      // lawyer.js에 있는 검색 로직을 활용하기 위해 URL 파라미터 사용 또는 새창
-      // 예: /lawyer/detail.html?id=...
-      // 여기서는 구글 검색 또는 특정 페이지로 이동시킴
-      window.open(`/lawyer?office=${encodeURIComponent(office)}`, "_blank");
-    };
-
-    gridDiv.appendChild(card);
-  });
-
-  contentWrapper.appendChild(gridDiv);
-  div.appendChild(contentWrapper);
-  msgs.appendChild(div);
-
-  // 스크롤 최하단으로
-  msgs.scrollTop = msgs.scrollHeight;
 }
 
 // 전송
