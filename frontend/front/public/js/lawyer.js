@@ -142,18 +142,18 @@ function card(item) {
   const desc = $.querySelector(".desc"); // 설명 영역
   const actions = $.querySelector(".actions");
 
-  // [수정 1] 이미지 영역(icon) 수직 중앙 정렬을 위한 스타일 강제 적용
+  // [수정 1] 이미지 영역 스타일 (세로 중앙 정렬)
   icon.innerHTML = "";
   icon.style.display = "flex";
-  icon.style.alignItems = "center"; // 세로 중앙
-  icon.style.justifyContent = "center"; // 가로 중앙
+  icon.style.alignItems = "center"; // 상하 중앙
+  icon.style.justifyContent = "center"; // 좌우 중앙
+  icon.style.height = "100%"; // ★ 중요: 높이를 꽉 채워야 중앙으로 옴
 
   if (item.url && item.url !== "#" && item.url.startsWith("https")) {
     const img = document.createElement("img");
     img.src = item.url;
     img.alt = `${item.name} 변호사`;
     img.className = "lawyer-photo";
-    // 이미지가 영역을 꽉 채우지 않고 가운데 오도록 스타일 조정
     img.style.maxWidth = "100%";
     img.style.maxHeight = "100%";
     img.style.objectFit = "cover";
@@ -168,21 +168,20 @@ function card(item) {
   title.innerHTML = `${item.name} <span style="font-size:0.75em; color:#999; font-weight:400;">${firmName}</span>`;
   title.style.marginBottom = "8px";
 
-  // [수정 2] 위치 바꾸기: 설명글(desc)을 태그(meta)보다 먼저 보여주기
-  // DOM 트리에서 desc 요소를 meta 요소 앞으로 이동시킵니다.
+  // 위치 변경 (설명글을 태그보다 먼저)
   if (desc && meta && desc.parentNode === meta.parentNode) {
     meta.parentNode.insertBefore(desc, meta);
   }
 
-  // --- 설명 (위로 올라옴) ---
+  // --- 설명 ---
   desc.textContent = item.note || "";
   desc.style.marginTop = "0px";
-  desc.style.marginBottom = "12px"; // 태그와의 간격
+  desc.style.marginBottom = "12px";
   desc.style.color = "#555";
   desc.style.fontSize = "0.95em";
   desc.style.lineHeight = "1.5";
 
-  // --- 태그 (아래로 내려감) ---
+  // --- 태그 ---
   meta.innerHTML = "";
   if (Array.isArray(item.tags) && item.tags.length > 0) {
     const tagRow = document.createElement("div");
@@ -192,10 +191,11 @@ function card(item) {
 
     item.tags.forEach((t) => {
       const tagSpan = document.createElement("span");
-      tagSpan.textContent = "#" + t; // 앞에 # 붙이기
+      tagSpan.textContent = "#" + t;
 
-      tagSpan.style.backgroundColor = "#FFF8E1";
-      tagSpan.style.color = "#8D6E63";
+      // [수정 2] 태그 색상 통일 (모든 테마에 어울리는 회색톤)
+      tagSpan.style.backgroundColor = "#f0f2f5"; // 연한 회색 배경
+      tagSpan.style.color = "#444"; // 진한 회색 글자
       tagSpan.style.padding = "4px 10px";
       tagSpan.style.borderRadius = "12px";
       tagSpan.style.fontSize = "0.8em";
@@ -235,12 +235,12 @@ function card(item) {
 
   const aCopy = document.createElement("button");
   aCopy.className = "btn small";
-  aCopy.textContent = "주소복사";
+  aCopy.textContent = "주소 복사";
   aCopy.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(item.address || "");
       aCopy.textContent = "복사 완료";
-      setTimeout(() => (aCopy.textContent = "주소복사"), 1200);
+      setTimeout(() => (aCopy.textContent = "주소 복사"), 1200);
     } catch (e) {
       console.error("클립보드 복사 실패:", e);
       if (typeof showToast === "function") {
