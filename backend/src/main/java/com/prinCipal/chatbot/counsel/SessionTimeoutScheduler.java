@@ -47,7 +47,11 @@ public class SessionTimeoutScheduler {
                 // 개별 세션마다 짧게 트랜잭션을 엽니다.
                 transactionTemplate.executeWithoutResult(status -> {
                     try {
-                        saveSystemMessage(session, "5분 뒤 상담이 자동으로 종료됩니다. 상담을 계속 하시려면 메세지를 보내주시고 ※상담을 종료하시려면 “상담 종료”를 눌러주세요.");
+                        saveSystemMessage(session,
+                            "5분 동안 메시지가 없으면 상담이 자동으로 종료됩니다.\n" +
+                            "계속 상담을 원하시면 메시지를 보내주시고,\n" +
+                            "상담을 마치고 싶으시다면 “상담 종료” 버튼을 눌러주세요.\n"
+                        );
                         
                         session.updateWarningSent(true);
                         sessionRepository.save(session);
@@ -99,8 +103,12 @@ public class SessionTimeoutScheduler {
                         }
 
                         // 2. 메시지 저장 및 상태 변경
-                        saveSystemMessage(session, "상담이 종료되었습니다. 마이페이지에서 상담 요약을 확인하실 수 있습니다. ※이어서 상담을 원하시면 “상담 재시작”을 눌러주세요.");
-                        
+                        saveSystemMessage(session,
+                            "상담이 종료되었습니다.\n" +
+                            "마이페이지에서 상담 요약을 확인하실 수 있습니다.\n" +
+                            "계속 상담을 원하시면 “상담 재시작” 버튼을 눌러주세요."
+                        );
+
                         session.updateStatus(CompletionStatus.TIMEOUT);
                         session.updateendTime(LocalDateTime.now()); // 시간은 현재 시간으로
                         sessionRepository.save(session);

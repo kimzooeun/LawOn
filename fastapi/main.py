@@ -120,102 +120,151 @@ def call_gpt_aux(system_prompt, user_text):
         print(f"GPT Aux Error: {e}")
         return ""
 
+# 상담 제목 생성
 def generate_title(first_query):
     sys_prompt = """
     사용자의 질문을 보고 '법률 상담 리스트'에 표시할 15자 이내의 제목을 지으세요.
     - 명사형으로 끝맺음 (예: ~문의, ~절차, ~여부)
     - 인용부호(')나 불필요한 수식어 제외
+    - 예시: '재산분할 및 위자료 청구', '상간자 소송 증거 수집'
     """
     title = call_gpt_aux(sys_prompt, first_query)
     return title.replace("'", "").replace('"', "").strip()
 
+# 대화 요약 업데이트 (법률 특화 강화 버전)
 def update_conversation_summary(prev_summary, query, answer):
     sys_prompt = """
     당신은 '이혼 전문 법률 서기'입니다. 상담 내용을 누적하여 기록하세요.
-    단순 나열이 아니라, **법적 쟁점(Fact)** 위주로 정리해야 합니다.
+    단순한 대화 요약이 아니라, **법적 쟁점이 되는 구체적 사실관계(Fact)** 위주로 정리해야 합니다.
     
-    [작성 포맷]
-    1. [기본 정보]: 혼인 기간, 자녀, 재산, 유책 사유
-    2. [확보된 증거]: 사용자가 언급한 증거물(녹음, 진단서 등)
-    3. [상담 진행]: 핵심 질문(Q)과 AI 답변 요지(A)
-    4. [Action Plan]: 향후 행동 계획
+    [작성 포맷 및 원칙]
+    1. **[기본 정보]**: 혼인 기간, 자녀 수(나이), 재산 규모, 유책 사유(폭행, 외도 등)
+    2. **[확보된 증거]**: (매우 중요) 사용자가 언급한 증거물(녹음, 진단서, 카톡, 영상, 증언 등)을 빠짐없이 나열하세요.
+    3. **[상담 진행 상황]**: 
+       - Q: 사용자의 핵심 질문
+       - A: AI가 제공한 주요 법리/판례 요약
+    4. **[Action Plan]**: 사용자가 앞으로 하기로 한 행동(예: 진술서 받기, 경찰 신고 등)
+    
+    *주의*: 감정적인 호소보다는 '누가, 언제, 무엇을 했는지' 객관적 사실 위주로 기록하세요.
     """
-    user_text = f"[이전 요약]:\n{prev_summary}\n\n[이번 대화]:\nQ: {query}\nA: {answer}"
+    user_text = f"""
+    [이전 요약본]:
+    {prev_summary if prev_summary else "(없음)"}
+    
+    [이번 턴 대화]:
+    Q: {query}
+    A: {answer}
+    """
     return call_gpt_aux(sys_prompt, user_text)
 
+# 최종 상담 리포트 (팩트 정리 & 면책 조항 강화)
 def generate_final_report(full_summary):
     sys_prompt = """
-    당신은 법률 상담 내용을 정리하는 '객관적 기록 서기'입니다.
-    요약본을 바탕으로 변호사 상담용 기초 조사서를 작성하세요.
-    *사용자가 언급하지 않은 내용은 '정보 없음'으로 표기하고 절대 지어내지 마세요.*
-    
-    [양식]
+    당신은 법률 상담 내용을 정리하는 **'객관적 기록 서기'**입니다.
+    사용자와의 대화 내용(요약본)을 바탕으로 변호사 상담용 기초 자료를 작성하세요.
+
+    [CRITICAL RULES: 절대 원칙]
+    1. **NO HALLUCINATION (거짓 작성 금지)**: 사용자가 말하지 않은 내용은 절대 창작하지 마세요. 
+       - 예: 자녀 나이를 말 안 했으면 "7세"라고 적지 말고, **"정보 없음"**이라고 적으세요.
+    2. **Fact-Based**: 감정적인 호소보다는 '누가, 언제, 무엇을 했는지' 사실 관계 위주로 정리하세요.
+    3. **Legal Disclaimer**: 하단에 지정된 면책 조항을 반드시 포함하세요.
+
+    [리포트 작성 양식 (Markdown)]
     # [법률 상담 기초 조사서]
+
     ## 1. 사건 개요
-    ## 2. 주요 사실 관계
+    - **상황 키워드**: (예: 배우자 폭행, 외도 등)
+    - **혼인 및 자녀 현황**: (대화에서 언급된 내용만 기재, 없으면 '정보 없음')
+    - **핵심 요구사항**: (사용자가 AI에게 물어본 것들)
+
+    ## 2. 주요 사실 관계 (User Statements)
+    *사용자의 진술을 토대로 정리된 내용입니다.*
+    - (대화 내용 중 '핵심 사실' 섹션에 있는 내용을 육하원칙으로 정리)
+
     ## 3. 증거 자료 현황
-    ## 4. 관련 법률 정보(AI 검색 기반)
+    - **확보된 증거**: (사용자가 "있다"고 말한 것만 기재)
+    - **준비 예정/필요 증거**: (AI가 제안했거나 사용자가 준비하겠다고 한 것)
+
+    ## 4. 관련 법률 정보 (AI 검색 결과)
+    *AI가 데이터베이스에서 검색한 참고용 정보입니다.*
+    - **관련 법령**: (대화 중 인용된 법령)
+    - **관련 판례**: (대화 중 인용된 판례 요지)
+
     ---
-    ### [⚠️ 유의사항]
-    본 문서는 참고용이며 법적 효력이 없습니다.
+    ### [⚠️ 중요: 문서 활용 시 유의사항]
+    **1. 사실 확인 필수**: 본 문서는 AI와의 채팅 내용을 기반으로 자동 생성되었습니다. 내용에 오류나 누락이 있을 수 있으므로, **반드시 본인이 사실 관계(날짜, 금액 등)가 맞는지 직접 확인**하셔야 합니다.
+    **2. 법적 효력 없음**: 이 문서는 변호사 상담을 돕기 위한 **참고용 기초 자료**일 뿐이며, 그 자체로 법적 효력을 갖거나 변호사의 법률 의견서를 대체할 수 없습니다.
+    **3. 전문가 상담 권장**: 구체적인 소송 전략과 법적 판단은 반드시 변호사와 직접 상담하시기 바랍니다.
     """
     return call_gpt_aux(sys_prompt, full_summary)
 
+# [1-1] 검색 필요 여부 판단 (Router)
 def check_search_necessity(user_query):
     sys_prompt = """
-    사용자의 질문이 법률 정보, 절차, 판단, 예측을 묻는 경우 'TRUE'를 출력하세요.
-    단순 인사나 짧은 감탄사는 'FALSE'입니다.
+    당신은 '검색 필요성 판별기'입니다.
+    사용자의 발화가 아래 경우에 해당하면 반드시 **TRUE**를 출력하세요.
+    
+    1. 법률 정보, 절차, 비용, 서류 등을 묻는 경우
+    2. **"가능할까?", "얼마나 될까?", "이길 수 있어?" 등 '예측/판단/정도'를 묻는 경우**
+    3. 혼잣말 같아도 "억울해(법적으로 되나?)"라는 뉘앙스가 포함된 경우
+    
+    단순한 인사("안녕"), 짧은 감사("고마워"), 의미 없는 감탄사("아하")만 **FALSE**입니다.
     """
     result = call_gpt_aux(sys_prompt, user_query)
     return "TRUE" in result.upper()
 
-def rewrite_query_if_needed(user_query, history_list, current_s, current_t):
-    # history_list: [{"role": "user", "content": "..."}...] 형태 가정
-    recent_dialogue = ""
-    if history_list:
-        # 최근 2턴만 가져옴
-        recent = history_list[-4:] 
-        recent_dialogue = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent])
+# [1-2] 검색어 재작성 함수
+def rewrite_query_if_needed(user_query, history_buffer, current_s, current_t, current_i):
+    history_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in history_buffer[-3:]])
+    context_parts = []
+    if current_s not in ['해당 없음', '정보 없음']: context_parts.append(f"상황: {current_s}")
+    if current_t not in ['해당 없음', '정보 없음']: context_parts.append(f"주제: {current_t}")
+    context_str = ", ".join(context_parts) if context_parts else "정보 없음"
 
     sys_prompt = f"""
-    당신은 '검색 키워드 추출기'입니다.
-    이전 대화와 현재 질문을 참고하여 **데이터베이스 검색용 단일 문장**을 만드세요.
-    답변하지 말고 검색어만 출력하세요.
-    [상황]: {current_s}, [주제]: {current_t}
+    당신은 '검색 키워드 추출기'입니다. 상담사가 아닙니다.
+    사용자의 질문을 **데이터베이스 검색용 단일 문장**으로 변환하세요.
+    
+    [강력한 제약 사항]
+    1. **절대 답변하거나 설명하지 마세요.**
+    2. 인사말, 위로의 말, 불필요한 서술어를 모두 제거하세요.
+    3. 오직 '검색할 질문 내용'만 한 문장으로 출력하세요.
+    
+    [예시]
+    - 입력: "그거 나누려면 어떻게 해?" (직전 대화: 재산분할)
+    - 출력: 재산분할 절차 및 방법
+    
+    [누적된 상황]: {context_str}
     """
-    user_input = f"[이전 대화]:\n{recent_dialogue}\n\n[현재 질문]: {user_query}"
+    user_input = f"""
+    [이전 대화]:
+    {history_text}
+    
+    [현재 질문]: {user_query}
+    """
     return call_gpt_aux(sys_prompt, user_input)
 
+# 검색 결과 재정렬 함수
 def rerank_results(user_query, results, pred_s=None, pred_t=None):
     if not results: return []
     query_keywords = [w for w in user_query.replace("?", "").split() if len(w) > 1]
     scored_results = []
-    
     for item in results:
         if not item: continue
         score = 0
-        # 텍스트 통합
         full_text = f"{item.get('title', '')} {item.get('summary', '')} {item.get('content', '')}"
-        # 레퍼런스 내용도 포함
         for r in item.get('references', []):
             full_text += f" {r.get('title', '')} {r.get('content', '')}"
-            
-        label_in_csv = str(item.get('label_in_csv', ''))
-        
-        # 가중치 계산
-        if pred_s and pred_s not in ['해당 없음', '정보 없음', None] and pred_s in label_in_csv:
+        label_in_csv = item.get('label_in_csv', '')
+        if pred_s and pred_s not in ['해당 없음', '정보 없음'] and pred_s in label_in_csv:
             score += 10
-        if pred_t and pred_t not in ['해당 없음', '정보 없음', None] and pred_t in label_in_csv:
+        if pred_t and pred_t not in ['해당 없음', '정보 없음'] and pred_t in label_in_csv:
             score += 5
-        
         for keyword in query_keywords:
             if keyword in full_text:
                 score += 2
-        
         scored_results.append((score, item))
-    
     scored_results.sort(key=lambda x: x[0], reverse=True)
-    # 상위 5개 반환
     return [item for score, item in scored_results[:5]]
 
 # ===================================================================================================
@@ -472,15 +521,16 @@ async def handle_generate_response(request: QueryRequest):
         - **상황**: 사용자가 변호사 추천이나 전문가 연결을 요청했습니다.
         - **행동**: 다른 법률 설명보다 우선하여, 아래 내용을 안내하세요.
         - **필수 포함 멘트**:
-          1. "만약 변호사의 도움이 필요하시다면, 저희 플랫폼에는 검증된 전문 변호사님들이 등록되어 있습니다."
-          2. "고객님의 현재 상황('{final_s}')과 주제('{final_t}')에 가장 적합한 분을 지역별로 추천해 드릴 수 있습니다."
-          3. "다른 변호사 사무실을 방문하실 계획이라면, 지금까지 저와 나누신 대화를 정리한 **[상담 내용 요약 리포트]**를 가져가실 수 있습니다."
-          4. "이 리포트는 상담 참고용 자료이며, 내용은 본인이 직접 확인하셔야 합니다."
-          5. "상담 요약을 받고 싶으시다면 **상담 종료 버튼을 눌러주세요.**"
+            1. "만약 변호사의 도움이 필요하시다면, 저희 플랫폼에는 검증된 전문 변호사님들이 등록되어 있습니다."
+            2. "고객님의 현재 상황('{final_s}')과 주제('{final_t}')에 가장 적합한 분을 지역별로 추천해 드릴 수 있습니다."
+            3. "다른 변호사 사무실을 방문하실 계획이라면, 지금까지 저와 나누신 대화를 정리한 [상담 내용 요약]을 가져가실 수 있습니다."
+            4. "이 리포트는 상담 참고용 자료이며, 내용은 본인이 직접 확인하셔야 합니다."
+            5. "상담 요약을 받고 싶으시다면 [상담 요약하기] 버튼을 눌러주세요."
         """
+        # 변호사 추천 시에는 공감과 CTA를 간소화
         empathy_instruction = "[지침: 변호사 연결을 원하므로, 간결하고 신뢰감 있는 태도로 응대하세요.]"
-        cta_instruction = "[지침: 리포트 생성 버튼(상담 종료)을 누르도록 유도하는 것이 목표입니다.]"
-    
+        cta_instruction = "[지침: 리포트 생성 버튼을 누르도록 유도하는 것이 목표입니다.]"
+
     # [CASE B: 일반 상담]
     else:
         # 공감 레벨링
@@ -616,8 +666,8 @@ async def handle_generate_response(request: QueryRequest):
                 ai_answer += safety_msg
 
         # 면책 조항 추가 (LLM이 빼먹었을 경우 강제 추가)
-        DISCLAIMER_MSG = "\n\n※ 본 답변은 법적 조언이 아닌 참고용 정보이며, 정확한 판단을 위해서는 전문가 상담이 필요합니다."
-        if "본 답변은 법적 조언이 아닌" not in ai_answer:
+        DISCLAIMER_MSG = "\n\n※본 답변은 참고용이며, 법적 조언이 아닙니다. 필요한 경우 전문가 상담을 권합니다."
+        if "본 답변은 참고용이며," not in ai_answer:
             ai_answer += DISCLAIMER_MSG
 
     except Exception as e:
