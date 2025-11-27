@@ -52,14 +52,10 @@ function processLawyerData(dbList) {
   };
 
   dbList.forEach((item) => {
-    // ★ 수정: DB 컬럼명 매핑 안전장치 추가
-    // 백엔드(Spring)는 보통 camelCase(officeLocation)를 보내고,
-    // DB 컬럼은 snake_case(office_location)일 수 있으므로 둘 다 체크합니다.
+    // 1. 데이터 매핑 (Java CamelCase -> JS 변수)
+    // Java Entity: officeLocation, detailSpecialty
     const rawAddress =
-      item.officeLocation || // 1순위: Java 변수명
-      item.office_location || // 2순위: DB 컬럼명 (혹시 모를 상황 대비)
-      item.address || // 3순위: 기타
-      "";
+      item.officeLocation || item.office_location || item.address || "";
 
     const rawOfficeName =
       item.office || item.officeName || item.office_name || "";
@@ -68,26 +64,31 @@ function processLawyerData(dbList) {
 
     const imageUrl = item.imageUrl || item.image_url || "";
 
+    // 2. 변호사 객체 생성
     const lawyer = {
       id: item.id,
-      name: item.name, // 변호사 이름
-      officeName: rawOfficeName, // 소속 (법무법인 등)
-      tags: rawTag ? [rawTag] : [], // 전문분야를 태그로 변환
-      phone: item.contact, // 연락처
-      address: rawAddress, // 주소
-      url: imageUrl, // 이미지 URL
-      note: item.description, // 설명
+      name: item.name,
+      officeName: rawOfficeName,
+      tags: rawTag ? [rawTag] : [],
+      phone: item.contact,
+      address: rawAddress,
+      url: imageUrl,
+      note: item.description,
     };
 
-    // 안전 장치: 분류된 키가 grouped에 없으면 '기타'로
+    // 3. 지역 분류 (반드시 객체 생성 후에 실행)
+    const region = classifyRegion(lawyer.address);
+
+    // 4. 그룹 담기
     if (grouped[region]) {
       grouped[region].push(lawyer);
     } else {
+      // 주소는 있는데 분류가 안 된 경우 '기타'로
       grouped["기타"].push(lawyer);
     }
   });
 
-  // DATA 배열 형식으로 변환 ([{region: "...", items: [...]}, ...])
+  // 5. 배열로 변환하여 반환
   return Object.keys(grouped)
     .filter((key) => grouped[key].length > 0)
     .map((key) => ({
@@ -275,25 +276,26 @@ export function render() {
   });
 }
 
-// 2. CSV 내보내기 (한글 헤더 적용)
+// CSV 내보내기 (한글 헤더 적용)
 function toCSV(rows) {
-  // 1) CSV 파일의 첫 줄에 들어갈 '한글 제목' 정의
+  // 1) 엑셀 첫 줄에 들어갈 한글 제목
   const krHeader = ["지역", "이름", "소속", "전화번호", "주소", "비고"];
 
-  // 2) 실제 데이터에서 꺼낼 '객체 키' 정의 (순서는 위 한글 제목과 맞춰야 함)
+  // 2) 데이터 객체에서 꺼낼 키 (순서 일치 필수)
   const keys = ["region", "name", "officeName", "phone", "address", "note"];
 
-  // 첫 줄 추가
+  // 헤더 추가
   const lines = [krHeader.join(",")];
 
+  // 데이터 행 추가
   rows.forEach((r) => {
     const vals = keys.map((k) => {
       let val = r[k];
 
-      // 데이터가 배열이거나(태그 등) null일 경우 처리
+      // 태그 배열이나 null 값 처리
       const v = Array.isArray(val) ? val.join("|") : val ?? "";
 
-      // 쉼표나 따옴표가 포함된 데이터가 깨지지 않도록 처리 ("값")
+      // 쉼표/따옴표가 포함된 내용이 깨지지 않게 따옴표로 감싸기
       return '"' + String(v).replaceAll('"', '""') + '"';
     });
     lines.push(vals.join(","));
