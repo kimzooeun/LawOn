@@ -84,6 +84,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests((authorizeHttpRequests) -> 
 					    authorizeHttpRequests
 					    .requestMatchers("/api/auth/**").permitAll()
+					    .requestMatchers("/api/stt-proxy").permitAll()
+					    .requestMatchers(HttpMethod.POST, "/api/stt-proxy").permitAll()
 					    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/admin/lawyers/upload").hasRole("ADMIN")
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
