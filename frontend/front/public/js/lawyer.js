@@ -142,25 +142,35 @@ function card(item) {
   const desc = $.querySelector(".desc"); // 설명 영역
   const actions = $.querySelector(".actions");
 
-  // [수정 1] 이미지 영역 스타일 (세로 중앙 정렬)
+  // [수정 1] 아이콘 영역 스타일 (세로 중앙 정렬 핵심)
   icon.innerHTML = "";
   icon.style.display = "flex";
-  icon.style.alignItems = "center"; // 상하 중앙
-  icon.style.justifyContent = "center"; // 좌우 중앙
-  icon.style.height = "100%"; // ★ 중요: 높이를 꽉 채워야 중앙으로 옴
+  icon.style.flexDirection = "column"; // 세로 배치
+  icon.style.justifyContent = "center"; // (세로 방향) 중앙 정렬
+  icon.style.alignItems = "center"; // (가로 방향) 중앙 정렬
+  // icon 자체는 높이를 꽉 채우도록 설정 (그래야 중앙을 잡을 수 있음)
+  icon.style.minHeight = "100%";
 
   if (item.url && item.url !== "#" && item.url.startsWith("https")) {
     const img = document.createElement("img");
     img.src = item.url;
     img.alt = `${item.name} 변호사`;
     img.className = "lawyer-photo";
-    img.style.maxWidth = "100%";
-    img.style.maxHeight = "100%";
-    img.style.objectFit = "cover";
+
+    // [수정 2] 이미지 스타일 (사이즈 유지 및 비율 보호)
+    img.style.width = "100%"; // 가로폭은 컨테이너에 맞춤
+    img.style.height = "auto"; // ★ 높이는 자동 (비율 유지, 억지로 안 늘림)
+    img.style.maxHeight = "100%"; // 넘치지 않게만 제한
+    img.style.objectFit = "cover"; // 잘리더라도 꽉 차게
+    img.style.borderRadius = "12px"; // (선택) 모서리 둥글게
+
     icon.appendChild(img);
   } else {
+    // 이미지가 없을 때
     icon.classList.add("law");
     icon.textContent = "법";
+    icon.style.justifyContent = "center";
+    icon.style.alignItems = "center";
   }
 
   // --- 제목 ---
@@ -210,7 +220,7 @@ function card(item) {
   const aSite = document.createElement("a");
   aSite.className = "btn small line";
 
-  const targetPage = "/lawyer/lawfirm.html";
+  const targetPage = "/lawyer/index";
   const officeParam = encodeURIComponent(item.officeName || "법률사무소");
   const phoneParam = encodeURIComponent(item.phone || "");
 

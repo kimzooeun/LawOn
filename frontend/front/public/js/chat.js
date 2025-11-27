@@ -582,22 +582,231 @@ function createCardButton(icon, title, subtitle, onClickHandler) {
   return btnEl;
 }
 
+/**
+ * [수정] 변호사 추천 핸들러
+ * 1. API로 변호사 전체 목록 조회
+ * 2. 현재 세션의 키워드 분석
+ * 3. 지역별 1명씩 랜덤/추천 선별
+ * 4. 채팅창에 카드 렌더링
+ */
+async function handleRecommendLawyerAction() {
+  const sess = current();
+  if (!sess) return;
+
+  // 1. 로딩 표시 (선택 사항)
+  showToast("맞춤 변호사를 찾고 있습니다...", "info");
+
+  try {
+    // 2. 변호사 데이터 가져오기 (api.js에 함수가 없다면 fetch 직접 사용)
+    const response = await fetch("/api/lawyers");
+    if (!response.ok) throw new Error("데이터 로드 실패");
+    const allLawyers = await response.json();
+
+    // 3. 추천 로직 실행
+    const recommended = selectBestLawyers(allLawyers, sess);
+
+    if (recommended.length === 0) {
+      showToast("조건에 맞는 변호사를 찾지 못했습니다.", "error");
+      return;
+    }
+
+    // 4. 채팅창에 봇 메시지로 결과 뿌리기
+    appendLawyerGridMessage(recommended);
+  } catch (err) {
+    console.error("변호사 추천 실패:", err);
+    showToast("추천 정보를 불러오는데 실패했습니다.", "error");
+  }
+}
+
 // --------------------------------------------------------
-// [Action Handlers] 하단에 추가
+// [Logic Helpers] 추천 로직 및 렌더링
 // --------------------------------------------------------
 
-// [신규] 변호사 추천 페이지 이동 핸들러
-function handleRecommendLawyerAction() {
-  // 실제 변호사 추천 페이지 URL로 이동하거나 모달을 띄우세요.
-  // 예시: 변호사 리스트 페이지로 이동
-  const lawyerPageLink = document.getElementById("lawyerPage"); // 네비게이션용 요소가 있다면
-  if (lawyerPageLink) {
-    // SPA 방식 이동 (프로젝트 구조에 맞춰 수정하세요)
-    // showPage(lawyerPageLink);
-    alert("변호사 추천 페이지로 이동합니다. (기능 연결 필요)");
-  } else {
-    window.location.href = "/lawyer-match"; // 혹은 실제 URL
+// 지역 분류 함수 (lawyer.js와 로직 동일하게 유지)
+function getRegion(address) {
+  if (!address) return "기타";
+  const addr = address.trim();
+  if (addr.includes("서울") || addr.includes("경기") || addr.includes("인천"))
+    return "서울·수도권";
+  if (
+    addr.includes("부산") ||
+    addr.includes("대구") ||
+    addr.includes("울산") ||
+    addr.includes("경남") ||
+    addr.includes("경북")
+  )
+    return "부산·영남권";
+  if (
+    addr.includes("대전") ||
+    addr.includes("세종") ||
+    addr.includes("충남") ||
+    addr.includes("충북")
+  )
+    return "대전·충청권";
+  if (
+    addr.includes("광주") ||
+    addr.includes("전남") ||
+    addr.includes("전북") ||
+    addr.includes("제주")
+  )
+    return "광주·전라·제주권";
+  return "기타";
+}
+
+// 점수 기반 추천 알고리즘
+function selectBestLawyers(dbList, session) {
+  // 1. 검색 키워드 추출 (제목 + 최근 메시지들)
+  // 예: "이혼 상담입니다" -> ["이혼", "상담"]
+  const textSource = (
+    session.title +
+    " " +
+    session.messages
+      .map((m) => m.text)
+      .slice(-3)
+      .join(" ")
+  ).toLowerCase();
+
+  // 2. 변호사 데이터 가공 및 점수 매기기
+  const scoredLawyers = dbList.map((item) => {
+    let score = 0;
+    // 태그(전문분야) 매칭 시 점수 부여
+    const tags = (item.detailSpecialty || item.detail_specialty || "")
+      .split(",")
+      .map((t) => t.trim());
+    tags.forEach((tag) => {
+      if (tag && textSource.includes(tag)) score += 5; // 태그 일치 시 가산점
+    });
+
+    // (선택) description 매칭 시 소폭 가산점
+    if (item.description && textSource.includes(item.description)) score += 1;
+
+    return {
+      ...item,
+      processedRegion: getRegion(item.officeLocation || item.address),
+      score: score + Math.random(), // 동점자 랜덤 섞기
+    };
+  });
+
+  // 3. 지역별로 그룹화하여 최고 점수(혹은 랜덤) 1명씩 뽑기
+  const regions = [
+    "서울·수도권",
+    "부산·영남권",
+    "대전·충청권",
+    "광주·전라·제주권",
+  ];
+  const finalSelection = [];
+
+  regions.forEach((regionName) => {
+    // 해당 지역 변호사 필터
+    const candidates = scoredLawyers.filter(
+      (l) => l.processedRegion === regionName
+    );
+
+    if (candidates.length > 0) {
+      // 점수 내림차순 정렬
+      candidates.sort((a, b) => b.score - a.score);
+      // 1등 선택
+      finalSelection.push(candidates[0]);
+    }
+  });
+
+  // 4. 만약 4명이 안 되면 '기타'나 다른 지역에서 채워넣기 (최대 4명)
+  if (finalSelection.length < 4) {
+    const ids = new Set(finalSelection.map((x) => x.id));
+    const others = scoredLawyers
+      .filter((x) => !ids.has(x.id))
+      .sort((a, b) => b.score - a.score);
+
+    while (finalSelection.length < 4 && others.length > 0) {
+      finalSelection.push(others.shift());
+    }
   }
+
+  return finalSelection.slice(0, 4); // 딱 4명만 리턴
+}
+
+// 추천 결과(그리드)를 채팅창에 붙이는 함수
+function appendLawyerGridMessage(lawyers) {
+  const msgs = document.getElementById("messages");
+
+  // 1. 봇 메시지 컨테이너 생성
+  const div = document.createElement("div");
+  div.className = "msg bot"; // 봇 스타일
+
+  const contentWrapper = document.createElement("div");
+  contentWrapper.style.display = "flex";
+  contentWrapper.style.flexDirection = "column";
+  contentWrapper.style.gap = "8px";
+  contentWrapper.style.alignItems = "flex-start";
+
+  // 2. 안내 멘트 버블
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML =
+    "<p>고객님의 상황에 맞는 지역별 전문 변호사님들을 찾았습니다.</p>";
+  contentWrapper.appendChild(bubble);
+
+  // 3. 2x2 그리드 컨테이너
+  const gridDiv = document.createElement("div");
+  gridDiv.className = "lawyer-grid-container";
+
+  lawyers.forEach((lawyer) => {
+    // 데이터 필드 정리
+    const name = lawyer.name;
+    const office = lawyer.office || lawyer.officeName || "법률사무소";
+    const imgUrl = lawyer.imageUrl || lawyer.image_url || "";
+    // 태그: 문자열이면 배열로 변환, 최대 2개만 노출
+    let tags = (lawyer.detailSpecialty || lawyer.detail_specialty || "").split(
+      ","
+    );
+    tags = tags.filter(Boolean).slice(0, 2);
+
+    // 카드 HTML 생성
+    const card = document.createElement("div");
+    card.className = "chat-lawyer-card";
+
+    // 이미지 처리
+    if (imgUrl && imgUrl.startsWith("http")) {
+      card.innerHTML += `<img src="${imgUrl}" alt="${name}" class="chat-lawyer-img">`;
+    } else {
+      // 이미지가 없으면 기본 아이콘
+      card.innerHTML += `
+        <div class="chat-lawyer-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#999;">
+           ⚖️
+        </div>`;
+    }
+
+    // 텍스트 정보
+    let tagsHtml = tags
+      .map((t) => `<span class="chat-lawyer-tag">#${t.trim()}</span>`)
+      .join("");
+
+    card.innerHTML += `
+      <div class="chat-lawyer-name">${name} 변호사</div>
+      <div class="chat-lawyer-office">${office}</div>
+      <div class="chat-lawyer-tags">${tagsHtml}</div>
+    `;
+
+    // 클릭 시 해당 변호사 페이지로 이동 (예시 URL)
+    card.onclick = () => {
+      // lawyer.js에 있는 검색 로직을 활용하기 위해 URL 파라미터 사용 또는 새창
+      // 예: /lawyer/detail.html?id=...
+      // 여기서는 구글 검색 또는 특정 페이지로 이동시킴
+      window.open(
+        `/lawyer/index?office=${encodeURIComponent(office)}`,
+        "_blank"
+      );
+    };
+
+    gridDiv.appendChild(card);
+  });
+
+  contentWrapper.appendChild(gridDiv);
+  div.appendChild(contentWrapper);
+  msgs.appendChild(div);
+
+  // 스크롤 최하단으로
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 // 전송
