@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>토닥토닥이 어드민 대시보드</title>
+  <title>LawON ADMIN 대시보드</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/black.png?v=2">
   <link rel="stylesheet" href="/admin/css/admin.css?v=1">
   <link rel="stylesheet" href="/admin/css/main.css" />
@@ -13,7 +13,7 @@
   <header class="admin-header">
     <div class="logo">
       <img src="/images/black.png" alt="토닥토닥이 로고" />
-      <h1>토닥토닥이 어드민</h1>
+      <h1>LawON ADMIN</h1>
     </div>
 
     <nav class="admin-nav">
@@ -66,7 +66,7 @@
   </main>
 
   <footer class="admin-footer">
-    © 2025 TodakTodak Admin Panel
+    © 2025 LawON ADMIN Panel
   </footer>
 
   <!-- 1) TokenManager 먼저 로드 -->
@@ -75,7 +75,36 @@
   <script type="module" src="./js/tokenApi_Admin.js"></script>
   <!-- 3) 마지막에 페이지 스크립트 실행 -->
   <script type="module" src="/admin/js/main.js"></script>
-  <script type="module" src="/admin/js/admin-logout.js"></script>
+  <script>
+    import { TokenManager } from '/src/js/token.js';
+    document.addEventListener("DOMContentLoaded", () => {
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          let apiFailed = false; // API 실패 여부 플래그
+          try{
+            // 1. API 호출 시도
+            const response = await fetch("/api/logout", {
+              method: "POST",
+              credentials: "include",
+            });
+
+            if (!response.ok) {
+              apiFailed = true; // API가 200 OK가 아니어도 실패로 간주
+            }
+          } catch(err){
+            apiFailed = true; // 네트워크 오류 등 API 호출 실패
+            console.error("서버 로그아웃 API 호출 실패 : ", err);
+          } finally {
+              TokenManager.clearTokens();
+              alert("관리자 로그아웃합니다!")
+              setTimeout(() => (window.location.href = "/admin/login"), 600);
+          }
+        });
+      }
+    });
+  </script>
 
 
 </body>
