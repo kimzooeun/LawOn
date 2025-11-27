@@ -26,7 +26,6 @@ public class S3PreSignedService {
     	PutObjectRequest objectRequest = PutObjectRequest.builder()
     													.bucket(bucket)
     													.key("lawyers/" + fileName)
-    													.acl(ObjectCannedACL.PUBLIC_READ)
     													.contentType(contentType)
     													.build();
     	
