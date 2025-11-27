@@ -4,12 +4,12 @@ import {TokenManager} from './token.js';
 // API 호출(fetch 등)을 하기 전에, 자동으로 토큰과 쿠키를 포함하도록 세팅하는 유틸 함수
 // 즉, 모든 API 요청에 공통으로 들어갈 옵션을 한 곳에서 관리하는 역할 
 const originalFetch = window.fetch;
-
+const FASTAPI_ALB = "http://divorcechatbot-alb-777077770.ap-northeast-2.elb.amazonaws.com";
 
 
 // 로그인/회원가입/리프레시 요청은 Authorization 헤더 제외
 const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
-const skipContentType = ["/fastapi/stt"];
+const skipContentType = [`${FASTAPI_ALB}/fastapi/stt`];
 
 
 window.fetch = async(url, options = {}) => {
@@ -32,7 +32,7 @@ window.fetch = async(url, options = {}) => {
 	// 로그인 후 API 요청 시 인증을 위해 꼭 필요한 부분
 	if(accessToken && !isSkipAuth)  options.headers['Authorization'] = `Bearer ${accessToken}`;	
 	options.credentials = "include";  // refreshToken 쿠키 자동 전송
-	console.log(url);
+
 	let res = await originalFetch(`${url}`, options);
 
 
