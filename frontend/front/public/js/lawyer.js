@@ -55,22 +55,31 @@ function processLawyerData(dbList) {
     // ★ 수정: DB 컬럼명 매핑 안전장치 추가
     // 백엔드(Spring)는 보통 camelCase(officeLocation)를 보내고,
     // DB 컬럼은 snake_case(office_location)일 수 있으므로 둘 다 체크합니다.
-    const rawAddress = item.officeLocation || item.office_location || "";
-    const rawOfficeName = item.office || item.officeName || "";
+    const rawAddress =
+      item.officeLocation || // 1순위: Java 변수명
+      item.office_location || // 2순위: DB 컬럼명 (혹시 모를 상황 대비)
+      item.address || // 3순위: 기타
+      "";
+
+    const rawOfficeName =
+      item.office || item.officeName || item.office_name || "";
+
+    const rawTag = item.detailSpecialty || item.detail_specialty || "";
 
     const imageUrl = item.imageUrl || item.image_url || "";
+
     const lawyer = {
       id: item.id,
       name: item.name, // 변호사 이름
       officeName: rawOfficeName, // 소속 (법무법인 등)
-      tags: item.detail_specialty ? [item.detail_specialty] : [], // 전문분야를 태그로 변환
+      tags: rawTag ? [rawTag] : [], // 전문분야를 태그로 변환
       phone: item.contact, // 연락처
       address: rawAddress, // 주소
       url: imageUrl, // 이미지 URL
       note: item.description, // 설명
     };
-    
-    const region = classifyRegion(lawyer.address);
+
+    // 안전 장치: 분류된 키가 grouped에 없으면 '기타'로
     if (grouped[region]) {
       grouped[region].push(lawyer);
     } else {
@@ -126,16 +135,15 @@ function card(item) {
   const desc = $.querySelector(".desc");
   const actions = $.querySelector(".actions");
 
-
   icon.innerHTML = ""; // 초기화
 
   if (item.url && item.url !== "#" && item.url.startsWith("https")) {
-  // 변호사 사진 있는 경우
-  const img = document.createElement("img");
-  img.src = item.url;
-  img.alt = `${item.name} 변호사 사진`;
-  img.className = "lawyer-photo";
-  icon.appendChild(img);
+    // 변호사 사진 있는 경우
+    const img = document.createElement("img");
+    img.src = item.url;
+    img.alt = `${item.name} 변호사 사진`;
+    img.className = "lawyer-photo";
+    icon.appendChild(img);
   } else {
     // 기존 아이콘 fallback
     icon.classList.add("law");
@@ -267,19 +275,30 @@ export function render() {
   });
 }
 
-// CSV 내보내기 (서버 데이터 기준)
+// 2. CSV 내보내기 (한글 헤더 적용)
 function toCSV(rows) {
-  const header = ["region", "name", "office", "phone", "address", "note"];
-  const lines = [header.join(",")];
+  // 1) CSV 파일의 첫 줄에 들어갈 '한글 제목' 정의
+  const krHeader = ["지역", "이름", "소속", "전화번호", "주소", "비고"];
+
+  // 2) 실제 데이터에서 꺼낼 '객체 키' 정의 (순서는 위 한글 제목과 맞춰야 함)
+  const keys = ["region", "name", "officeName", "phone", "address", "note"];
+
+  // 첫 줄 추가
+  const lines = [krHeader.join(",")];
+
   rows.forEach((r) => {
-    const vals = header.map((k) => {
+    const vals = keys.map((k) => {
       let val = r[k];
-      if (k === "office") val = r.officeName; // 매핑
+
+      // 데이터가 배열이거나(태그 등) null일 경우 처리
       const v = Array.isArray(val) ? val.join("|") : val ?? "";
+
+      // 쉼표나 따옴표가 포함된 데이터가 깨지지 않도록 처리 ("값")
       return '"' + String(v).replaceAll('"', '""') + '"';
     });
     lines.push(vals.join(","));
   });
+
   return lines.join("\n");
 }
 
