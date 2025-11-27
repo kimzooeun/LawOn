@@ -17,6 +17,8 @@ import {
 
 import { archiveCurrent, handleSend, renderChat } from "./chat.js";
 
+import "./policy.js";
+
 import { initMypageListeners } from "./mypage.js";
 import { bindMic } from "./stt.js";
 import { render, initLawyerPageListeners } from "./lawyer.js";
@@ -130,6 +132,8 @@ export function openDocModal(title, content, size = "lg") {
 
   modal.classList.remove("hidden");
 }
+
+window.openDocModal = openDocModal;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.INIT_STOP) return; // index.html에서는 전체 init 로직을 실행하지 않음
