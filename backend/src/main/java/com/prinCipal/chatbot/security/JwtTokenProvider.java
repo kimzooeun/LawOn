@@ -172,24 +172,27 @@ public class JwtTokenProvider {
 
 	// Refresh Token이 곧 만료될지 체크해서, 필요하면 새 토큰을 발급할지 결정
 	public boolean isRefreshTokenExpiringSoon(String refreshToken) {
+		if (refreshToken == null) return false;
 		// JWT 토큰은 Payload에 exp 클레임이 있어서 만료 시간을 알 수있음
+		Claims claims;
 		try {
-			Claims claims = Jwts.parser().verifyWith(this.getSigningKey()).build().parseSignedClaims(refreshToken)
+			claims = Jwts.parser()
+					.verifyWith(this.getSigningKey())
+					.build()
+					.parseSignedClaims(refreshToken)
 					.getPayload(); // Payload에 실제 Claims 객체 포함
-
-			Date expiration = claims.getExpiration();
-			Date now = new Date();
-
-			// 만료 1일 이내면 "곧 만료"로 판단
-			long expired = 24 * 60 * 60 * 1000L;
-			// true => 남은시간이 expired보다 작다 (곧 만료된다)
-			// false => 남은시간이 expired보다 크다 (만료될려면 아직 멀었다)
-			return expiration.getTime() - now.getTime() < expired;
-
 		} catch (JwtException e) {
-			// 토큰 파싱 실패시, 안전하게 true로 처리해 새로운 토큰 발급
-			return true;
+			return false;
 		}
+		Date expiration = claims.getExpiration();
+		Date now = new Date();
+
+		// 만료 1일 이내면 "곧 만료"로 판단
+		long expired = 24 * 60 * 60 * 1000L;
+		// true => 남은시간이 expired보다 작다 (곧 만료된다)
+		// false => 남은시간이 expired보다 크다 (만료될려면 아직 멀었다)
+		return expiration.getTime() - now.getTime() < expired;
+
 	}
 
 	public String getUsernameFromToken(String refreshToken) {
