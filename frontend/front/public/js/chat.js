@@ -585,7 +585,7 @@ export function renderChat() {
         }
         if (
           m.text.includes("상담이 종료되었습니다") ||
-          m.text.includes("계속 상담을 원하시면")
+          m.text.includes("상담 재시작")
         ) {
           actionsDiv.appendChild(
             createCardButton(
