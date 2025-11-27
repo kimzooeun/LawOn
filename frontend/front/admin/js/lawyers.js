@@ -8,7 +8,7 @@ const searchInput = document.getElementById("searchLawyer");
 
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
-
+let currentImageUrl = null;  // 현재 편집 중인 변호사의 기존 이미지 URL
 
 
 // 변호사 이미지 Presigned URL 요청 
@@ -55,7 +55,17 @@ async function uploadImage() {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   
-  const imageUrl = await uploadImage(); // 이미지 업로드 먼저 수행
+  const fileInput = document.getElementById("imageFile");
+  const hasNewFile = fileInput && fileInput.files && fileInput.files[0];
+
+  let imageUrl = currentImageUrl; // 기본값 = 기존 이미지
+
+  // 신규 등록일 때는 currentImageUrl가 항상 null
+  if (hasNewFile) {
+    // 새 파일이 있으면 S3 업로드 후 URL 교체
+    imageUrl = await uploadImage();
+  }
+
 
   const lawyer = {
     name: document.getElementById("name").value,
@@ -65,7 +75,7 @@ form.addEventListener("submit", async (e) => {
     office: document.getElementById("office").value,
     officeLocation: document.getElementById("officeLocation").value,
     contact: document.getElementById("contact").value,
-    imageUrl: imageUrl
+    imageUrl: imageUrl   // 새 이미지 or 기존 이미지 or null
   };
 
   try {
@@ -92,6 +102,7 @@ form.addEventListener("submit", async (e) => {
 
     form.reset();
     editingId = null;
+    currentImageUrl = null; // 초기화
     resetSubmitButton();
     loadLawyers();
   } catch (err) {
@@ -196,6 +207,13 @@ function fillFormForEdit(lawyer) {
   document.getElementById("contact").value = lawyer.contact;
 
   editingId = lawyer.id;
+  currentImageUrl = lawyer.imageUrl || null;  
+
+   // 파일 인풋 초기화 (수정 들어갈 때 이전 선택 파일 남아있지 않도록)
+  const fileInput = document.getElementById("imageFile");
+  if (fileInput) {
+    fileInput.value = "";
+  }
 
   const submitBtn = document.querySelector("#lawyerForm button[type='submit']");
   submitBtn.textContent = "✏️ 수정 완료";

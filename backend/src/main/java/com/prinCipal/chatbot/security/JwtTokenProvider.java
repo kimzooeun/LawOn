@@ -1,8 +1,7 @@
 package com.prinCipal.chatbot.security;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
+
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,12 +18,11 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.prinCipal.chatbot.security.MemberDetailService;
 import com.prinCipal.chatbot.counsel.SessionService;
 import com.prinCipal.chatbot.exception.NotAuthenticatedException;
 import com.prinCipal.chatbot.exception.TokenValidationException;
