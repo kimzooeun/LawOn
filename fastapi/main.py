@@ -774,6 +774,12 @@ async def run_stt_from_bytes(raw_bytes: bytes):
         if tmp_out_path and os.path.exists(tmp_out_path):
             os.remove(tmp_out_path)
 
+@app.post("/fastapi/stt-json")
+async def stt_json(payload: AudioPayload):
+    audio_bytes = base64.b64decode(payload.audio_base64)
+    text = await run_stt_from_bytes(audio_bytes)
+    return {"text": text}
+
 
 @app.post("/fastapi/stt-json")
 async def stt_json(payload: AudioPayload):

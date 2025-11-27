@@ -38,14 +38,30 @@ async function initMicStream() {
 }
 
 
-async function blobToBase64(blob) {
-  const buffer = await blob.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+async function sendSTT(audioBlob) {
+  const fileName = "audio_" + Date.now() + ".webm";
+  const contentType = audioBlob.type || "audio/webm";
+
+  // 1) presign 요청
+  const presignRes = await fetch(`/api/stt/presign?fileName=${fileName}&contentType=${contentType}`);
+  const { uploadUrl, fileKey } = await presignRes.json();
+
+  // 2) S3 업로드
+  await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: audioBlob
+  });
+
+  // 3) STT 실행 요청
+  const sttRes = await fetch("/api/stt/recognize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fileKey })
+  });
+
+  const data = await sttRes.json();
+  return data.text;
 }
 
 
@@ -79,31 +95,57 @@ async function startRecording() {
         const mime = chosenMime || "audio/webm";
         const blob = new Blob(audioChunks, { type: mime });
 
-        const file = new File([blob], "speech", { type: blob.type });
-        const fd = new FormData();
-        // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
-        fd.append("audio_file", file);
+        const fileName = `speech_${Date.now()}.webm`;
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch("/api/stt-proxy", {
-          method: "POST",
-          body: fd
+       // 1) presigned URL 요청 (/api/stt/presign)
+        const presignRes = await fetch(
+          `/api/stt/presign?fileName=${encodeURIComponent(
+            fileName
+          )}&contentType=${encodeURIComponent(mime)}`
+        );
+
+        if (!presignRes.ok) {
+          throw new Error(`Presign HTTP ${presignRes.status}`);
+        }
+
+        const { uploadUrl, fileKey } = await presignRes.json();
+
+        // 2) S3에 오디오 업로드 (직접 업로드, CloudFront 안 거침)
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": mime,
+          },
+          body: blob,
         });
 
-        if (!res.ok) {
-          // 서버에서 오류 메시지가 있다면 가져와서 출력
-          let errorText = `STT HTTP ${res.status}`;
+        if (!uploadRes.ok) {
+          throw new Error(`S3 업로드 실패: HTTP ${uploadRes.status}`);
+        }
+
+        // 3) STT 요청 (/api/stt/recognize)
+        const sttRes = await fetch("/api/stt/recognize", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ fileKey }),
+        });
+
+        if (!sttRes.ok) {
+          let errorText = `STT HTTP ${sttRes.status}`;
           try {
-            const errorJson = await res.json();
-            errorText = errorJson.error || errorText;
+            const errJson = await sttRes.json();
+            if (errJson.error) errorText = errJson.error;
           } catch (e) {
-            // JSON 파싱 실패 시 기본 텍스트 사용
+            // 무시, 기본 메시지 사용
           }
           throw new Error(errorText);
         }
 
-        const json = await res.json();
+        const json = await sttRes.json();
         const text = (json.text || json.transcription || "").trim();
 
         if (text) {
@@ -113,19 +155,21 @@ async function startRecording() {
             targetInputEl.closest("form")?.requestSubmit();
           }
         } else if (json.error) {
-           showToast(`❌ STT 서버 오류: ${json.error}`, "error", 5000);
+          showToast(`❌ STT 서버 오류: ${json.error}`, "error", 5000);
         } else {
           showToast("⚠ 음성 인식 불가, 좀 더 정확하게 부탁드려요!", "info");
         }
       } catch (err) {
         console.error("STT 처리 오류:", err);
-        // 에러 메시지가 문자열이면 바로 표시
-        const displayMsg = err.message.startsWith("STT HTTP") ? err.message : "Whisper 서버 응답 오류";
+        const displayMsg = err.message?.startsWith("STT HTTP") || err.message?.startsWith("Presign HTTP")
+          ? err.message
+          : "Whisper 서버 응답 오류";
         showToast(`❌ ${displayMsg}`, "error", 5000);
       } finally {
         cleanupRecording();
       }
     };
+
 
     mediaRecorder.start();
     activeMicBtn?.classList.add("recording");
