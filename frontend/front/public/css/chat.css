@@ -81,6 +81,63 @@
   color: var(--ink);
 }
 
+/* 1. 봇 말풍선에 버튼 공간 확보 및 기준점 설정 */
+.msg.bot .bubble {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--ink);
+
+  /* [추가] TTS 버튼 위치를 위한 설정 */
+  position: relative;
+  padding-bottom: 34px; /* 버튼이 텍스트를 가리지 않도록 하단 여백 추가 */
+}
+
+/* 2. TTS(듣기) 버튼 스타일 */
+.tts-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--ink-muted);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tts-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+/* 읽어주는 중(Active)일 때 스타일 */
+.tts-btn.speaking {
+  color: var(--primary);
+  animation: ttsPulse 1.5s infinite;
+}
+
+@keyframes ttsPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(var(--primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  }
+}
+
 /* --- 1.3. 빈 화면 (Empty Hint) --- */
 .empty-hint {
   text-align: center;
