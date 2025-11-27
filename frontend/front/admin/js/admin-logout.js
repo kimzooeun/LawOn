@@ -3,20 +3,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
 
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
+    logoutBtn.addEventListener("click", async () => {
+      let apiFailed = false; // API 실패 여부 플래그
+      try{
+        // 1. API 호출 시도
+        const response = await fetch("/api/logout", {
+          method: "POST",
+          credentials: "include",
+        });
 
-      // 토큰 삭제 (admin 인증은 accessToken으로 관리됨)
-      localStorage.removeItem("accessToken");
-      sessionStorage.removeItem("accessToken");
-
-      // 혹시 남아 있을 세션 초기화
-      sessionStorage.clear();
-
-      // 로그아웃 안내
-      alert("관리자 로그아웃 되었습니다.");
-
-      // 관리자 로그인 페이지로 이동
-      window.location.href = "/admin/login";
+        if (!response.ok) {
+          apiFailed = true; // API가 200 OK가 아니어도 실패로 간주
+        }
+      } catch(err){
+        apiFailed = true; // 네트워크 오류 등 API 호출 실패
+        console.error("서버 로그아웃 API 호출 실패 : ", err);
+      } finally {
+          TokenManager.clearTokens();
+          // 3. 피드백 및 리디렉션
+          const toastMsg = apiFailed
+            ? "로그아웃. 로컬 데이터만 삭제합니다."
+            : "로그아웃 되었습니다.";
+          showToast_auth(toastMsg); 
+          setTimeout(() => (window.location.href = "/admin/login"), 600);
+      }
     });
   }
 });
