@@ -439,7 +439,6 @@ export function renderChat() {
     const textP = document.createElement("p");
     textP.textContent = m.text;
     bubble.appendChild(textP);
-    contentWrapper.appendChild(bubble);
 
     // [추가] 봇 메시지인 경우 TTS(스피커) 버튼 추가
     if (m.role === "bot" && m.text) {
