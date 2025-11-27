@@ -79,27 +79,18 @@ async function startRecording() {
         const mime = chosenMime || "audio/webm";
         const blob = new Blob(audioChunks, { type: mime });
 
-        // Blob → base64
-        const base64 = await blobToBase64(blob);
-
-        // JSON payload
-        const payload = {
-          audio_base64: base64,
-          mime_type: mime
-        };
-
-        // const file = new File([blob], "speech", { type: blob.type });
-        // const fd = new FormData();
-        // // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
-        // fd.append("audio_file", file);
-
-
-        // fd.append("audio_file", blob); 
+        const file = new File([blob], "speech", { type: blob.type });
+        const fd = new FormData();
+        // 1. 오디오 파일 추가 (서버의 audio_file 인자에 매핑)
+        fd.append("audio_file", file);
         
         showToast("🎧 음성 인식 중...", "info", 3000);
 
-        const res = await fetch(`/fastapi/stt-json`, { method: "POST", body: JSON.stringify(payload)});
-        
+        const res = await fetch("/api/stt-proxy", {
+          method: "POST",
+          body: fd
+        });
+
         if (!res.ok) {
           // 서버에서 오류 메시지가 있다면 가져와서 출력
           let errorText = `STT HTTP ${res.status}`;
