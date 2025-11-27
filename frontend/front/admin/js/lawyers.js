@@ -9,35 +9,6 @@ const searchInput = document.getElementById("searchLawyer");
 let editingId = null;
 let allLawyers = []; // 전체 목록 캐시
 
-function resizeImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      
-      const MAX_WIDTH = 1200;
-      const scale = MAX_WIDTH / img.width;
-      canvas.width = MAX_WIDTH;
-      canvas.height = img.height * scale;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      canvas.toBlob(
-        (blob) => {
-          const newFile = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
-            type: "image/jpeg",
-          });
-          resolve(newFile);
-        },
-        "image/jpeg",
-        0.85
-      );
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
 
 
 // 변호사 이미지 Presigned URL 요청 
@@ -70,7 +41,6 @@ function toCloudFrontUrl(presignedUrl) {
 async function uploadImage() {
   let file = document.getElementById("imageFile").files[0];
   if (!file) return null;
-  file = await resizeImage(file);
 
   const presignedUrl = await getPresignedUrl(file);
 
