@@ -152,47 +152,58 @@ function card(item) {
     icon.textContent = "법";
   }
 
-  // 이름 옆에 소속(office)도 같이 보여주면 좋습니다.
-  title.textContent = `${item.name} [${item.officeName || "변호사"}]`;
+  // 2. 제목 (이름 + 소속) - 대괄호[] 대신 소괄호() 사용 추천
+  // 소속은 조금 연하게(span) 처리해서 이름 강조
+  const firmName = item.officeName || "변호사";
+  title.innerHTML = `${item.name} <span style="font-size:0.8em; color:#666; font-weight:normal;">(${firmName})</span>`;
 
+  // 3. 메타 정보 구성
   meta.innerHTML = "";
 
-  // (1) 전화번호 (줄바꿈)
-  if (item.phone) {
-    const row = document.createElement("div");
-    row.textContent = item.phone;
-    row.style.marginBottom = "4px"; // 간격 추가
-    row.style.fontWeight = "bold"; // 강조
-    row.style.color = "#333";
-    meta.appendChild(row);
-  }
-
-  // (2) 주소 (줄바꿈)
+  // (1) 주소 (전화번호 텍스트는 삭제 -> 버튼으로 대체)
   if (item.address) {
     const row = document.createElement("div");
-    row.textContent = item.address;
-    row.style.marginBottom = "8px"; // 태그와 간격 벌리기
-    row.style.fontSize = "0.95em";
-    row.style.color = "#666";
+    // 아이콘 추가로 시각적 포인트
+    row.innerHTML = `<span style="margin-right:4px;">📍</span>${item.address}`;
+
+    // 스타일: 회색조, 약간 작게
+    row.style.fontSize = "0.9em";
+    row.style.color = "#777";
+    row.style.marginBottom = "8px";
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+
     meta.appendChild(row);
   }
 
-  // (3) 태그 (줄바꿈 후 가로 나열)
+  // (2) 태그 (뱃지 스타일)
   if (Array.isArray(item.tags) && item.tags.length > 0) {
     const tagRow = document.createElement("div");
-    // 태그끼리는 옆으로 붙고, 줄 넘침 시 아래로 내려가게(wrap)
     tagRow.style.display = "flex";
     tagRow.style.flexWrap = "wrap";
-    tagRow.style.gap = "6px"; // 태그 사이 간격
+    tagRow.style.gap = "6px";
 
     item.tags.forEach((t) => {
-      tagRow.appendChild(makeTag("#" + t));
+      // 태그 스타일 직접 적용 (CSS 클래스가 있다면 classList.add로 대체 가능)
+      const tagSpan = document.createElement("span");
+      tagSpan.textContent = "#" + t;
+      tagSpan.style.backgroundColor = "#f3f4f6"; // 연한 회색 배경
+      tagSpan.style.color = "#4b5563"; // 진한 회색 글자
+      tagSpan.style.padding = "2px 8px";
+      tagSpan.style.borderRadius = "12px"; // 둥글게
+      tagSpan.style.fontSize = "0.85em";
+      tagSpan.style.fontWeight = "500";
+
+      tagRow.appendChild(tagSpan);
     });
     meta.appendChild(tagRow);
   }
 
-  // 4. 설명 (비고)
+  // 4. 설명 (한 줄 요약)
+  // 설명이 너무 길면 잘리도록 처리해도 좋음
   desc.textContent = item.note || "";
+  desc.style.marginTop = "10px";
+  desc.style.color = "#444";
 
   // actions
   const aSite = document.createElement("a");
