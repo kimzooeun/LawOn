@@ -9,7 +9,7 @@ window.fetch = async (url, options = {}) => {
   if(typeof url === "string" && url.startsWith("https://")){
     return await originalFetch(url, options);
   }
-
+  console.log(url)
   const isSkip = skipAuth.some((p) => url.includes(p));
   let token = TokenManager.getAccessToken();
 
