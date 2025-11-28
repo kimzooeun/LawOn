@@ -214,7 +214,7 @@ def check_search_necessity(user_query):
     return "TRUE" in result.upper()
 
 # [1-2] 검색어 재작성 함수
-def rewrite_query_if_needed(user_query, history_buffer, current_s, current_t, current_i):
+def rewrite_query_if_needed(user_query, history_buffer, current_s, current_t):
     history_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in history_buffer[-3:]])
     context_parts = []
     if current_s not in ['해당 없음', '정보 없음']: context_parts.append(f"상황: {current_s}")
@@ -389,9 +389,7 @@ async def handle_generate_response(request: QueryRequest):
         # 에러 시 기존 값 유지 혹은 기본값
         final_i, final_t, final_s = "해당 없음", "해당 없음", "해당 없음"
 
-    # -----------------------------------------
-    # [Step 2] 검색 전략 (test24.py 로직)
-    # -----------------------------------------
+    # [Step 2] 검색 전략 
     is_search_needed = True
     if turn_count > 1:
         is_search_needed = await asyncio.to_thread(check_search_necessity, query)
@@ -448,10 +446,7 @@ async def handle_generate_response(request: QueryRequest):
             print(f"Search Process Error: {e}")
             traceback.print_exc()
 
-    # -----------------------------------------
-    # [Step 3] LLM 프롬프트 조립 (test24.py 로직 이식)
-    # -----------------------------------------
-    
+    # [3] LLM 프롬프트 조립 
     # 1. RAG 데이터 텍스트화 (Rag Context)
     rag_context_str = ""
     if qa_results:
@@ -473,8 +468,7 @@ async def handle_generate_response(request: QueryRequest):
     if not rag_context_str: 
         rag_context_str = "※ 검색 결과 없음. (일반적인 공감과 절차 안내만 수행할 것)"
 
-    # 2. 전략 수립 로직 (test24.py의 핵심 로직)
-    
+    # 2. 전략 수립 로직
     # (1) 변수 추출
     # 직전 AI 답변 (앵무새 방지용)
     last_ai_msg = ""
