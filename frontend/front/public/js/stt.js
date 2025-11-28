@@ -76,12 +76,11 @@ async function startRecording() {
           `/api/stt/presign?fileName=${fileName}&contentType=${encodeURIComponent(blob.type)}`
         );
 
-if (!presignRes.ok) {
+        if (!presignRes.ok) {
           throw new Error(`Presign HTTP ${presignRes.status}`);
         }
 
-const { uploadUrl, fileKey } = await presignRes.json();
-
+        const { uploadUrl, fileKey } = await presignRes.json();
 
         // 2) S3 그 자체에 바로 업로드 (PUT)
 
@@ -89,10 +88,9 @@ const { uploadUrl, fileKey } = await presignRes.json();
             method: "PUT",
             body: blob,
             headers: {
-              "Content-Type": mime
+              "Content-Type": blob.type
             }
           });
-     
 
         if (!uploadRes.ok) {
           throw new Error(`S3 업로드 실패: HTTP ${uploadRes.status}`);
@@ -133,7 +131,7 @@ const { uploadUrl, fileKey } = await presignRes.json();
     mediaRecorder.start();
     activeMicBtn?.classList.add("recording");
     activeMicBtn.textContent = "⏺";
-    showToast("🎙 녹음 시작", "info", 1200);
+    showToast("🔴 녹음 시작", "info", 1200);
   } catch (err) {
     console.error("마이크 오류:", err);
     showToast("⚠ 마이크 접근 실패", "info", 3000);
