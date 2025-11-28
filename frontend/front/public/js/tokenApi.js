@@ -4,7 +4,7 @@ import { TokenManager } from './token.js';
 const originalFetch = window.fetch;
 
 // 토큰 없이 호출해야 하는 API
-const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
+const skipAuth = ['/api/login', '/api/signup', '/api/refresh', '/api/stt/presign','/api/stt/recognize'];
 
 // Content-Type 자동 지정 제외 API
 const skipContentType = ['/fastapi/stt', '/api/stt-proxy', '/api/stt/presign','/api/stt/recognize'];
