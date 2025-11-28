@@ -37,11 +37,11 @@ public class SttController {
     public PresignResponse presign(@RequestParam String fileName,@RequestParam String contentType) {
     	System.out.println("presign spring 진입 확인 .");
     	String key = "stt/" + UUID.randomUUID() + "_" + fileName;
-
+    	String fixedContentType = "audio/webm"; 
     	PutObjectRequest objectRequest = PutObjectRequest.builder()
     	        .bucket(bucket)
     	        .key(key)
-    	        .contentType(contentType)
+    	        .contentType(fixedContentType)
     	        .build();
 
     	PutObjectPresignRequest presignRequest =
