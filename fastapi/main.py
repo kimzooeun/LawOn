@@ -714,7 +714,7 @@ async def handle_generate_response(request: QueryRequest):
         "sessionUpdates": sessionUpdates
     }
 
-@app.post("/simple-chat")
+@app.post("/fastapi/simple-chat")
 async def simple_chat(request:SimpleChatRequest):
     # 세션 ID 확인/생성
     session_id = request.session_id or str(uuid.uuid4())
