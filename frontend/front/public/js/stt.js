@@ -24,18 +24,15 @@ function pickSupportedMime() {
 async function initMicStream() {
   return await navigator.mediaDevices.getUserMedia({
     audio: {
-      channelCount: 1,
-      sampleRate: 48000,
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-    },
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+      channelCount: 1
+    }
   });
 }
 
-// -----------------------------
 // 녹음 시작
-// -----------------------------
 async function startRecording() {
   try {
     if (isRecording) {
@@ -68,6 +65,11 @@ async function startRecording() {
 
         const blob = new Blob(audioChunks, { type: chosenMime || "audio/webm" });
         const fileName = `speech_${Date.now()}.webm`;
+         // 🔥 디버깅용 — 재생해서 소리 나는지 체크
+        const testAudio = new Audio(URL.createObjectURL(blob));
+        testAudio.play();
+
+        console.log("🔥 녹음된 blob 사이즈:", blob.size);
 
         showToast("🎧 음성 업로드 준비 중...", "info");
 
@@ -103,6 +105,7 @@ async function startRecording() {
         // 4) recognize 호출 → Spring → FastAPI → Whisper
         const recognizeRes = await fetch("/api/stt/recognize", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileKey }),
         });
 
