@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,11 +19,11 @@
 
     <nav class="admin-nav">
       <div class="page-buttons">
-        <button data-page="main" class="active">📊 대시보드</button>
-        <button data-page="user">👥 회원 관리</button>
-        <button data-page="lawyers">👨‍⚖️ 변호사 관리</button>
-        <button data-page="logs">🧾 상담 관리</button>
-        <button data-page="settings">⚙️ 설정</button>     
+        <a href="/admin" class="nav-link active">📊 대시보드</a>
+        <a href="/admin/user" class="nav-link">👥 회원 관리</a>
+        <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
+        <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
+        <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
       </div>
       <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
@@ -59,7 +60,9 @@
           </tr>
         </thead>
         <tbody id="logTableBody">
-          <tr><td colspan="4" style="text-align:center;">데이터를 불러오는 중...</td></tr>
+          <tr>
+            <td colspan="4" style="text-align:center;">데이터를 불러오는 중...</td>
+          </tr>
         </tbody>
       </table>
     </section>
@@ -79,4 +82,5 @@
 
 
 </body>
+
 </html>

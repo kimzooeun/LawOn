@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <title>회원 관리 | LawON ADMIN</title>
@@ -16,11 +17,11 @@
     </div>
     <nav class="admin-nav">
       <div class="page-buttons">
-      <a href="/admin" class="nav-link">📊 대시보드</a>
-      <a href="/admin/user" class="nav-link">👥 회원 관리</a>
-      <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
-      <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
-      <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
+        <a href="/admin" class="nav-link">📊 대시보드</a>
+        <a href="/admin/user" class="nav-link active">👥 회원 관리</a>
+        <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
+        <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
+        <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
       </div>
       <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
@@ -49,7 +50,7 @@
   <footer class="admin-footer">
     © 2025 LawON ADMIN Panel
   </footer>
-  
+
   <!-- 1) TokenManager 먼저 로드 -->
   <script type="module" src="/src/js/token.js"></script>
   <!-- 2) 관리자용 fetch 인터셉트 적용 -->
@@ -61,4 +62,5 @@
 
 
 </body>
+
 </html>

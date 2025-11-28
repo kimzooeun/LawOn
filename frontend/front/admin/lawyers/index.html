@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,11 +20,11 @@
     </div>
     <nav class="admin-nav">
       <div class="page-buttons">
-      <a href="/admin" class="nav-link">📊 대시보드</a>
-      <a href="/admin/user" class="nav-link">👥 회원 관리</a>
-      <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
-      <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
-      <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
+        <a href="/admin" class="nav-link">📊 대시보드</a>
+        <a href="/admin/user" class="nav-link">👥 회원 관리</a>
+        <a href="/admin/lawyers" class="nav-link active">👨‍⚖️ 변호사 관리</a>
+        <a href="/admin/logs" class="nav-link">🧾 상담 관리</a>
+        <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
       </div>
       <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
@@ -33,32 +34,32 @@
     <!-- 등록 폼 -->
     <section class="lawyer-register">
       <h2>👨‍⚖️ 새 변호사 등록</h2>
-        <form id="lawyerForm" class="lawyer-form">
-          <!-- 첫 번째 줄 -->
-          <input type="text" id="name" placeholder="이름" required>
-          
-          <select id="gender" required>
-            <option value="">성별 선택</option>
-            <option value="남">남</option>
-            <option value="여">여</option>
-          </select>
-          
-          <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
-          
-          <!-- 소개글은 전체 너비 -->
-          <textarea id="description" placeholder="소개글" required></textarea>
-          
-          <!-- 두 번째 줄: 한 줄로 배치 -->
-          <input type="text" id="office" placeholder="사무실명" required>
-          
-          <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
-          
-          <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
-          
-          <input type="file" id="imageFile">
-          
-          <button type="submit">등록</button>
-        </form>
+      <form id="lawyerForm" class="lawyer-form">
+        <!-- 첫 번째 줄 -->
+        <input type="text" id="name" placeholder="이름" required>
+
+        <select id="gender" required>
+          <option value="">성별 선택</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
+        </select>
+
+        <input type="text" id="detailSpecialty" placeholder="전문 분야(예: 이혼, 폭행등)" required>
+
+        <!-- 소개글은 전체 너비 -->
+        <textarea id="description" placeholder="소개글" required></textarea>
+
+        <!-- 두 번째 줄: 한 줄로 배치 -->
+        <input type="text" id="office" placeholder="사무실명" required>
+
+        <input type="text" id="officeLocation" placeholder="지역 (예: 서울 강남구)" required>
+
+        <input type="text" id="contact" placeholder="연락처 (예: 010-1234-5678)" required>
+
+        <input type="file" id="imageFile">
+
+        <button type="submit">등록</button>
+      </form>
 
     </section>
 
@@ -90,7 +91,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="9" style="text-align:center;">등록된 변호사가 없습니다.</td></tr>
+            <tr>
+              <td colspan="9" style="text-align:center;">등록된 변호사가 없습니다.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -107,6 +110,7 @@
   <!-- 3) 마지막에 페이지 스크립트 실행 -->
   <script type="module" src="../js/lawyers.js"></script>
   <script type="module" src="../js/admin-logout.js"></script>
-  
+
 </body>
+
 </html>
