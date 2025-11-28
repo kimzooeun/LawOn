@@ -7,7 +7,7 @@ const originalFetch = window.fetch;
 const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
 
 // Content-Type 자동 지정 제외 API
-const skipContentType = ['/fastapi/stt', '/api/stt-proxy'];
+const skipContentType = ['/fastapi/stt', '/api/stt-proxy', '/api/stt/presign','/api/stt/recognize'];
 
 // ★ S3 presigned 업로드인지 판별하는 조건
 function isS3Url(url) {
