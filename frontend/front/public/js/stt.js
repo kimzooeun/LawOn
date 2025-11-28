@@ -75,31 +75,37 @@ async function startRecording() {
         const presignRes = await fetch(
           `/api/stt/presign?fileName=${fileName}&contentType=${encodeURIComponent(blob.type)}`
         );
-        const presignUrl = await presignRes.text(); // 문자열 presigned URL
 
-        console.log("📡 Presigned URL =", presignUrl);
+if (!presignRes.ok) {
+          throw new Error(`Presign HTTP ${presignRes.status}`);
+        }
 
-        // 2) S3 업로드 (PUT)
-        const uploadRes = await fetch(presignUrl, {
-          method: "PUT",
-          body: blob,
-          headers: { "Content-Type": blob.type },
-        });
+const { uploadUrl, fileKey } = await presignRes.json();
+
+
+        // 2) S3 그 자체에 바로 업로드 (PUT)
+
+        const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            body: blob,
+            headers: {
+              "Content-Type": mime
+            }
+          });
+     
 
         if (!uploadRes.ok) {
           throw new Error(`S3 업로드 실패: HTTP ${uploadRes.status}`);
         }
 
-        // 3) S3 실제 URL 만들기
-        const fileUrl = presignUrl.split("?")[0];
-        console.log("📄 실제 S3 URL =", fileUrl);
-
+        // 3) S3 실제 URL 
+        console.log("📄 실제 S3 URL =", fileKey);
         showToast("🧠 Whisper 처리 중...", "info", 3000);
 
         // 4) recognize 호출 → Spring → FastAPI → Whisper
         const recognizeRes = await fetch("/api/stt/recognize", {
           method: "POST",
-          body: JSON.stringify({ fileUrl }),
+          body: JSON.stringify({ fileKey }),
         });
 
         if (!recognizeRes.ok) {
@@ -146,7 +152,7 @@ function cleanupRecording() {
   isRecording = false;
   if (activeMicBtn) {
     activeMicBtn.classList.remove("recording");
-    activeMicBtn.textContent = "🎙";
+    activeMicBtn.title = "음성 입력";
   }
   activeMicBtn = null;
   targetInputEl = null;
