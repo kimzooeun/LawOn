@@ -1,7 +1,4 @@
-// Whisper STT
-// (음성 녹음, 서버 전송, 텍스트 변환)
-
-import { showToast} from "./utils.js";
+import { showToast } from "./utils.js";
 
 let mediaRecorder;
 let audioChunks = [];
@@ -25,46 +22,20 @@ function pickSupportedMime() {
 }
 
 async function initMicStream() {
-  // 고품질 STT를 위한 오디오 설정
   return await navigator.mediaDevices.getUserMedia({
     audio: {
       channelCount: 1,
       sampleRate: 48000,
-      echoCancellation: true, // 에코 제거
-      noiseSuppression: true, // 소음 제거
-      autoGainControl: true, // 자동 감도 조정
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
     },
   });
 }
 
-
-async function sendSTT(audioBlob) {
-  const fileName = "audio_" + Date.now() + ".webm";
-  const contentType = audioBlob.type || "audio/webm";
-
-  // 1) presign 요청
-  const presignRes = await fetch(`/api/stt/presign?fileName=${fileName}&contentType=${contentType}`);
-  const { uploadUrl, fileKey } = await presignRes.json();
-
-  // 2) S3 업로드
-  await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body: audioBlob
-  });
-
-  // 3) STT 실행 요청
-  const sttRes = await fetch("/api/stt/recognize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fileKey })
-  });
-
-  const data = await sttRes.json();
-  return data.text;
-}
-
-
+// -----------------------------
+// 녹음 시작
+// -----------------------------
 async function startRecording() {
   try {
     if (isRecording) {
@@ -85,99 +56,81 @@ async function startRecording() {
       if (e.data.size > 0) audioChunks.push(e.data);
     };
 
+    // -----------------------------
+    // 녹음 STOP → STT 처리 시작
+    // -----------------------------
     mediaRecorder.onstop = async () => {
       try {
         if (!audioChunks.length) {
           showToast("🎤 녹음된 데이터가 없습니다", "info");
           return;
         }
-        
-        const mime = chosenMime || "audio/webm";
-        const blob = new Blob(audioChunks, { type: mime });
 
+        const blob = new Blob(audioChunks, { type: chosenMime || "audio/webm" });
         const fileName = `speech_${Date.now()}.webm`;
-        
-        showToast("🎧 음성 인식 중...", "info", 3000);
 
-       // 1) presigned URL 요청 (/api/stt/presign)
+        showToast("🎧 음성 업로드 준비 중...", "info");
+
+        // 1) presign 요청
         const presignRes = await fetch(
-          `/api/stt/presign?fileName=${encodeURIComponent(
-            fileName
-          )}&contentType=${encodeURIComponent(mime)}`
+          `/api/stt/presign?fileName=${fileName}&contentType=${encodeURIComponent(blob.type)}`
         );
+        const presignUrl = await presignRes.text(); // 문자열 presigned URL
 
-        if (!presignRes.ok) {
-          throw new Error(`Presign HTTP ${presignRes.status}`);
-        }
+        console.log("📡 Presigned URL =", presignUrl);
 
-        const { uploadUrl, fileKey } = await presignRes.json();
-
-        // 2) S3에 오디오 업로드 (직접 업로드, CloudFront 안 거침)
-        const uploadRes = await fetch(uploadUrl, {
+        // 2) S3 업로드 (PUT)
+        const uploadRes = await fetch(presignUrl, {
           method: "PUT",
-          headers: {
-            "Content-Type": mime,
-          },
           body: blob,
+          headers: { "Content-Type": blob.type },
         });
 
         if (!uploadRes.ok) {
           throw new Error(`S3 업로드 실패: HTTP ${uploadRes.status}`);
         }
 
-        // 3) STT 요청 (/api/stt/recognize)
-        const sttRes = await fetch("/api/stt/recognize", {
+        // 3) S3 실제 URL 만들기
+        const fileUrl = presignUrl.split("?")[0];
+        console.log("📄 실제 S3 URL =", fileUrl);
+
+        showToast("🧠 Whisper 처리 중...", "info", 3000);
+
+        // 4) recognize 호출 → Spring → FastAPI → Whisper
+        const recognizeRes = await fetch("/api/stt/recognize", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ fileKey }),
+          body: JSON.stringify({ fileUrl }),
         });
 
-        if (!sttRes.ok) {
-          let errorText = `STT HTTP ${sttRes.status}`;
-          try {
-            const errJson = await sttRes.json();
-            if (errJson.error) errorText = errJson.error;
-          } catch (e) {
-            // 무시, 기본 메시지 사용
-          }
-          throw new Error(errorText);
+        if (!recognizeRes.ok) {
+          throw new Error(`STT HTTP ${recognizeRes.status}`);
         }
 
-        const json = await sttRes.json();
+        const json = await recognizeRes.json();
         const text = (json.text || json.transcription || "").trim();
 
         if (text) {
           targetInputEl.value = text;
-          showToast("✅ 인식 완료", "success");
-          if (autoSubmitAfterSTT) {
-            targetInputEl.closest("form")?.requestSubmit();
-          }
-        } else if (json.error) {
-          showToast(`❌ STT 서버 오류: ${json.error}`, "error", 5000);
+          showToast("✅ 음성 인식 성공!", "success");
+          if (autoSubmitAfterSTT) targetInputEl.closest("form")?.requestSubmit();
         } else {
-          showToast("⚠ 음성 인식 불가, 좀 더 정확하게 부탁드려요!", "info");
+          showToast("⚠ 음성 인식 실패", "info");
         }
       } catch (err) {
-        console.error("STT 처리 오류:", err);
-        const displayMsg = err.message?.startsWith("STT HTTP") || err.message?.startsWith("Presign HTTP")
-          ? err.message
-          : "Whisper 서버 응답 오류";
-        showToast(`❌ ${displayMsg}`, "error", 5000);
+        console.error("STT 오류:", err);
+        showToast(`❌ STT 오류: ${err.message}`, "error", 5000);
       } finally {
         cleanupRecording();
       }
     };
 
-
     mediaRecorder.start();
     activeMicBtn?.classList.add("recording");
-    activeMicBtn.title = "녹음 중지";
+    activeMicBtn.textContent = "⏺";
     showToast("🎙 녹음 시작", "info", 1200);
   } catch (err) {
-    console.error("마이크 초기화 오류:", err);
-    showToast("⚠ 마이크 접근 실패 (권한/장치 확인)", "info", 3000);
+    console.error("마이크 오류:", err);
+    showToast("⚠ 마이크 접근 실패", "info", 3000);
     cleanupRecording();
   }
 }
@@ -193,7 +146,7 @@ function cleanupRecording() {
   isRecording = false;
   if (activeMicBtn) {
     activeMicBtn.classList.remove("recording");
-    activeMicBtn.title = "음성 입력";
+    activeMicBtn.textContent = "🎙";
   }
   activeMicBtn = null;
   targetInputEl = null;
@@ -205,15 +158,14 @@ function cleanupRecording() {
   }
 }
 
-export function bindMic(micBtnEl, inputEl, autoSubmit = false) {
-  if (!micBtnEl || !inputEl) return;
-  micBtnEl.addEventListener("click", () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      activeMicBtn = micBtnEl;
-      targetInputEl = inputEl;
-      autoSubmitAfterSTT = !!autoSubmit;
+export function bindMic(btn, input, autoSubmit = false) {
+  if (!btn || !input) return;
+  btn.addEventListener("click", () => {
+    if (isRecording) stopRecording();
+    else {
+      activeMicBtn = btn;
+      targetInputEl = input;
+      autoSubmitAfterSTT = autoSubmit;
       startRecording();
     }
   });

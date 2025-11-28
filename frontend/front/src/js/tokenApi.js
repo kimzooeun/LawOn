@@ -9,7 +9,7 @@ const skipAuth = ['/api/login', '/api/signup', '/api/refresh'];
 // Content-Type 자동 지정 제외 API
 const skipContentType = ['/fastapi/stt', '/api/stt-proxy', '/api/stt/presign','/api/stt/recognize'];
 
-// ★ S3 presigned 업로드인지 판별하는 조건
+// S3 presigned 업로드인지 판별하는 조건
 function isS3Url(url) {
   return url.includes("amazonaws.com"); // presigned PUT 업로드
 }
@@ -23,11 +23,9 @@ window.fetch = async (url, options = {}) => {
   options = { ...options };
   options.headers = options.headers ? { ...options.headers } : {};
 
-  // ==========================================================
-  // 🟢 1) S3 Presigned URL이면 → 모든 헤더 제거 + 쿠키 제거
-  // ==========================================================
+  //  S3 Presigned URL이면 → 모든 헤더 제거 + 쿠키 제거
   if (isS3Url(url)) {
-	console.log("🚫 S3 Presigned URL → Authorization, Cookie, Content-Type 제거");
+	console.log("S3 Presigned URL → Authorization, Cookie, Content-Type 제거");
 
 	return originalFetch(url, {
 	  method: options.method || "PUT",
@@ -35,15 +33,11 @@ window.fetch = async (url, options = {}) => {
 	  headers: {                      // presigned가 요구한 딱 하나만 넣기
 		"Content-Type": options.headers["Content-Type"] || "application/octet-stream"
 	  },
-	  // ❗ 쿠키 금지
-	  credentials: "omit"
+	  credentials: "omit"   // 쿠키 금지
 	});
   }
 
-  // ==========================================================
-  // 🟡 2) 일반 API 요청
-  // ==========================================================
-
+  // 일반 API 요청
   // Content-Type 자동 지정 (단, skipContent 제외)
   if (!isSkipContent) {
 	if (options.body && !options.headers['Content-Type']) {
@@ -64,10 +58,7 @@ window.fetch = async (url, options = {}) => {
   // 실제 요청
   let res = await originalFetch(url, options);
 
-  // ==========================================================
-  // 🟣 AccessToken 재발급 처리
-  // ==========================================================
-
+  // AccessToken 재발급 처리
   const newAuthHeader = res.headers.get("Authorization");
   if (newAuthHeader) {
 	const newAccessToken = newAuthHeader.replace("Bearer ", "");
