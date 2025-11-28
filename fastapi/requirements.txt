@@ -11,8 +11,7 @@ faiss-cpu
 
 
 # ML/Torch (모델 A, B, C)
-torch==2.2.0+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
+
 transformers
 numpy>=1.23,<2
 sentencepiece
