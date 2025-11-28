@@ -65,22 +65,7 @@ async function startRecording() {
 
         const blob = new Blob(audioChunks, { type: chosenMime || "audio/webm" });
         const fileName = `speech_${Date.now()}.webm`;
-         // 🔥 디버깅용 — 재생해서 소리 나는지 체크
 
-
-        console.log("🔥 녹음된 blob 사이즈:", blob.size);
-        const testAudio = document.createElement("audio");
-testAudio.controls = true;
-testAudio.style.position = "fixed";
-testAudio.style.top = "20px";
-testAudio.style.left = "20px";
-testAudio.style.zIndex = "999999";
-testAudio.style.background = "white";
-
-document.body.appendChild(testAudio);
-
-testAudio.src = URL.createObjectURL(blob);
-testAudio.play().catch(e => console.warn("자동 재생 안 됨(브라우저 정책)", e));
         showToast("🎧 음성 업로드 준비 중...", "info");
 
         // 1) presign 요청
@@ -108,9 +93,6 @@ testAudio.play().catch(e => console.warn("자동 재생 안 됨(브라우저 정
           throw new Error(`S3 업로드 실패: HTTP ${uploadRes.status}`);
         }
 
-        // 3) S3 실제 URL 
-        console.log("📄 실제 S3 URL =", fileKey);
-        console.log("📡 S3 PUT 결과 =", uploadRes.status, uploadRes.statusText);
         showToast("🧠 Whisper 처리 중...", "info", 3000);
 
         // 4) recognize 호출 → Spring → FastAPI → Whisper
