@@ -714,6 +714,143 @@ async def handle_generate_response(request: QueryRequest):
         "sessionUpdates": sessionUpdates
     }
 
+@app.post("/simple-chat")
+async def simple_chat(request:SimpleChatRequest):
+    # 세션 ID 확인/생성
+    session_id = request.session_id or str(uuid.uuid4())
+    redis_key = f"simple:session:{session_id}"
+
+    # Redis에서 이전 상태 가져오기 
+    data_str = redis_client.get(redis_key)
+    if data_str:
+        data = json.loads(data_str)
+    else:
+        data = {"count":0, "history":[]}
+    count = data.get("count",0)
+
+    # 5회 초과 여부 체크
+    if count >= LIMIT_SIMPLE:
+        return {
+            "session_id" : session_id,
+            "answer": "간편 상담은 최대 5개의 질문까지 제공됩니다.\n"
+                      "더 깊은 상담을 원하시면 회원가입 후 맞춤형 상담을 이용해 주세요 😊",
+            "count_used":count,
+            "limit": LIMIT_SIMPLE,
+            "limit_reached":True,
+        }
+    
+    query = request.query
+    # --- [B] 문맥 (KoBERT) 분류 ---
+    context_label = None # 이혼/비이혼 같은 문자열 
+    context_conf = None # 신뢰도
+    try:
+        if simple_models.get('model_B'):
+            # [수정] models_load.predict_context_kobert 로 변경
+            pred_b, conf_b, prob_non_div, prob_div = models_load.predict_context_kobert(query, simple_models['model_B'], simple_models['tokenizer_B'])
+            context_label = pred_b
+            context_conf = conf_b
+        else: print("간편 상담용 이혼 문맥 분류 모델 로딩 실패")
+    except Exception as e: print("간편 상담용 문맥 분류 예측 오류 : ", e)
+
+    # [C] 의도/주제/상황 분류 (이혼 질문일 때 활용)
+    intent = topic = situation = None
+    if simple_models.get('model_KOBERT_situation') and simple_models.get('model_KOBERT_intent') and simple_models.get('model_KOBERT_topic'):
+        try:
+            # [수정] models_load.predict_full 로 변경
+            its_result = models_load.predict_full(query, simple_models)
+            intent = its_result["its"]["intent"]
+            topic = its_result["its"]["topic"]
+            situation = its_result["its"]["situation"]
+        except Exception as e :
+            print("의도/주제/상황 분류 모델 예측 중 오류 발생 : ", e)
+
+
+    # 이혼 여부에 따라 OpenAI 호출 여부 결정
+    # context_label == 이혼 + 신뢰도 0.5 이상일때만 llm 사용 
+    use_LLM = False
+    if context_label == "이혼":
+        use_LLM = True
+    
+    # 최종 답변 생성
+    if use_LLM:
+        system_prompt = """
+            당신은 한국의 이혼/가사 법률에 특화된 상담 챗봇입니다.
+            지금은 '간편 상담' 모드입니다.
+
+            - 사용자의 상황을 공감해주되, 너무 깊은 법률 자문보다는 개괄적인 안내 위주로 답변합니다.
+            - 주어진 intent/topic/situation 정보를 참고해서 3~6문장 정도로 친절하게 답변하세요.
+            - 최종 답변에는 '모델 분류 결과' 같은 기술적인 내용은 노출하지 마세요.
+            - 명확한 법률 자문이나 추가 서류 검토가 필요해 보이면,
+            회원가입 후 맞춤형 상담을 이용하라는 안내를 가볍게 덧붙이세요.
+        """
+        user_prompt = f"""
+            [사용자 질문]
+            {query}
+
+            [내부 분류 결과] (사용자에게 직접 보여주지 마세요)
+            - KoBERT 문맥(context): {context_label} (신뢰도: {context_conf})
+            - 의도(intent): {intent}
+            - 주제(topic): {topic}
+            - 상황(situation): {situation}
+        """
+
+        completion = client.chat.completions.create(
+            model = "gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        
+        answer = completion.choices[0].message.content
+    else:
+        #  이혼 관련이 아니라고 판단되면 , 기본 안내만 제공
+        answer = (
+            "현재 간편 상담은 주로 이혼·가사 문제에 대한 안내를 드리도록 설계되어 있어요.\n"
+            "말씀해 주신 내용은 이혼과 직접적인 관련이 크지 않은 일반 문의로 판단되어,\n"
+            "정확한 답변을 드리기 어려운 점 양해 부탁드립니다.\n\n"
+            "보다 구체적인 상담이 필요하시다면 회원가입 후 맞춤형 상담을 이용해 주세요."
+        )
+    
+    # Redis에 count + history 업데이트
+    new_history_item = {
+        "user": query,
+        "bot": answer,
+        "context_label": context_label,
+        "context_confidence": context_conf,
+        "intent": intent,
+        "topic": topic,
+        "situation": situation,
+    }
+    
+    data["count"] = count + 1
+    data['history'].append(new_history_item)
+
+    redis_client.set(redis_key, json.dumps(data))
+    redis_client.expire(redis_key, 3600) # 1시간 유지
+    # redis_client.expire(redis_key, 60) # 60초 = 1분 
+
+
+    new_count = data["count"]
+    limit_reached = new_count >= LIMIT_SIMPLE
+
+    return {
+        "session_id" : session_id,
+        "answer": answer,
+        "count_used": new_count,
+        "limit": LIMIT_SIMPLE,
+        "limit_reached": limit_reached,
+        "context": {
+            "label": context_label,
+            "confidence": context_conf,
+        },
+        "its": {
+            "intent": intent,
+            "topic": topic,
+            "situation": situation,
+        },
+    }
+
 # [엔드포인트 4: 간편 상담 이력 조회]
 @app.get("/fastapi/simple-chat/history")
 async def get_simple_chat_history(session_id: str):
