@@ -54,5 +54,19 @@ public interface SessionRepository extends JpaRepository<CounsellingSession, Lon
     
     // 2. 상태(Status) 검색
     List<CounsellingSession> findByCompletionStatus(CompletionStatus status);
+    
+    /**
+     * 관리자 로그 검색용 동적 쿼리
+     * nickname이나 status가 null이면 해당 조건은 무시하고 전체 검색
+     */
+    @Query("SELECT s FROM CounsellingSession s " +
+           "JOIN FETCH s.member m " +
+           "WHERE (:nickname IS NULL OR m.nickname LIKE %:nickname%) " +
+           "AND (:status IS NULL OR s.completionStatus = :status) " +
+           "ORDER BY s.startTime DESC")
+    List<CounsellingSession> findAdminLogsByFilter(
+        @Param("nickname") String nickname, 
+        @Param("status") CompletionStatus status
+    );
 	
 }
