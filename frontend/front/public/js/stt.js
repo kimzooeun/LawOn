@@ -90,7 +90,7 @@ async function startRecording() {
             method: "PUT",
             body: blob,
             headers: {
-              "Content-Type": blob.type
+              "Content-Type": "audio/webm"
             }
           });
 
@@ -100,6 +100,7 @@ async function startRecording() {
 
         // 3) S3 실제 URL 
         console.log("📄 실제 S3 URL =", fileKey);
+        console.log("📡 S3 PUT 결과 =", uploadRes.status, uploadRes.statusText);
         showToast("🧠 Whisper 처리 중...", "info", 3000);
 
         // 4) recognize 호출 → Spring → FastAPI → Whisper
