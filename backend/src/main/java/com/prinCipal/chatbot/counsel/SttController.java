@@ -93,7 +93,7 @@ public class SttController {
 
             ResponseEntity<String> fastapiRes =
                     rt.postForEntity(
-                            "http://3.34.155.21:8000/fastapi/stt-json",
+                            "http://finalproject-fastapi:8000/fastapi/stt-json",
                             entity,
                             String.class
                     );
