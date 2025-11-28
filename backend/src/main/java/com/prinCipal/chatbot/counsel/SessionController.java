@@ -4,14 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,10 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
-import com.prinCipal.chatbot.config.MultipartInputStreamFileResource;
 import com.prinCipal.chatbot.dto.ChatRequestDto; // (A) 프론트 요청 DTO
 import com.prinCipal.chatbot.dto.ChatResponseDto; // (B) 프론트 응답 DTO
 import com.prinCipal.chatbot.dto.SessionCreationResponse; // (C) 새 세션 응답 DTO
@@ -31,7 +23,6 @@ import com.prinCipal.chatbot.member.Member;
 import com.prinCipal.chatbot.oauth2.CustomOAuth2User;
 import org.springframework.data.redis.core.StringRedisTemplate; //1. Redis 템플릿 임포트
 import com.fasterxml.jackson.databind.ObjectMapper;//2. JSON 변환기 임포트
-import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -93,25 +84,8 @@ public class SessionController {
 
 	}
 
-//	/**
-//	 * 3. 채팅 메시지 전송 (POST /api/chat)
-//	 */
-//	@PostMapping("/chat")
-//	// 👈 [수정] 요청: ChatRequestDto (A) / 응답: ChatResponseDto (B)
-//	public ResponseEntity<ChatResponseDto> handleChatRequest(@RequestBody ChatRequestDto requestDto,
-//			@AuthenticationPrincipal CustomOAuth2User customUser) {
-//
-//		if (customUser == null) {
-//			// 👈 [수정] (B) 프론트 응답 DTO 사용
-//			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ChatResponseDto("로그인이 필요합니다.", null, null));
-//		}
-//
-//		ChatResponseDto response = sessionService.addMessage(requestDto, customUser.getMember());
-//
-//		return ResponseEntity.ok(response);
-//	}
-	
-	// [추가] Redis 데이터 확인용 임시 API
+
+	// Redis 데이터 확인용 임시 API
 	@GetMapping("/debug/redis")
 	public ResponseEntity<Object> checkRedisCache(@RequestParam String query) {
 	    String key = "chat:response:" + query.trim(); // 저장할 때 쓴 키 규칙 그대로 적용
@@ -166,9 +140,8 @@ public class SessionController {
 		
 		}
 		
-	/**
-     * 4. 상담 수동 종료 (POST /api/sessions/{id}/end)
-     */
+
+    // 4. 상담 수동 종료 (POST /api/sessions/{id}/end)
     @PostMapping("/sessions/{id}/end")
     public ResponseEntity<?> endSession(@PathVariable Long id, @AuthenticationPrincipal CustomOAuth2User customUser) {
         if (customUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -177,9 +150,7 @@ public class SessionController {
         return ResponseEntity.ok("상담이 종료되었습니다.");
     }
 
-    /**
-     * 5. 상담 재시작 (POST /api/sessions/{id}/restart)
-     */
+    // 5. 상담 재시작 (POST /api/sessions/{id}/restart)
     @PostMapping("/sessions/{id}/restart")
     public ResponseEntity<?> restartSession(@PathVariable Long id, @AuthenticationPrincipal CustomOAuth2User customUser) {
          if (customUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -188,6 +159,5 @@ public class SessionController {
         return ResponseEntity.ok("상담이 재개되었습니다.");
     }
 	
-    
-    
+
 }
