@@ -35,7 +35,6 @@ public class SttController {
     // 1) Presigned URL 발급
     @GetMapping("/presign")
     public PresignResponse presign(@RequestParam String fileName,@RequestParam String contentType) {
-    	System.out.println("presign spring 진입 확인 .");
     	String key = "stt/" + UUID.randomUUID() + "_" + fileName;
     	String fixedContentType = "audio/webm"; 
     	PutObjectRequest objectRequest = PutObjectRequest.builder()
@@ -73,10 +72,14 @@ public class SttController {
                             .key(key)
                             .build()
             );
-
+            
             byte[] audioBytes = objectBytes.asByteArray();
+            System.out.println("s3 파일 다운로드 완료 !!!!!!!");
+            
+            
             String base64 = Base64.getEncoder().encodeToString(audioBytes);
-
+            System.out.println("base64 변환 성공");
+            
             // 2) FastAPI로 전송
             Map<String, String> body = Map.of("audio_base64", base64);
 
@@ -94,7 +97,7 @@ public class SttController {
                             entity,
                             String.class
                     );
-
+            System.out.println("FastAPI로 JSON 전달");
             return ResponseEntity.ok(fastapiRes.getBody());
 
         } catch (Exception e) {
