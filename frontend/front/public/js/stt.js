@@ -71,7 +71,14 @@ async function startRecording() {
         console.log("🔥 녹음된 blob 사이즈:", blob.size);
         const testAudio = document.createElement("audio");
 testAudio.controls = true;
-document.body.appendChild(testAudio);   // 임시로 화면 어딘가에 붙여두기
+testAudio.style.position = "fixed";
+testAudio.style.top = "20px";
+testAudio.style.left = "20px";
+testAudio.style.zIndex = "999999";
+testAudio.style.background = "white";
+
+document.body.appendChild(testAudio);
+
 testAudio.src = URL.createObjectURL(blob);
 testAudio.play().catch(e => console.warn("자동 재생 안 됨(브라우저 정책)", e));
         showToast("🎧 음성 업로드 준비 중...", "info");
