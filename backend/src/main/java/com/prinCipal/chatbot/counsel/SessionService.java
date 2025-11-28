@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.prinCipal.chatbot.admin.CounselLogDto;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -391,5 +392,38 @@ public class SessionService {
 			return "{\"error\":\"JSON 변환 실패\"}";
 		}
 	}
+	
+	// ==========================================
+    // [관리자] 상담 로그 검색 (닉네임 + 상태 필터링)
+    // ==========================================
+    @Transactional(readOnly = true)
+    public List<CounselLogDto> findAllAdminLogs(String nickname, String statusStr) {
+        
+        // 1. String("PROGRESS") -> Enum(CompletionStatus.PROGRESS) 변환
+        CompletionStatus status = null;
+        if (statusStr != null && !statusStr.trim().isEmpty() && !statusStr.equals("전체")) {
+            try {
+                // 프론트에서 대문자로 보내므로 바로 변환 시도
+                status = CompletionStatus.valueOf(statusStr);
+            } catch (IllegalArgumentException e) {
+                // 잘못된 값이면 필터링 안 함 (null)
+                status = null;
+            }
+        }
+
+        // 2. 닉네임 공백 체크 ("" -> null)
+        if (nickname != null && nickname.trim().isEmpty()) {
+            nickname = null;
+        }
+
+        // 3. Repository 동적 쿼리 호출 (앞서 추가한 findAdminLogsByFilter 사용)
+        List<CounsellingSession> sessions = sessionRepository.findAdminLogsByFilter(nickname, status);
+
+        // 4. Entity -> DTO 변환 후 반환
+        return sessions.stream()
+                .map(CounselLogDto::fromEntity) // DTO에 static from 메서드가 있다고 가정
+                // 만약 from이 없다면: .map(s -> new CounselLogDto(s)) 로 수정
+                .collect(Collectors.toList());
+    }
 
 }
