@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.*;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -35,11 +34,8 @@ public class SttController {
 
     // 1) Presigned URL 발급
     @GetMapping("/presign")
-    public PresignResponse presign(
-            @RequestParam String fileName,
-            @RequestParam String contentType
-    ) {
-
+    public PresignResponse presign(@RequestParam String fileName,@RequestParam String contentType) {
+    	System.out.println("presign spring 진입 확인 .");
     	String key = "stt/" + UUID.randomUUID() + "_" + fileName;
 
     	PutObjectRequest objectRequest = PutObjectRequest.builder()
