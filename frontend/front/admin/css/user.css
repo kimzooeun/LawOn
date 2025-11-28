@@ -1,12 +1,20 @@
 body {
   font-family: "Pretendard", sans-serif;
-  background: #f7f8fa;
+  background: #fafafa;
   margin: 0;
   color: #222;
 }
 
+/* admin.css에서 이미 width: 95%로 설정됨 */
 .admin-container {
+  padding: 0 20px;
+}
+
+.user-table {
+  background: #fff;
+  border-radius: 12px;
   padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 table {
@@ -15,43 +23,55 @@ table {
   background: white;
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 10px;
+th,
+td {
+  border-bottom: 1px solid #eee;
+  padding: 14px;
   text-align: center;
+  border-left: none;
+  border-right: none;
 }
 
 th {
-  background: #f0f0f0;
+  background: #fdfdfd;
+  border-top: 1px solid #eee;
+  font-weight: 600;
+  color: #444;
 }
 
 button {
   border: none;
-  padding: 6px 10px;
+  padding: 6px 12px;
   cursor: pointer;
   border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
 }
 
+/* 탈퇴 버튼 - 약간 채도를 낮춰 고급스럽게 */
 button.withdraw-btn {
-  background-color: #ff5252;
+  background-color: #ef5350;
   color: #fff;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
   transition: 0.2s;
 }
 
 button.withdraw-btn:hover {
   background-color: #d32f2f;
+  transform: translateY(-1px);
 }
 
 button.edit-btn {
-  background-color: #4caf50;
+  background-color: #b08d57; /* 수정 = 골드 */
   color: white;
+}
+button.edit-btn:hover {
+  background-color: #9a7c4e;
 }
 
 button.del-btn {
-  background-color: #e53935;
+  background-color: #424242; /* 삭제 = 진한 회색 (실수 방지 차분함) */
   color: white;
+}
+button.del-btn:hover {
+  background-color: #000;
 }

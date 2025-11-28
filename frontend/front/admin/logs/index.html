@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,10 +18,11 @@
     </div>
     <nav class="admin-nav">
       <div class="page-buttons">
-      <a href="/admin" class="nav-link">📊 대시보드</a>
-      <a href="/admin/user" class="nav-link">👥 회원 관리</a>
-      <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
-      <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
+        <a href="/admin" class="nav-link">📊 대시보드</a>
+        <a href="/admin/user" class="nav-link">👥 회원 관리</a>
+        <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
+        <a href="/admin/lawyers" class="nav-link">👨‍⚖️ 변호사 관리</a>
+        <a href="/admin/settings" class="nav-link">⚙️ 설정</a>
       </div>
       <button id="logoutBtn" class="logout">로그아웃</button>
     </nav>
@@ -55,7 +57,9 @@
             </tr>
           </thead>
           <tbody id="logsTableBody">
-            <tr><td colspan="5" style="text-align:center;">상담 데이터를 불러오는 중...</td></tr>
+            <tr>
+              <td colspan="5" style="text-align:center;">상담 데이터를 불러오는 중...</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -79,4 +83,5 @@
   <script type="module" src="/admin/js/logs.js"></script>
   <script type="module" src="/admin/js/admin-logout.js"></script>
 </body>
+
 </html>
