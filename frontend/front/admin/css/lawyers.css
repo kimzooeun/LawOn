@@ -2,17 +2,17 @@
 .lawyer-form {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr auto;
-  gap: 12px;
+  gap: 16px;
   margin-top: 10px;
-  padding: 15px;
-  background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
-  border-radius: 8px;
-  border: 1px solid #e6e6e6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   align-items: end;
 }
 
-/* 첫 번째 줄: 이름, 성별, 전문분야, 파일업로드 */
+/* 첫 번째 줄 */
 .lawyer-form input[type="text"]:nth-of-type(1),
 .lawyer-form select,
 .lawyer-form input[type="text"]:nth-of-type(2),
@@ -20,12 +20,12 @@
   grid-column: span 1;
 }
 
-/* 소개글은 전체 너비 */
+/* 소개글 */
 .lawyer-form textarea {
   grid-column: 1 / -1;
 }
 
-/* 두 번째 줄: 사무실명, 지역, 연락처 */
+/* 두 번째 줄 */
 .lawyer-form input[type="text"]:nth-of-type(3),
 .lawyer-form input[type="text"]:nth-of-type(4),
 .lawyer-form input[type="text"]:nth-of-type(5) {
@@ -36,27 +36,27 @@
 .lawyer-form input,
 .lawyer-form select,
 .lawyer-form textarea {
-  padding: 10px 12px;
-  border: 1px solid #d0d0d0;
+  padding: 12px;
+  border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95em;
   width: 100%;
   box-sizing: border-box;
   transition: all 0.3s ease;
-  background-color: #fff;
+  background-color: #fafafa;
 }
 
 .lawyer-form input:focus,
 .lawyer-form select:focus,
 .lawyer-form textarea:focus {
   outline: none;
-  border-color: #ff4da0;
-  box-shadow: 0 0 0 3px rgba(255, 77, 160, 0.1);
+  border-color: #b08d57;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.1);
 }
 
-/* textarea 스타일 */
 .lawyer-form textarea {
-  min-height: 80px;
+  min-height: 100px;
   resize: vertical;
   font-family: inherit;
 }
@@ -65,296 +65,156 @@
 .lawyer-form input[type="file"] {
   padding: 8px;
   background: #fff;
-  font-size: 0.9em;
   cursor: pointer;
 }
 
-/* 파일 input 커스텀 */
 .lawyer-form input[type="file"]::file-selector-button {
   padding: 6px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
+  background-color: #555;
+  color: #fff;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin-right: 8px;
+  margin-right: 10px;
+  font-size: 0.9em;
   transition: 0.2s;
 }
 
 .lawyer-form input[type="file"]::file-selector-button:hover {
-  background-color: #e0e0e0;
+  background-color: #333;
 }
 
-/* 등록 버튼 */
+/* 등록 버튼 (골드 그라데이션) */
 .lawyer-form button {
-  background: linear-gradient(135deg, #ff4da0 0%, #ff2d8f 100%);
+  background: linear-gradient(135deg, #b08d57 0%, #9a7c4e 100%);
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 10px 22px;
+  padding: 12px 24px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
   height: fit-content;
-  box-shadow: 0 4px 12px rgba(255, 77, 160, 0.3);
+  box-shadow: 0 4px 12px rgba(176, 141, 87, 0.3);
 }
 
 .lawyer-form button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 77, 160, 0.4);
-}
-
-.lawyer-form button:active {
-  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(176, 141, 87, 0.4);
 }
 
 /* 검색 섹션 */
 .lawyer-search {
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .lawyer-search .filter-box {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 10px;
   flex-wrap: wrap;
 }
 
 .lawyer-search input {
   flex: 1;
-  min-width: 200px;
-  padding: 10px 12px;
+  min-width: 250px;
+  padding: 12px;
   border-radius: 6px;
-  border: 1px solid #d0d0d0;
-  transition: all 0.3s ease;
-}
-
-.lawyer-search input:focus {
-  outline: none;
-  border-color: #ff4da0;
-  box-shadow: 0 0 0 3px rgba(255, 77, 160, 0.1);
+  border: 1px solid #ddd;
 }
 
 .lawyer-search button {
-  background: linear-gradient(135deg, #ff4da0 0%, #ff2d8f 100%);
+  background: #b08d57;
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 10px 20px;
+  padding: 0 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(255, 77, 160, 0.3);
+  box-shadow: 0 4px 10px rgba(176, 141, 87, 0.2);
 }
 
-.lawyer-search button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 77, 160, 0.4);
-}
-
-/* 테이블 스타일 */
+/* 목록 테이블 */
 .lawyer-list {
-  margin-top: 30px;
-}
-
-.lawyer-list h2 {
-  font-size: 1.3em;
-  color: #333;
-  margin-bottom: 20px;
-  font-weight: 600;
+  margin-top: 40px;
 }
 
 .table-wrapper {
   overflow-x: auto;
-  margin-top: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  background: #fff;
 }
 
 #lawyerTable {
   width: 100%;
   border-collapse: collapse;
-  background: white;
 }
 
 #lawyerTable thead {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+  background: #f5f5f5; /* 아주 연한 회색 */
 }
 
 #lawyerTable th {
-  padding: 16px 21px;
+  padding: 16px;
   text-align: center;
-  color: #333;
-  font-weight: 600;
-  font-size: 0.95em;
-  border-bottom: 2px solid #d0d0d0;
-  white-space: nowrap;
-}
-
-/* 소개글 열 줄이기 + 말줄임 */
-#lawyerTable td:nth-child(5),
-#lawyerTable th:nth-child(5) {
-  max-width: 180px;      /* 너비 제한 */
-  width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 전문분야 열 줄이기 */
-#lawyerTable td:nth-child(4),
-#lawyerTable th:nth-child(4) {
-  max-width: 70px;
-  width: 170px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 관리 열 크기 조정 */
-#lawyerTable td:last-child,
-#lawyerTable th:last-child {
-  width: 120px;
-  max-width: 120px;
-  text-align: center;
+  color: #444;
+  font-weight: 700;
+  border-bottom: 2px solid #ddd;
   white-space: nowrap;
 }
 
 #lawyerTable td {
-  padding: 18px 12px;
-  border-bottom: 1px solid #e6e6e6;
+  padding: 16px 12px;
+  border-bottom: 1px solid #f0f0f0;
   vertical-align: middle;
 }
 
-#lawyerTable tbody tr {
-  transition: all 0.3s ease;
-}
-
-#lawyerTable tbody tr:hover {
-  background-color: #f8f9ff;
-}
-
-/* 테이블 사진 셀 */
-#lawyerTable td:first-child {
-  text-align: center;
-  width: 120px;
-}
-
+/* 사진 이미지 스타일 */
 #lawyerTable img {
-  width: 90px;
-  height: 110px;
+  width: 80px;
+  height: 100px;
   object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-  border: 3px solid #fff;
-  background: #f0f0f0;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
 }
 
 #lawyerTable tbody tr:hover img {
-  transform: scale(1.08);
-  box-shadow: 0 5px 15px rgba(255, 77, 160, 0.25);
+  transform: scale(1.05);
 }
 
-/* 이름 셀 */
-#lawyerTable td:nth-child(2) {
-  font-weight: 600;
-  color: #333;
-  width: 120px;
-  text-align: center;
-}
-
-/* 성별 셀 */
-#lawyerTable td:nth-child(3) {
-  text-align: center;
-  font-size: 0.95em;
-  color: #666;
-  width: 80px;
-}
-
-/* 전문분야 셀 */
-#lawyerTable td:nth-child(4) {
-  color: #555;
-  font-size: 0.93em;
-  line-height: 1.4;
-  min-width: 200px;
-}
-
-/* 소개글 셀 */
-#lawyerTable td:nth-child(5) {
-  color: #666;
-  font-size: 0.93em;
-  line-height: 1.4;
-  min-width: 200px;
-}
-
-/* 사무실 셀 */
-#lawyerTable td:nth-child(6) {
-  text-align: center;
-  color: #555;
-  font-size: 0.93em;
-  min-width: 130px;
-}
-
-/* 지역 셀 */
-#lawyerTable td:nth-child(7) {
-  text-align: center;
-  color: #555;
-  font-size: 0.93em;
-  min-width: 100px;
-}
-
-/* 연락처 셀 */
-#lawyerTable td:nth-child(8) {
-  text-align: center;
-  color: #555;
-  font-size: 0.93em;
-  min-width: 130px;
-  font-weight: 500;
-}
-
-/* 관리 버튼 셀 */
-#lawyerTable td:last-child {
-  text-align: center;
-  min-width: 150px;
-}
-
-/* 버튼 스타일 */
+/* 버튼 셀 */
 .edit-btn,
 .delete-btn {
-  padding: 9px 16px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 4px;
   cursor: pointer;
   border: none;
-  font-size: 0.9em;
-  margin: 5px 3px;
+  font-size: 0.85em;
+  margin: 4px auto;
   font-weight: 500;
-  transition: all 0.3s ease;
   display: block;
-  white-space: nowrap;
-  width: 50%;
+  width: 80%;
   text-align: center;
+  transition: all 0.2s;
 }
 
 .edit-btn {
-  background: linear-gradient(135deg, #5987e3 0%, #4570d9 100%);
+  background-color: #b08d57;
   color: white;
-  box-shadow: 0 2px 8px rgba(89, 135, 227, 0.3);
+}
+.edit-btn:hover {
+  background-color: #9a7c4e;
 }
 
 .delete-btn {
-  background: linear-gradient(135deg, #ff4d4d 0%, #ff2d3f 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(255, 77, 77, 0.3);
+  background-color: #e0e0e0;
+  color: #333;
 }
-
-.edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(89, 135, 227, 0.4);
-}
-
 .delete-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+  background-color: #d6d6d6;
 }
-

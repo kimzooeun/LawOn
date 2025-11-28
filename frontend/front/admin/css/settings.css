@@ -2,93 +2,131 @@
 .settings-tabs {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 30px;
+  border: 1px solid #eee;
 }
 
 .tab-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
 }
 
 .tab-btn {
   border: none;
-  border-radius: 8px;
-  background: #f2f2f2;
-  color: #333;
-  padding: 10px 16px;
+  border-radius: 6px;
+  background: #f5f5f5;
+  color: #666;
+  padding: 12px 20px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
+  font-size: 1em;
+}
+
+.tab-btn:hover {
+  background: #e0e0e0;
 }
 
 .tab-btn.active {
-  background: #ff4da0;
+  background: #b08d57; /* 골드 */
   color: #fff;
+  box-shadow: 0 4px 10px rgba(176, 141, 87, 0.3);
 }
 
 .tab-content .tab-panel {
   display: none;
+  animation: fadeIn 0.3s ease;
 }
 
 .tab-content .tab-panel.active {
   display: block;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* 계정 관리 */
 .pw-box {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  max-width: 600px;
 }
 
 .pw-box input {
   border: 1px solid #ccc;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 12px;
   flex: 1;
+}
+
+#pwChangeBtn {
+  background-color: #b08d57;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#pwChangeBtn:hover {
+  background-color: #9a7c4e;
 }
 
 /* 시스템 관리 */
 .sys-btn {
   border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  margin-right: 8px;
+  border-radius: 6px;
+  padding: 12px 24px;
+  margin-right: 10px;
   cursor: pointer;
   font-weight: 600;
-  background-color: #4d88ff;
+  background-color: #4d4d4d;
   color: #fff;
+  transition: 0.2s;
 }
 
 .sys-btn.danger {
-  background-color: #ff4d4d;
+  background-color: #d32f2f;
 }
 
 .sys-btn:hover {
   opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 #toast {
   visibility: hidden;
-  min-width: 240px;
+  min-width: 250px;
   background-color: #333;
   color: #fff;
   text-align: center;
   border-radius: 8px;
-  padding: 10px;
+  padding: 14px;
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 40px;
+  right: 40px;
   z-index: 9999;
   font-size: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transition: opacity 0.3s, visibility 0.3s;
 }
 #toast.show {
   visibility: visible;
-  opacity: 0.95;
+  opacity: 1;
 }
