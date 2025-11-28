@@ -66,11 +66,14 @@ async function startRecording() {
         const blob = new Blob(audioChunks, { type: chosenMime || "audio/webm" });
         const fileName = `speech_${Date.now()}.webm`;
          // 🔥 디버깅용 — 재생해서 소리 나는지 체크
-        const testAudio = new Audio(URL.createObjectURL(blob));
-        testAudio.play();
+
 
         console.log("🔥 녹음된 blob 사이즈:", blob.size);
-
+        const testAudio = document.createElement("audio");
+testAudio.controls = true;
+document.body.appendChild(testAudio);   // 임시로 화면 어딘가에 붙여두기
+testAudio.src = URL.createObjectURL(blob);
+testAudio.play().catch(e => console.warn("자동 재생 안 됨(브라우저 정책)", e));
         showToast("🎧 음성 업로드 준비 중...", "info");
 
         // 1) presign 요청
@@ -150,13 +153,26 @@ function stopRecording() {
   }
 }
 
+
 function cleanupRecording() {
   isRecording = false;
+
   if (activeMicBtn) {
     activeMicBtn.classList.remove("recording");
     activeMicBtn.title = "음성 입력";
+
+    // 버튼 내부 아이콘을 강제로 마이크 SVG로 되돌림
+    activeMicBtn.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"         stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        <line x1="12" y1="19" x2="12" y2="23"></line>
+        <line x1="8" y1="23" x2="16" y2="23"></line>
+      </svg>
+    `;
   }
-  activeMicBtn = null;
+
   targetInputEl = null;
   autoSubmitAfterSTT = false;
 
@@ -165,6 +181,7 @@ function cleanupRecording() {
     micStream = null;
   }
 }
+
 
 export function bindMic(btn, input, autoSubmit = false) {
   if (!btn || !input) return;
