@@ -21,14 +21,27 @@ function pickSupportedMime() {
   return "";
 }
 
+// async function initMicStream() {
+//   return await navigator.mediaDevices.getUserMedia({
+//     audio: {
+//       echoCancellation: false,
+//       noiseSuppression: false,
+//       autoGainControl: false,
+//       channelCount: 1
+//     }
+//   });
+// }
+
 async function initMicStream() {
+  // 고품질 STT를 위한 오디오 설정
   return await navigator.mediaDevices.getUserMedia({
     audio: {
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-      channelCount: 1
-    }
+      channelCount: 1,
+      sampleRate: 48000,
+      echoCancellation: true, // 에코 제거
+      noiseSuppression: true, // 소음 제거
+      autoGainControl: true, // 자동 감도 조정
+    },
   });
 }
 

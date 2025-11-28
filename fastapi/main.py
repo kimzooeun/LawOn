@@ -74,7 +74,7 @@ class ReportRequest(BaseModel):
 
 class AudioPayload(BaseModel):
     audio_base64: str   # 브라우저에서 넘기는 base64 문자열
-    mime_type: str      # "audio/webm" 같은 MIME 타입
+    mime_type: Optional[str] = None      # "audio/webm" 같은 MIME 타입
 
 # [엔드포인트 추가] 최종 리포트 생성
 @app.post("/generate-report")
