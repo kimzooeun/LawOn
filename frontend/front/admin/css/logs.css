@@ -1,40 +1,48 @@
-/* 로그단 */ 
+/* 로그단 */
 /* 필터 박스 */
 .log-filter {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .filter-box {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-top: 10px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
-.filter-box input, .filter-box select {
-  padding: 8px 12px;
+.filter-box input,
+.filter-box select {
+  padding: 10px 14px;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 0.9em;
+  border: 1px solid #ddd;
+  font-size: 0.95em;
+  background-color: #fafafa;
 }
 
 .filter-box button {
-  background-color: #ff4da0;
+  background-color: #b08d57; /* 골드 */
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 8px 16px;
+  padding: 10px 20px;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .filter-box button:hover {
-  background-color: #e74393;
+  background-color: #9a7c4e;
 }
 
 .emotion {
   font-weight: 600;
-  color: #333;
+  color: #b08d57;
 }
 
 /* 모달 */
@@ -44,32 +52,37 @@
 
 .modal {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* 조금 더 진하게 */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 400px;
-  max-height: 80vh;
+  padding: 30px;
+  border-radius: 16px;
+  width: 500px;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
 .close-btn {
   position: absolute;
-  right: 16px;
-  top: 10px;
-  font-size: 22px;
+  right: 20px;
+  top: 15px;
+  font-size: 28px;
   cursor: pointer;
-  color: #555;
+  color: #aaa;
+  transition: 0.2s;
 }
 
 .close-btn:hover {

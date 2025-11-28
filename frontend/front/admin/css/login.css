@@ -1,6 +1,7 @@
 /* 관리자 로그인 페이지 */
 .login-page {
-  background: linear-gradient(135deg, #ffe9f4, #fff6fb);
+  /* 은은한 웜 그레이/화이트 톤 */
+  background: linear-gradient(135deg, #fdfbf7, #ffffff);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,75 +17,96 @@
 
 .login-card {
   background: #fff;
-  padding: 40px 30px;
+  padding: 50px 40px;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   text-align: center;
-  max-width: 360px;
+  max-width: 380px;
   width: 90%;
+  border: 1px solid #f0f0f0;
+  box-sizing: border-box; /* 카드 자체의 패딩 계산 포함 */
 }
 
 .login-logo {
-  width: 70px;
-  height: 70px;
-  margin-bottom: 10px;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  opacity: 0.9;
 }
 
 .login-card h1 {
   margin: 8px 0;
-  color: #ff4da0;
+  color: #b08d57; /* Gold */
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .login-sub {
-  color: #777;
-  margin-bottom: 24px;
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 0.95em;
 }
 
 #loginForm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  width: 100%; /* 폼 전체 너비 사용 */
 }
 
 #loginForm input {
-  padding: 10px 0px;
+  width: 100%; /* 부모(폼) 너비에 꽉 차게 */
+  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 (중요) */
+  padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   font-size: 1em;
   outline: none;
   transition: 0.2s;
+  background-color: #fafafa;
 }
 
 #loginForm input:focus {
-  border-color: #ff4da0;
+  border-color: #b08d57;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.1);
 }
 
 #loginBtn {
-  background-color: #ff4da0;
+  width: 100%; /* 버튼도 꽉 차게 */
+  box-sizing: border-box; /* 패딩 포함 */
+  background-color: #b08d57;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 14px;
+  font-size: 1em;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  margin-top: 10px;
 }
 
 #loginBtn:hover {
-  background-color: #e74393;
+  background-color: #9a7c4e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(176, 141, 87, 0.3);
 }
 
 .login-hint {
   font-size: 0.85em;
-  margin-top: 20px;
-  color: #555;
+  margin-top: 24px;
+  color: #888;
 }
 
 .login-hint a {
-  color: #4d88ff;
+  color: #666;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .login-hint a:hover {
   text-decoration: underline;
+  color: #b08d57;
 }
